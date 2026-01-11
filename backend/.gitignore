@@ -5,3 +5,4 @@ dev.db
 prisma/dev.db
 dist
 .env.local
+.env.example

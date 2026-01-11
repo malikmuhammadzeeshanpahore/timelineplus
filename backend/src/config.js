@@ -7,7 +7,7 @@ dotenv.config({ path: envPath });
 // fallback to .env
 dotenv.config();
 
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT || 4000);
 const JWT_SECRET = process.env.JWT_SECRET || 'replace-me';
 
 const SMTP_HOST = process.env.SMTP_HOST || 'smtp.hostinger.com';

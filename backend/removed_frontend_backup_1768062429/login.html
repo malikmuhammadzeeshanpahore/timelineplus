@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="https://fonts.googleapis.com/css?family=DM+Sans:400,500,700&display=swap" rel="stylesheet">
+  <title>Login - TimelinePlus</title>
+  <link href="/css/site.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div id="gradient"></div>
+  <header class="header container d-flex justify-content-between align-items-center">
+    <div class="brand"><img src="/logo.png" height="28"> <span>TimelinePlus</span></div>
+    <nav class="nav">
+      <a href="/dashboard.html">Home</a>
+      <a href="/tasks.html">Tasks</a>
+      <a href="/profile.html">Profile</a>
+      <a href="/login.html" class="cta">Login</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <div class="main-content">
+      <div class="company__info">
+        <h2>TimelinePlus</h2>
+        <p>Real manual tasks, secure OAuth linking, fast payouts.</p>
+      </div>
+      <div class="login_form">
+        <h2>Log In</h2>
+        <form id="loginForm">
+          <input class="form__input" placeholder="Email" name="email" type="email" required>
+          <input class="form__input" placeholder="Password" name="password" type="password" required>
+          <div style="display:flex;gap:10px;align-items:center"><button class="btn" type="submit">Log in</button> <a href="/register.html">Don't have an account? Register</a></div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <h4>Features</h4>
+      <p>Use your email and password to login. OAuth linking is available after login in Profile page.</p>
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container">© TimelinePlus 2026 • <a href="/about.html">About</a> • <a href="/terms.html">Terms</a> • <a href="/privacy.html">Privacy</a> • <a href="/contact.html">Contact</a></div>
+  </footer>
+
+  <div class="toast-container"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/common.js"></script>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const f = Object.fromEntries(new FormData(e.target));
+      const ok = await TP.login(f.email, f.password);
+      if(ok) location.href = '/dashboard.html';
+    });
+    TP.initToggles();
+  </script>
+</body>
+</html>

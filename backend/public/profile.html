@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Profile - TimelinePlus</title>
+<link href="https://cdn.remixicon.com/releases/v2.5.0/remixicon.css" rel="stylesheet">
+<link href="/css/site.css" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
+    <div class="nav container d-flex align-items-center">
+      <div class="brand"><img src="/logo.png"/><span class="label">TimelinePlus</span></div>
+      <nav class="navbar" aria-label="Main navigation">
+        <a href="/services.html"><i class="ri-briefcase-4-line"></i><span class="nav-label">Services</span></a>
+        <a href="/orders.html"><i class="ri-shopping-cart-line"></i><span class="nav-label">Active Campaigns</span></a>
+        <a href="/support.html"><i class="ri-question-line"></i><span class="nav-label">Support</span></a>
+      </nav>
+      <div class="right" style="margin-left:auto"><div id="userPanel"></div></div>
+    </div>
+  </header>
+
+  <main class="site-main">
+    <div class="content">
+      <div class="card">
+        <h3>Contributor Profile</h3>
+        <p class="small">Account details and settings.</p>
+        <div style="margin-top:12px">
+          <p><strong>Name:</strong> <span id="pf-name">—</span></p>
+          <p><strong>Username:</strong> <span id="pf-username">—</span></p>
+          <p><strong>Email:</strong> <span id="pf-email">—</span></p>
+          <p><strong>Current Balance:</strong> $<span id="pf-balance">—</span></p>
+        </div>
+        <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px">
+          <a class="btn-primary" href="/orders.html"><i class="ri-history-line"></i> History</a>
+          <a class="btn-primary" href="/withdrawal-details.html"><i class="ri-wallet-line"></i> Withdrawal Account Details</a>
+          <a class="btn-primary" href="/profile.html"><i class="ri-user-line"></i> Account Details</a>
+          <a class="btn-primary" href="/download.html"><i class="ri-smartphone-line"></i> Download App</a>
+          <button class="btn-primary" id="btnLogout"><i class="ri-logout-box-line"></i> Logout</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h3>Social Accounts</h3>
+        <p class="small">Link your Google and Facebook accounts for quick sign-in and integrations.</p>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-outline" id="link-google"><i class="ri-google-line"></i> Link Google</button>
+          <button class="btn-outline" id="link-facebook"><i class="ri-facebook-line"></i> Link Facebook</button>
+          <button class="btn-outline" id="refresh-social"><i class="ri-refresh-line"></i> Refresh</button>
+        </div>
+        <div id="socialList" style="margin-top:10px" class="small"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer style="text-align:center;padding:20px;color:rgba(255,255,255,0.6);">© TimelinePlus 2026</footer>
+  <script src="/js/site.js"></script>
+  <script src="/js/profile.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wallet - TimelinePlus</title>
+<link href="https://cdn.remixicon.com/releases/v2.5.0/remixicon.css" rel="stylesheet">
+<link href="/css/site.css" rel="stylesheet"></head>
+<body>
+<header class="header">
+  <div class="nav container d-flex align-items-center">
+    <div class="brand"><img src="/logo.png"/><span class="label">TimelinePlus</span></div>
+    <nav class="navbar" aria-label="Main navigation">
+      <a href="/services.html"><i class="ri-briefcase-4-line"></i><span class="nav-label">Services</span></a>
+      <a href="/orders.html"><i class="ri-shopping-cart-line"></i><span class="nav-label">Active Campaigns</span></a>
+      <a href="/support.html"><i class="ri-question-line"></i><span class="nav-label">Support</span></a>
+    </nav>
+    <div class="right" style="margin-left:auto"><a href="/orders.html" class="action">Orders</a><a href="/profile-buyer.html" class="action">Profile</a></div>
+  </div>
+</header>
+<main class="site-main container"><div class="card"><h3>Wallet</h3><p class="small">Balance: <strong>$<span id="wallet-balance">--</span></strong></p>
+<div style="margin-top:12px"><h4>Top up</h4><form id="topup-form"><input id="topup-amount" placeholder="Amount" type="number" min="1" step="0.01"/><button class="btn-primary">Top up</button></form></div>
+<div style="margin-top:12px"><h4>Withdraw</h4><p class="small">Withdraw to your linked bank or Payoneer/PayPal.</p>
+<form id="withdraw-form"><input id="withdraw-amount" placeholder="Amount" type="number" min="1" step="0.01"/><select id="withdraw-method"><option value="manual">Manual</option><option value="paypal">PayPal</option><option value="bank">Bank</option></select><input id="withdraw-details" placeholder="Details (bank or PayPal email)" type="text"/><button class="btn-outline">Request Withdraw</button></form></div></div></main>
+<script src="/js/wallet.js"></script>
+<script src="/js/site.js"></script>
+</body>
+</html>

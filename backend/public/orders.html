@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Orders - TimelinePlus</title>
+  <link href="/css/auth.css" rel="stylesheet">
+  <link href="/css/site.css" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
+    <div class="nav container d-flex align-items-center">
+      <div class="brand"><img src="/logo.png"/><span class="label">TimelinePlus</span></div>
+      <nav class="navbar" aria-label="Main navigation">
+        <a href="/services.html"><i class="ri-briefcase-4-line"></i><span class="nav-label">Services</span></a>
+        <a href="/orders.html"><i class="ri-shopping-cart-line"></i><span class="nav-label">Active Campaigns</span></a>
+        <a href="/support.html"><i class="ri-question-line"></i><span class="nav-label">Support</span></a>
+      </nav>
+      <div class="right" style="margin-left:auto"><div id="userPanel"></div></div>
+    </div>
+  </header>
+  <main class="site-main"><div class="card"><h3>Orders</h3><p class="small">Your recent orders and their statuses.</p>
+  <table class="table"><thead><tr><th>Order</th><th>Service</th><th>Amount</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr><td>#ORD-1041</td><td>Subscribers (1k)</td><td>$9.99</td><td><span class="status success">Completed</span></td></tr>
+    <tr><td>#ORD-1105</td><td>Watch Time (10k)</td><td>$29.99</td><td><span class="status pending">Pending</span></td></tr>
+  </tbody></table>
+  </div></main>
+  <footer style="text-align:center;padding:20px;color:rgba(255,255,255,0.6);">© TimelinePlus 2026</footer>
+  <script src="/js/site.js"></script>
+</body>
+</html>

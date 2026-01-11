@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Forgot Password - TimelinePlus</title>
+  <link href="/css/auth.css" rel="stylesheet">
+</head>
+<body>
+  <div class="content">
+    <h2>Reset Password</h2>
+    <form id="forgotForm">
+      <div class="input-box">
+        <input type="email" name="email" placeholder="Your email" required />
+        <i class="ri-mail-fill"></i>
+      </div>
+      <button class="btnn" type="submit">Send Reset Link</button>
+    </form>
+  </div>
+  <script>
+    document.getElementById('forgotForm')?.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      alert('Forgot password flow not connected yet.');
+    });
+  </script>
+</body>
+</html>

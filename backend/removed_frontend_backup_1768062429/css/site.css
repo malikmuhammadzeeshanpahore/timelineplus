@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css?family=DM+Sans:400,500,700&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Quicksand:400,500,700&subset=latin-ext');
+
+:root{
+  --brand-primary:#29b5a8;
+  --brand-secondary:#ff8300;
+  --dark-font: #0f0f10;
+  --light-font: #79798c;
+}
+
+html, body { height: 100%; margin: 0; padding: 0; font-family: 'DM Sans', 'Quicksand', sans-serif; background-image: linear-gradient(to top, #a3bded 0%, #6991c7 100%); background-position: center; background-size: cover; color: var(--dark-font); overflow: hidden; }
+
+body { display: flex; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
+
+/* Gradient background container */
+#gradient{position:fixed;left:0;top:0;width:100%;height:100%;z-index:-1}
+
+/* Header */
+.header{background:rgba(255,255,255,0.03);backdrop-filter:blur(6px);position:sticky;top:0;padding:12px;border-bottom:1px solid rgba(255,255,255,0.04);z-index:50}
+.header .brand{font-weight:700;color:var(--brand-primary);display:flex;align-items:center;gap:8px}
+.header .nav{display:flex;gap:16px;align-items:center}
+.header a{color:#e6eef2;text-decoration:none}
+.header a.cta{background:var(--brand-primary);color:#fff;padding:8px 12px;border-radius:8px}
+
+/* Footer fixed at end spacing */
+.footer{padding:28px 12px;text-align:center;border-top:1px solid rgba(255,255,255,0.04);background:rgba(0,0,0,0.2);position:relative;margin-top:40px}
+
+/* Cards and content */
+.container{max-width:1100px;margin:40px auto;padding:0 16px}
+.card{background:rgba(255,255,255,0.03);padding:20px;border-radius:12px;margin-bottom:20px}
+.h1{font-size:28px;color:var(--brand-primary)}
+
+/* Login/Register */
+.main-content{width:60%;border-radius:20px;box-shadow:0 12px 40px rgba(14,30,60,0.25);margin:4em auto;display:flex;overflow:hidden}
+.company__info{background:linear-gradient(135deg,#6166fe 0%, #3275f7 100%);padding:2.5em;display:flex;flex-direction:column;justify-content:center;color:#fff;width:35%;background-image:linear-gradient(135deg,#6166fe 0%, #3275f7 100%);box-shadow: inset 0 -8px 24px rgba(0,0,0,0.06)}
+.company__info h2{font-size:24px;margin:0 0 6px}
+.company__info p{opacity:.95;margin:0}
+.login_form{background:#fff;color:#222;padding:2em;width:65%;border-radius:14px}
+.login_form h2{color:var(--dark-font);margin-bottom:12px}
+.form__input{width:100%;border:0;border-bottom:1px solid #eee;padding:14px;margin:14px 0;font-size:14px;border-radius:6px}
+.btn{display:inline-block;background:linear-gradient(90deg,#6166fe,#3275f7);padding:10px 18px;border-radius:12px;color:#fff;font-weight:700;border:none;box-shadow:0 8px 20px rgba(50,115,247,0.12);cursor:pointer}
+.btn:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(50,115,247,0.18)}
+
+/* Role selector (freelancer / buyer) */
+.role-selector{display:flex;gap:10px;margin-bottom:12px}
+.role-pill{padding:8px 12px;border-radius:999px;background:#f5f7ff;color:var(--dark-font);border:1px solid rgba(34,34,34,0.03);cursor:pointer;transition:all .15s;font-size:13px}
+.role-pill.active{background:linear-gradient(90deg,#6166fe,#3275f7);color:#fff;box-shadow:0 8px 18px rgba(50,115,247,0.12);border-color:rgba(0,0,0,0.06)}
+
+/* Small helpers for access links and icons */
+.access-link-wrapper .access-icon{border-radius:12px;padding:18px;display:flex;align-items:center;justify-content:center}
+.access-link-wrapper .access-text{margin-top:8px}
+
+/* subtle image overlay adjustments */
+.image-overlay{background:linear-gradient(0deg, rgba(0,16,34,0.6) 0%, rgba(240,244,253,0.08) 90%)}
+
+/* mobile adjustments */
+@media screen and (max-width:900px){.main-content{width:92%;flex-direction:column}.company__info{display:none;width:100%}.login_form{width:100%}}
+
+/* Toggles */
+.btn-toggle{position:relative;border:none;width:72px;height:36px;border-radius:36px;background:#ddd;cursor:pointer}
+.btn-toggle .handle{position:absolute;left:4px;top:4px;width:28px;height:28px;border-radius:28px;background:#fff;transition:left .2s}
+.btn-toggle.active{background:var(--brand-primary)}
+.btn-toggle.active .handle{left:40px}
+
+/* Slider (news) basic */
+.news-slider{max-width:1000px;margin:0 auto}
+.news__item{display:block;padding:24px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));color:#fff}
+.news__img img{width:100%;border-radius:8px}
+
+/* Toast container */
+.toast-container{position:fixed;top:16px;right:16px;z-index:1060}
+
+@media screen and (max-width:900px){.main-content{width:90%;flex-direction:column}.company__info{display:none;width:100%}.login_form{width:100%}}
+
+/* ---- Simplified App UI (minimal styles) ---- */
+
+/* Hide animated gradient element; use a clean static background */
+#gradient{display:none}
+
+.app-container{position:relative;border-radius:8px;width:100%;max-width:1100px;background:#fff;box-shadow:0 6px 24px rgba(12,28,56,0.06);display:flex;overflow:hidden;border:1px solid rgba(18,18,18,0.04);margin:24px 0}
+
+/* Left nav simplified */
+.app-container .left-area{padding:18px;flex-basis:140px;background:transparent;display:flex;flex-direction:column;align-items:center;position:relative}
+.app-container .app-name{font-weight:700;font-size:14px;margin-bottom:18px;color:var(--dark-font)}
+.app-container .item-link{color:#9aa0b4;margin-bottom:16px;transition:color .12s}
+.app-container .item-link.active{color:var(--brand-primary)}
+.app-container .btn-logout{border:none;background:transparent;color:#9aa0b4;margin-top:auto;cursor:pointer}
+
+/* Main content area */
+.app-container .main-area{flex:1;height:100%;overflow-y:auto;background:transparent;padding:20px}
+.app-container .main-area-header{padding:12px 20px;border-bottom:1px solid rgba(16,24,40,0.04);display:flex;align-items:center}
+.app-container .search-wrapper{border-radius:6px;background:#f7f9fb;padding-right:8px;height:40px;display:flex;align-items:center;color:#748099}
+.app-container .search-input{border:none;flex:1;outline:none;height:100%;padding:0 12px;font-size:13px;background:transparent}
+
+/* Right area simplified */
+.app-container .right-area{flex-basis:260px;flex-grow:0;background:transparent;padding:18px;overflow:auto;border-left:1px solid rgba(16,24,40,0.03)}
+
+/* Small controls */
+.btn-show-left-area,.btn-show-right-area{display:none}
+.btn-close-left,.btn-close-right{display:none}
+
+.section-header{font-size:20px;line-height:28px;margin-bottom:12px;color:var(--dark-font)}
+.section-header-wrapper{display:flex;align-items:center;justify-content:space-between}
+.access-links{display:flex;gap:12px;flex-wrap:wrap}
+.access-link-wrapper{display:flex;flex-direction:column;padding:6px;align-items:center}
+.access-text{color:#59677a;font-size:13px}
+
+/* Cards compact */
+.card{background:#fff;border-radius:8px;padding:16px;border:1px solid rgba(16,24,40,0.04);box-shadow:none}
+
+/* Buttons - flat */
+.btn{display:inline-block;background:var(--brand-primary);padding:8px 14px;border-radius:8px;color:#fff;font-weight:700;border:none}
+.btn:hover{opacity:.95;transform:none}
+
+/* Files table simplified */
+.files-table{background:transparent;border-radius:6px;padding:0}
+.table-cell{padding:10px 8px;border-bottom:1px solid rgba(16,24,40,0.03)}
+
+/* small helpers */
+.hidden{display:none!important}
+
+@media screen and (max-width:900px){
+  .app-container{flex-direction:column}
+  .app-container .left-area{flex-direction:row;gap:8px;padding:12px}
+  .app-container .right-area{border-left:0;border-top:1px solid rgba(16,24,40,0.03)}
+}

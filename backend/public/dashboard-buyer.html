@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Client Control Panel - TimelinePlus | Social Media Marketing Services</title>
+  <meta name="description" content="Professional digital marketing engagement solutions">
+  <meta name="keywords" content="YouTube watchtime, Instagram followers, Facebook engagement, social media marketing services">
+  <link href="https://cdn.remixicon.com/releases/v2.5.0/remixicon.css" rel="stylesheet">
+  <link href="/css/auth.css" rel="stylesheet">
+  <link href="/css/site.css" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
+    <div class="nav container d-flex align-items-center">
+      <div class="brand"><img src="/logo.png"/><span class="label">TimelinePlus</span></div>
+      <nav class="navbar" aria-label="Main navigation">
+        <a href="/services.html"><i class="ri-briefcase-4-line"></i><span class="nav-label">Services</span></a>
+        <a href="/orders.html"><i class="ri-shopping-cart-line"></i><span class="nav-label">Active Campaigns</span></a>
+        <a href="/support.html"><i class="ri-question-line"></i><span class="nav-label">Support</span></a>
+      </nav>
+      <div class="right" style="margin-left:auto"><button class="btn-primary" id="ctaLaunchCampaign">Launch Campaign</button> <button class="btn-outline" data-action="logout">Logout</button></div>
+    </div>
+  </header>
+
+  <div class="content" style="max-width:1100px;margin:24px auto;">
+      <div>
+        <h2>Client Control Panel</h2>
+        <p class="small">Welcome to your Client Control Panel. Launch Campaigns, manage Marketing Plans, view Active Campaigns and Billing Summary.</p>
+      </div>
+      <div style="text-align:right">
+        <div style="margin-bottom:8px">Payment Balance: <strong>$<span id="buyer-wallet-balance">--</span></strong></div>
+        <div><button class="btn-primary" id="ctaLaunchCampaign">Launch Campaign</button> <button class="btn-outline" data-action="logout">Logout</button></div>
+      </div>
+    </header>
+
+    <div class="grid" style="margin-top:18px">
+      <main>
+        <div class="card">
+          <h3>Active Campaigns</h3>
+          <p class="small">Current Active Campaigns and their Campaign Progress.</p>
+          <table class="table" style="margin-top:10px"><thead><tr><th>Campaign</th><th>Progress</th><th>Client</th></tr></thead><tbody id="activeCampaignsList">
+            <tr><td>Starter Pack — 1k Subscribers</td><td><span class="status success">80% Complete</span></td><td>Self</td></tr>
+            <tr><td>Growth Pack — 5k Subscribers</td><td><span class="status pending">Pending</span></td><td>Self</td></tr>
+          </tbody></table>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3>Marketing Plans</h3>
+          <p class="small">Explore prebuilt Marketing Plans and assign them to campaigns.</p>
+          <div style="margin-top:10px"><a class="btn-primary" href="/services.html">View Marketing Plans</a></div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3>Billing Summary</h3>
+          <p class="small">Recent invoices and a quick Billing Summary.</p>
+          <div style="margin-top:8px">
+            <div class="small">Invoice #INV-1105 — <strong>$29.99</strong> — <span class="status success">Paid</span></div>
+            <div class="small" style="margin-top:6px">Invoice #INV-1112 — <strong>$119.99</strong> — <span class="status pending">Due</span></div>
+            <div style="margin-top:10px"><a class="btn-outline" href="/orders.html">View Campaign Records</a></div>
+          </div>
+        </div>
+      </main>
+
+      <aside>
+        <div class="card">
+          <h3>Client Support</h3>
+          <p class="small">Need help? Submit a request to our Client Support team.</p>
+          <div style="margin-top:8px"><a class="btn-primary" href="/support.html">Open Client Support</a></div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3>Partner Invitation</h3>
+          <p class="small">Share your Partner Invitation link to onboard teammates.</p>
+          <div style="margin-top:8px"><input style="width:100%" value="https://timelineplus.example/ref/ABC123" readonly /></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="/js/site.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/wallet.js"></script>
+</body>
+</html>

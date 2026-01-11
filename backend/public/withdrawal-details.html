@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Withdrawal Account Details - TimelinePlus</title>
+<link href="https://cdn.remixicon.com/releases/v2.5.0/remixicon.css" rel="stylesheet">
+<link href="/css/site.css" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
+    <div class="nav container d-flex align-items-center">
+      <div class="brand"><img src="/logo.png"/><span class="label">TimelinePlus</span></div>
+      <nav class="navbar" aria-label="Main navigation">
+        <a href="/services.html"><i class="ri-briefcase-4-line"></i><span class="nav-label">Services</span></a>
+        <a href="/orders.html"><i class="ri-shopping-cart-line"></i><span class="nav-label">Active Campaigns</span></a>
+        <a href="/support.html"><i class="ri-question-line"></i><span class="nav-label">Support</span></a>
+      </nav>
+      <div class="right" style="margin-left:auto"><div id="userPanel"></div></div>
+    </div>
+  </header>
+
+  <main class="site-main">
+    <div class="content">
+      <div class="card">
+        <h3>Withdrawal Account Details</h3>
+        <p class="small">Save your payout account details. Supported Account Types: JazzCash, EasyPaisa.</p>
+        <form id="wdForm" style="margin-top:12px;display:flex;flex-direction:column;gap:8px;">
+          <input id="accHolder" placeholder="Account Holder Name" />
+          <select id="accType"><option value="jazzcash">JazzCash</option><option value="easypaisa">EasyPaisa</option></select>
+          <input id="accNumber" placeholder="Account Number" />
+          <button class="btn-primary" type="submit">Save Info</button>
+        </form>
+        <div id="savedMsg" style="margin-top:8px" class="small"></div>
+      </div>
+    </div>
+  </main>
+  <script src="/js/site.js"></script>
+  <script src="/js/withdrawal.js"></script>
+</body>
+</html>

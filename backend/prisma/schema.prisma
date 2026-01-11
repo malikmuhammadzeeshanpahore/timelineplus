@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int                 @id @default(autoincrement())
+  email     String              @unique
+  username  String?
+  photo     String?
+  password  String?             // null for OAuth-only accounts
+  isAdmin   Boolean             @default(false)
+  isBanned  Boolean             @default(false)
+  emailVerified Boolean         @default(false)
+  failedLoginAttempts Int       @default(0)
+  lockedUntil DateTime?
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  social    UserSocialAccount[]
+  withdrawals WithdrawRequest[]
+  walletTransactions WalletTransaction[]
+  taskProofs TaskProof[]
+  referralsAsReferrer Referral[] @relation("Referrer")
+  referralsAsReferee Referral[] @relation("Referee")
+  notifications Notification[]
+  adminLogs AdminLog[]
+}
+
+model Task {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  category    String?
+  price       Int       // cents
+  quantity    Int       @default(1)
+  expiryAt    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  proofs TaskProof[]
+}
+
+model TaskProof {
+  id        Int      @id @default(autoincrement())
+  task      Task     @relation(fields: [taskId], references: [id])
+  taskId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  proofUrl  String
+  notes     String?
+  status    String   @default("pending")
+  reason    String?
+  createdAt DateTime @default(now())
+  reviewedAt DateTime?
+}
+
+model Referral {
+  id        Int      @id @default(autoincrement())
+  referrer  User     @relation("Referrer", fields: [referrerId], references: [id])
+  referrerId Int
+  referee   User     @relation("Referee", fields: [refereeId], references: [id])
+  refereeId Int
+  bonus     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  meta      String?
+  createdAt DateTime @default(now())
+}
+
+model AdminLog {
+  id        Int      @id @default(autoincrement())
+  admin     User     @relation(fields: [adminId], references: [id])
+  adminId   Int
+  action    String
+  meta      String?
+  createdAt DateTime @default(now())
+}
+
+model UserSocialAccount {
+  id             Int      @id @default(autoincrement())
+  user           User     @relation(fields: [userId], references: [id])
+  userId         Int
+  provider       String
+  providerUserId String
+  accessToken    String?
+  refreshToken   String?
+  scope          String?
+  status         String   @default("linked")
+  syncAt         DateTime?
+  createdAt      DateTime @default(now())
+  @@unique([provider, providerUserId])
+}
+
+model WithdrawRequest {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  amount     Int
+  method     String
+  details    String?  // e.g., bank details or manual notes
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model WalletTransaction {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  amount    Int
+  type      String
+  meta      String?
+  createdAt DateTime @default(now())
+}

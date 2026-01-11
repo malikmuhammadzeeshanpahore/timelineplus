@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Contributor Dashboard - TimelinePlus | Social Media Marketing Services</title>
+  <meta name="description" content="Professional digital marketing engagement solutions">
+  <meta name="keywords" content="YouTube watchtime, Instagram followers, Facebook engagement, social media marketing services">
+  <link href="https://cdn.remixicon.com/releases/v2.5.0/remixicon.css" rel="stylesheet">
+  <link href="/css/auth.css" rel="stylesheet">
+  <link href="/css/site.css" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
+    <div class="nav container d-flex align-items-center">
+      <div class="brand"><img src="/logo.png"/><span class="label">TimelinePlus</span></div>
+      <nav class="navbar" aria-label="Main navigation">
+        <a href="/services.html"><i class="ri-briefcase-4-line"></i><span class="nav-label">Services</span></a>
+        <a href="/orders.html"><i class="ri-shopping-cart-line"></i><span class="nav-label">Active Campaigns</span></a>
+        <a href="/support.html"><i class="ri-question-line"></i><span class="nav-label">Support</span></a>
+      </nav>
+      <div class="right" style="margin-left:auto"><a class="btn-outline" data-action="logout">Logout</a></div>
+    </div>
+  </header>
+
+  <div class="content" style="max-width:1100px;margin:24px auto;">
+      <div>
+        <h2>Contributor Dashboard</h2>
+        <p class="small">Welcome to your Contributor Dashboard. Browse Available Campaign Tasks, Join Campaigns, Submit Engagement URLs and view your Completed Activities and Performance Score.</p>
+      </div>
+      <div style="text-align:right">
+        <div style="margin-bottom:6px">Rewards Wallet: <strong>$<span id="contrib-wallet-balance">--</span></strong></div>
+        <div>Performance Score: <strong id="performanceScore">—</strong></div>
+        <div style="margin-top:8px"><button class="btn-outline" data-action="logout">Logout</button></div>
+      </div>
+    </header>
+
+    <div class="grid" style="margin-top:18px">
+      <main>
+        <div class="card">
+          <h3>Available Campaign Tasks</h3>
+          <p class="small">Select tasks and Join Campaign to start contributing.</p>
+          <ul id="tasksList" style="margin-top:10px"></ul>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3>Completed Activities</h3>
+          <p class="small">Your recent submissions and statuses.</p>
+          <div id="completedActivities" style="margin-top:8px"><em class="small">No activities yet.</em></div>
+        </div>
+      </main>
+
+      <aside>
+        <div class="card">
+          <h3>Rewards Wallet</h3>
+          <p class="small">Request Payouts from your Rewards Wallet when your balance is sufficient.</p>
+          <div style="margin-top:8px">
+            <form id="contrib-withdraw-form"><input id="contrib-withdraw-amount" placeholder="Amount" type="number" min="1" step="0.01"/><select id="contrib-withdraw-method"><option value="manual">Manual</option><option value="paypal">PayPal</option><option value="bank">Bank</option></select><input id="contrib-withdraw-details" placeholder="Details (bank or PayPal email)" type="text" style="margin-top:8px"/><button class="btn-primary" style="margin-top:8px">Request Payout</button></form>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3>Activity Alerts</h3>
+          <p class="small">Stay updated with moderator feedback and platform messages.</p>
+          <div style="margin-top:8px"><a class="btn-outline" href="/support.html">Open Help Desk</a></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="/js/site.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/wallet.js"></script>
+  <script src="/js/contributor.js"></script>
+</body>
+</html>

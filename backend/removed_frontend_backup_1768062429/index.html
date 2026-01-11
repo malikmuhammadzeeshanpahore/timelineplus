@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Social Media Marketing Services Platform – TimelinePlus</title>
+  <meta name="description" content="TimelinePlus provides real social media marketing services including Instagram followers, YouTube subscribers, watch time and promotion tools. Grow your brand faster today." />
+  <meta property="og:title" content="Social Media Marketing Services Platform – TimelinePlus" />
+  <meta property="og:description" content="TimelinePlus provides real social media marketing services including Instagram followers, YouTube subscribers, watch time and promotion tools. Grow your brand faster today." />
+  <meta property="og:image" content="https://timelineplus.site/logo.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css?family=DM+Sans:400,500,700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+  <style>
+    body { padding-top: 70px; }
+    .nav-link{ cursor:pointer }
+    /* Sticky icon header like Facebook */
+    .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1030; background: #fff; border-bottom: 1px solid #e6e6e6; }
+    .topbar .brand { font-weight: 600; display:flex; align-items:center }
+    .topbar .brand img { height:34px; margin-right:8px }
+    .topbar .icon-menu { display:flex; gap:12px; align-items:center }
+    .topbar .icon-menu a { color:#333; padding:10px; border-radius:6px }
+    .topbar .icon-menu a:hover{ background:#f5f5f5; text-decoration:none }
+  </style>
+</head>
+<body>
+  <header class="topbar shadow-sm">
+    <div class="container d-flex align-items-center justify-content-between py-2">
+      <div class="d-flex align-items-center gap-3">
+        <a class="brand d-flex align-items-center" href="#dashboard" data-route="dashboard"><img src="/logo.png" alt="TimelinePlus"> <span>TimelinePlus</span></a>
+        <div class="d-none d-md-block">
+          <input class="form-control" style="width:360px" placeholder="Search TimelinePlus" id="search-input">
+        </div>
+      </div>
+      <div class="icon-menu">
+        <a href="#dashboard" data-route="dashboard" title="Home"><i class="ri-home-4-line ri-xl"></i></a>
+        <a href="#tasks" data-route="tasks" title="Tasks"><i class="ri-play-circle-line ri-xl"></i></a>
+        <a href="#profile" data-route="profile" title="Profile"><i class="ri-user-line ri-xl"></i></a>
+        <a href="#wallet" data-route="wallet" title="Wallet"><i class="ri-wallet-line ri-xl"></i></a>
+        <a id="btn-login" title="Login"><i class="ri-login-box-line ri-xl"></i></a>
+        <a id="btn-register" title="Register"><i class="ri-user-add-line ri-xl"></i></a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" id="app">
+    <meta http-equiv="refresh" content="0; url=/dashboard.html">
+    <p>If you are not redirected automatically, <a href="/dashboard.html">click here to go to Dashboard</a>.</p>
+  </main>
+
+  <footer class="bg-light py-4 mt-5">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <a class="me-3 text-muted" href="#about" data-route="about"><i class="ri-information-line"></i> About</a>
+        <a class="me-3 text-muted" href="#terms" data-route="terms"><i class="ri-file-text-line"></i> Terms</a>
+        <a class="me-3 text-muted" href="#privacy" data-route="privacy"><i class="ri-lock-2-line"></i> Privacy</a>
+        <a class="text-muted" href="#contact" data-route="contact"><i class="ri-mail-line"></i> Contact</a>
+      </div>
+      <div class="text-muted">© TimelinePlus 2026</div>
+    </div>
+  </footer>
+
+  <div id="page-about" class="d-none container mt-4">
+    <h3>About TimelinePlus</h3>
+    <p>TimelinePlus is a legal social media marketing services platform connecting buyers and workers through manual task completion and secure OAuth linking.</p>
+    <p>We built TimelinePlus to provide transparent and manual social engagement services that respect platform policies and user privacy. Buyers can create campaigns with clear task requirements and Workers can complete tasks and submit proof. Admins review all submissions to ensure eligibility and honest payouts.</p>
+    <p>All features are manual and human-driven; automation, scraping, or credential sharing is strictly prohibited. We use OAuth read-only linking where available to verify accounts without ever storing your passwords.</p>
+  </div>
+
+  <div id="page-terms" class="d-none container mt-4">
+    <h3>Terms of Service</h3>
+    <p>By using TimelinePlus, you agree to follow our community and platform rules. You must not use bots, scraping tools, or share account credentials. Tasks must be completed manually and truthfully.</p>
+    <p>TimelinePlus reserves the right to suspend or ban accounts that violate these terms, or that otherwise attempt to manipulate outcomes unfairly. Withdrawals are subject to admin review and may be delayed for verification.</p>
+  </div>
+
+  <div id="page-privacy" class="d-none container mt-4">
+    <h3>Privacy Policy</h3>
+    <p>We collect minimal personal information required to operate the service, such as email, username, and transaction records. When you link a social account using OAuth, we only request read-only profile information necessary to validate proofs.</p>
+    <p>We never ask for or store your social account passwords. Your data is used for platform operation, payments, and support; we do not share personal data with third parties except when required by law.</p>
+  </div>
+
+  <div id="page-contact" class="d-none container mt-4">
+    <h3>Contact</h3>
+    <p>Support: support@timelineplus.site</p>
+    <p>For business inquiries and safety reports, email support@timelineplus.site and include relevant details so our team can respond promptly.</p>
+  </div>
+
+  <!-- Login/Register modal simple -->
+  <div class="modal fade" id="authModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 id="authModalTitle">Login</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <form id="authForm">
+            <div id="authMsg" class="mb-2 text-danger"></div>
+            <div class="mb-2"><input class="form-control" name="username" placeholder="Username (optional)"></div>
+            <div class="mb-2"><input class="form-control" name="email" placeholder="Email"></div>
+            <div class="mb-2"><input class="form-control" name="password" placeholder="Password" type="password"></div>
+            <div class="d-grid"><button class="btn btn-primary">Submit</button></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

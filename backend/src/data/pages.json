@@ -1,0 +1,22 @@
+{
+  "about": {
+    "title": "About TimelinePlus",
+    "description": "About TimelinePlus - legal social media marketing services.",
+    "body": "<p>TimelinePlus is a legal social media marketing services platform connecting buyers and workers through manual task completion and secure OAuth linking.</p><p>We provide transparent workflows: buyers create campaigns, workers follow instructions and submit proof, and admins manually review proofs for eligibility before crediting wallets and approving withdrawals.</p><p>Automation, scraping, or credential sharing is strictly prohibited. We use OAuth read-only linking where available to verify accounts without storing passwords.</p>"
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "description": "Terms of service for TimelinePlus.",
+    "body": "<p>By using TimelinePlus, you agree to follow our platform rules. You must not use bots, scraping tools, or share account credentials. Tasks must be completed manually and honestly.</p><p>TimelinePlus may suspend or ban accounts that violate these terms. Withdrawals and transactions are subject to admin review.</p>"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "description": "Privacy policy and data handling at TimelinePlus.",
+    "body": "<p>We collect minimal personal information required to operate the service (email, username, transaction records). When you link a social account using OAuth, we only request read-only profile information necessary to validate proofs.</p><p>We never ask for or store social account passwords. Data is used for platform operation, payments, and support; we do not share personal data with third parties except when required by law.</p>"
+  },
+  "contact": {
+    "title": "Contact TimelinePlus",
+    "description": "Contact support for TimelinePlus.",
+    "body": "<p>Support: support@timelineplus.site</p><p>For business or safety reports, email support@timelineplus.site and include relevant information so our team can respond promptly.</p>"
+  }
+}

@@ -53,4 +53,21 @@ router.get('/withdraws', async (req, res) => {
   res.json({ list });
 });
 
+// For admin: list unassigned tasks
+router.get('/tasks/unassigned', async (req, res) => {
+  const tasks = await prisma.task.findMany({ where: { assignedToId: null }, orderBy: { createdAt: 'desc' } });
+  res.json({ tasks });
+});
+
+// Assign a Task to a user (admin only)
+router.post('/task/:id/assign', async (req, res) => {
+  const id = Number(req.params.id);
+  const { userId, adminId } = req.body;
+  if (!userId) return res.status(400).send('userId required');
+  const task = await prisma.task.update({ where: { id }, data: { assignedToId: Number(userId), assignedAt: new Date() } }).catch(() => null);
+  if (!task) return res.status(404).send('task not found');
+  require('../services/utils').logAdmin(Number(adminId || 0), 'assign_task', { taskId: id, assignedTo: Number(userId) }).catch(console.error);
+  res.json({ success: true, task });
+});
+
 module.exports = router;

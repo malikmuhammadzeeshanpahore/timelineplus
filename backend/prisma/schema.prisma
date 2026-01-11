@@ -28,6 +28,7 @@ model User {
   referralsAsReferee Referral[] @relation("Referee")
   notifications Notification[]
   adminLogs AdminLog[]
+  assignedTasks Task[]
 }
 
 model Task {
@@ -38,6 +39,9 @@ model Task {
   price       Int       // cents
   quantity    Int       @default(1)
   expiryAt    DateTime?
+  assignedTo   User?     @relation(fields: [assignedToId], references: [id])
+  assignedToId Int?
+  assignedAt  DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   proofs TaskProof[]

@@ -60,7 +60,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
       else{
         completed.innerHTML = '';
         proofs.forEach(p=>{
-          const d = document.createElement('div'); d.className='small'; d.style.marginBottom='8px'; d.innerHTML = `Task #${p.taskId} — <strong>${p.status}</strong> — <a href="${p.proofUrl}" target="_blank">View Verification</a>`; completed.appendChild(d);
+          const d = document.createElement('div'); d.className='small'; d.style.marginBottom='8px';
+          const link = p.proofUrl ? ` — <a href="${p.proofUrl}" target="_blank">View Verification</a>` : '';
+          d.innerHTML = `Task #${p.taskId} — <strong>${p.status}</strong>${link}`;
+          completed.appendChild(d);
         });
       }
     }catch(err){ console.error(err); }

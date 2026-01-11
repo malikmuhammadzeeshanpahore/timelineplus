@@ -6,8 +6,9 @@ const prisma = new PrismaClient();
 const router = express.Router();
 
 // List tasks with simple filters
+// Only show tasks that have been assigned by an admin (assignedToId != null)
 router.get('/', async (req, res) => {
-  const tasks = await prisma.task.findMany();
+  const tasks = await prisma.task.findMany({ where: { assignedToId: { not: null } } });
   res.json({ tasks });
 });
 
@@ -41,7 +42,8 @@ router.post('/admin/proof/:id/review', async (req, res) => {
   const proof = await prisma.taskProof.findUnique({ where: { id } });
   if (!proof) return res.status(404).send('not found');
   if (action === 'approve') {
-    await prisma.taskProof.update({ where: { id }, data: { status: 'approved', reviewedAt: new Date() } });
+    // Approve and remove the external verification link to prevent exposing it after completion
+    await prisma.taskProof.update({ where: { id }, data: { status: 'approved', reviewedAt: new Date(), proofUrl: '' } });
     const task = await prisma.task.findUnique({ where: { id: proof.taskId } });
     if (task) {
       await prisma.walletTransaction.create({ data: { userId: proof.userId, amount: task.price, type: 'service_reward', meta: `task:${task.id}` } });

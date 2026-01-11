@@ -9,6 +9,11 @@ router.get('/oauth/:provider', (req, res, next) => {
   const { provider } = req.params;
   if (!['google', 'facebook'].includes(provider)) return res.status(400).send('Unsupported provider');
 
+  // fail early if passport strategy isn't configured
+  if (!passport._strategy || !passport._strategy(provider)) {
+    return res.status(400).send(`${provider} OAuth is not configured on this server`);
+  }
+
   const scopes = {
     google: ['profile', 'email', 'https://www.googleapis.com/auth/youtube.readonly'],
     facebook: ['email', 'pages_show_list'],
@@ -21,6 +26,11 @@ router.get('/oauth/:provider', (req, res, next) => {
 router.get('/oauth/:provider/callback', (req, res, next) => {
   const { provider } = req.params;
   if (!['google', 'facebook'].includes(provider)) return res.status(400).send('Unsupported provider');
+
+  // fail early if passport strategy isn't configured
+  if (!passport._strategy || !passport._strategy(provider)) {
+    return res.status(400).send(`${provider} OAuth is not configured on this server`);
+  }
 
   passport.authenticate(provider, { session: true }, (err, user) => {
     if (err) return res.status(500).json({ error: err.message });

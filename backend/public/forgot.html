@@ -4,9 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Forgot Password - TimelinePlus</title>
+  <link href="https://cdn.remixicon.com/releases/v2.5.0/remixicon.css" rel="stylesheet">
   <link href="/css/auth.css" rel="stylesheet">
+  <link href="/css/site.css" rel="stylesheet">
 </head>
 <body>
+  <header class="header">
+    <div class="nav container d-flex align-items-center">
+      <div class="brand"><img src="/logo.png"/><span class="label">TimelinePlus</span></div>
+      <nav class="navbar" aria-label="Main navigation"><a href="/services.html"><i class="ri-briefcase-4-line"></i><span class="nav-label">Services</span></a><a href="/support.html"><i class="ri-question-line"></i><span class="nav-label">Support</span></a></nav>
+      <div class="right" style="margin-left:auto"><div id="userPanel"></div></div>
+    </div>
+  </header>
+  <main class="site-main">
   <div class="content">
     <h2>Reset Password</h2>
     <form id="forgotForm">
@@ -17,6 +27,7 @@
       <button class="btnn" type="submit">Send Reset Link</button>
     </form>
   </div>
+  </main>
   <script>
     document.getElementById('forgotForm')?.addEventListener('submit', async (e)=>{
       e.preventDefault();

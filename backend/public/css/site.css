@@ -1,6 +1,9 @@
 /* Site-wide styles: header, layout, cards, tables, responsive */
 :root{--brand:#0a2862;--accent:#6166fe;--muted:#748099;--bg-overlay:rgba(10,40,98,0.06)}
 
+/* Global background */
+body{background-image: url('/bg.png');background-size:cover;background-position:center;background-repeat:no-repeat;min-height:100vh}
+
 /* Header */
 .header{position:fixed;top:0;left:0;right:0;z-index:1000;background:transparent;backdrop-filter: blur(6px);padding:12px 20px}
 .header .nav{display:flex;gap:18px;align-items:center}

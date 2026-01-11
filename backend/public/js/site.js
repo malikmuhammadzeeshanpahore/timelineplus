@@ -29,6 +29,45 @@ document.addEventListener('DOMContentLoaded', ()=>{
       const menu = document.createElement('div'); menu.innerHTML = `<a href='/profile.html' class='btn-outline' style='margin-left:8px;padding:6px 10px;'>Profile</a> <button id='navLogout' class='btn-outline' style='margin-left:6px;padding:6px 10px;'>Logout</button>`;
       wrapper.appendChild(avatar); wrapper.appendChild(info); wrapper.appendChild(menu); panel.appendChild(wrapper);
       document.getElementById('navLogout')?.addEventListener('click', ()=>{ localStorage.removeItem('token'); localStorage.removeItem('role'); location.href='/login.html'; });
+
+      // set navigation menus after we know the role
+      setNavByRole();
     }catch(err){ console.error(err); }
   })();
+
+  // role-based navbar
+  function setNavByRole(){
+    const role = localStorage.getItem('role') || 'guest';
+    const navbars = document.querySelectorAll('.navbar');
+    navbars.forEach(nav=>{
+      if(role==='freelancer'){
+        nav.innerHTML = `
+          <a href="/dashboard-freelancer.html"><i class="ri-dashboard-2-line"></i><span class="nav-label">Dashboard</span></a>
+          <a href="/profile.html"><i class="ri-user-line"></i><span class="nav-label">Profile</span></a>
+          <a href="/wallet-buyer.html"><i class="ri-wallet-line"></i><span class="nav-label">Wallet</span></a>
+          <a href="/dashboard-freelancer.html#tasks"><i class="ri-list-check"></i><span class="nav-label">Tasks</span></a>
+          <a href="/support.html"><i class="ri-question-line"></i><span class="nav-label">Support</span></a>
+        `;
+      } else if(role==='buyer'){
+        nav.innerHTML = `
+          <a href="/dashboard-buyer.html"><i class="ri-dashboard-2-line"></i><span class="nav-label">Dashboard</span></a>
+          <a href="/services.html"><i class="ri-briefcase-4-line"></i><span class="nav-label">Services</span></a>
+          <a href="/orders.html"><i class="ri-shopping-cart-line"></i><span class="nav-label">Active Campaigns</span></a>
+          <a href="/wallet-buyer.html"><i class="ri-wallet-line"></i><span class="nav-label">Wallet</span></a>
+          <a href="/support.html"><i class="ri-question-line"></i><span class="nav-label">Support</span></a>
+        `;
+      } else {
+        // guest
+        nav.innerHTML = `
+          <a href="/services.html"><i class="ri-briefcase-4-line"></i><span class="nav-label">Services</span></a>
+          <a href="/support.html"><i class="ri-question-line"></i><span class="nav-label">Support</span></a>
+          <a href="/login.html"><i class="ri-user-line"></i><span class="nav-label">Login</span></a>
+        `;
+      }
+    });
+  }
+
+  // also call on initial load so guests see correct menu
+  setNavByRole();
+});
 });

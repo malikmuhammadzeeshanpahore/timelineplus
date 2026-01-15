@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "dev": "nodemon --watch src --ext js,json --exec node src/index.js",
-    "build": "echo \"No build step for pure JS backend\"",
+    "build": "node scripts/build.js",
     "start": "node src/index.js",
     "prisma:migrate": "prisma migrate dev --name init",
     "prisma:generate": "prisma generate",

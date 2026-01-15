@@ -15,11 +15,16 @@ body{background-image: url('/bg.png');background-size:cover;background-position:
 .header .right{margin-left:auto;display:flex;gap:8px;align-items:center}
 .header .right a.action{background:rgba(255,255,255,0.12);color:#fff;padding:8px 12px;border-radius:10px}
 
-/* Navbar inside header: icons + labels */
-.navbar{display:flex;gap:10px;align-items:center;margin-left:20px}
-.navbar a{display:flex;align-items:center;gap:8px;color:#fff;padding:8px 10px;border-radius:8px;font-weight:600}
+/* Navbar inside header: icons + labels (sticky with icon above label) */
+.navbar{display:flex;gap:12px;align-items:center;margin-left:20px}
+.navbar a{display:inline-flex;flex-direction:column;align-items:center;gap:6px;color:#fff;padding:10px;border-radius:10px;font-weight:600;min-width:72px}
+.navbar a i{font-size:20px}
+.navbar a .nav-label{font-size:12px;margin-left:0;display:block}
 .navbar a:hover{background:rgba(255,255,255,0.04)}
-.navbar .nav-label{font-size:13px;margin-left:4px}
+
+/* make header sticky with shadow on scroll */
+.header{position:sticky;top:0;left:0;right:0;z-index:1000;background:rgba(10,40,98,0.02);backdrop-filter: blur(6px);padding:10px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.12)}
+.header .nav{display:flex;gap:18px;align-items:center}
 
 /* user panel inside header */
 #userPanel{display:flex;align-items:center;gap:8px}

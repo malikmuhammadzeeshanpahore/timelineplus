@@ -42,26 +42,26 @@ document.addEventListener('DOMContentLoaded', ()=>{
     navbars.forEach(nav=>{
       if(role==='freelancer'){
         nav.innerHTML = `
-          <a href="/dashboard-freelancer.html"><i class="ri-dashboard-2-line"></i><span class="nav-label">Dashboard</span></a>
-          <a href="/profile.html"><i class="ri-user-line"></i><span class="nav-label">Profile</span></a>
-          <a href="/wallet-buyer.html"><i class="ri-wallet-line"></i><span class="nav-label">Wallet</span></a>
-          <a href="/dashboard-freelancer.html#tasks"><i class="ri-list-check"></i><span class="nav-label">Tasks</span></a>
-          <a href="/support.html"><i class="ri-question-line"></i><span class="nav-label">Support</span></a>
+          <a href="/dashboard"><i class="ri-dashboard-2-line"></i><span class="nav-label">Dashboard</span></a>
+          <a href="/profile"><i class="ri-user-line"></i><span class="nav-label">Profile</span></a>
+          <a href="/wallet"><i class="ri-wallet-line"></i><span class="nav-label">Wallet</span></a>
+          <a href="/dashboard#tasks"><i class="ri-list-check"></i><span class="nav-label">Tasks</span></a>
+          <a href="/support"><i class="ri-question-line"></i><span class="nav-label">Support</span></a>
         `;
       } else if(role==='buyer'){
         nav.innerHTML = `
-          <a href="/dashboard-buyer.html"><i class="ri-dashboard-2-line"></i><span class="nav-label">Dashboard</span></a>
-          <a href="/services.html"><i class="ri-briefcase-4-line"></i><span class="nav-label">Services</span></a>
-          <a href="/orders.html"><i class="ri-shopping-cart-line"></i><span class="nav-label">Active Campaigns</span></a>
-          <a href="/wallet-buyer.html"><i class="ri-wallet-line"></i><span class="nav-label">Wallet</span></a>
-          <a href="/support.html"><i class="ri-question-line"></i><span class="nav-label">Support</span></a>
+          <a href="/dashboard"><i class="ri-dashboard-2-line"></i><span class="nav-label">Dashboard</span></a>
+          <a href="/services"><i class="ri-briefcase-4-line"></i><span class="nav-label">Services</span></a>
+          <a href="/orders"><i class="ri-shopping-cart-line"></i><span class="nav-label">Campaigns</span></a>
+          <a href="/wallet"><i class="ri-wallet-line"></i><span class="nav-label">Wallet</span></a>
+          <a href="/support"><i class="ri-question-line"></i><span class="nav-label">Support</span></a>
         `;
       } else {
         // guest
         nav.innerHTML = `
-          <a href="/services.html"><i class="ri-briefcase-4-line"></i><span class="nav-label">Services</span></a>
-          <a href="/support.html"><i class="ri-question-line"></i><span class="nav-label">Support</span></a>
-          <a href="/login.html"><i class="ri-user-line"></i><span class="nav-label">Login</span></a>
+          <a href="/services"><i class="ri-briefcase-4-line"></i><span class="nav-label">Services</span></a>
+          <a href="/support"><i class="ri-question-line"></i><span class="nav-label">Support</span></a>
+          <a href="/login"><i class="ri-user-line"></i><span class="nav-label">Login</span></a>
         `;
       }
     });

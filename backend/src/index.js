@@ -53,8 +53,19 @@ const accountRoutes = require('./routes/account');
 app.use('/api/account', accountRoutes);
 app.use('/api/pages', pagesRoutes);
 
-// Serve static test page and frontend
-app.use(express.static('public'));
+// Serve built frontend when available (dist/) otherwise fallback to public/
+const path = require('path');
+const distPath = path.resolve(process.cwd(), 'dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static('dist'));
+  // fallback to index for client-side routes
+  app.get('/*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+} else {
+  app.use(express.static('public'));
+}
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 

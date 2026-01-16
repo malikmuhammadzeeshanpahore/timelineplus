@@ -1,6 +1,8 @@
 const passport = require('passport');
 const { Strategy: GoogleStrategy } = require('passport-google-oauth20');
 const { Strategy: FacebookStrategy } = require('passport-facebook');
+const axios = require('axios');
+const { generateAppSecretProof } = require('../utils/facebook');
 const { PrismaClient } = require('@prisma/client');
 const {
   GOOGLE_CLIENT_ID,
@@ -89,14 +91,23 @@ if (FACEBOOK_CLIENT_ID && FACEBOOK_CLIENT_SECRET) {
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
-          const email = profile.emails?.[0]?.value || `${profile.id}@facebook.local`;
+          // Some FB apps require appsecret_proof for server -> Graph API calls.
+          // Fetch profile directly using Graph API with appsecret_proof to avoid "appsecret_proof" errors.
+          const proof = generateAppSecretProof(accessToken);
+          const params = { access_token: accessToken, fields: 'id,name,email' };
+          if (proof) params.appsecret_proof = proof;
+          const resp = await axios.get('https://graph.facebook.com/me', { params });
+          const fb = resp.data;
+          const providerUserId = fb.id;
+          const email = fb.email || `${providerUserId}@facebook.local`;
+
           let user = await prisma.user.findUnique({ where: { email } });
           if (!user) {
-            user = await prisma.user.create({ data: { email, username: profile.displayName } });
+            user = await prisma.user.create({ data: { email, username: fb.name || profile.displayName } });
           }
 
           await prisma.userSocialAccount.upsert({
-            where: { provider_providerUserId: { provider: 'facebook', providerUserId: profile.id } },
+            where: { provider_providerUserId: { provider: 'facebook', providerUserId } },
             update: {
               accessToken,
               refreshToken,
@@ -106,7 +117,7 @@ if (FACEBOOK_CLIENT_ID && FACEBOOK_CLIENT_SECRET) {
             },
             create: {
               provider: 'facebook',
-              providerUserId: profile.id,
+              providerUserId,
               accessToken,
               refreshToken,
               status: 'linked',

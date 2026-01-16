@@ -1,7 +1,9 @@
 const express = require('express');
 const axios = require('axios');
+const crypto = require('crypto');
 const { PrismaClient } = require('@prisma/client');
 const { jwtMiddleware } = require('../middleware/auth');
+const { FACEBOOK_CLIENT_SECRET } = require('../config');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -10,7 +12,13 @@ router.post('/facebook', jwtMiddleware, async (req, res) => {
   const { accessToken } = req.body;
   if (!accessToken) return res.status(400).send('accessToken required');
   try {
-    const resp = await axios.get('https://graph.facebook.com/me', { params: { access_token: accessToken, fields: 'id,name,email' } });
+    // include appsecret_proof if FB app requires it (HMAC-SHA256 of access token using app secret)
+    const params = { access_token: accessToken, fields: 'id,name,email' };
+    if (FACEBOOK_CLIENT_SECRET) {
+      const proof = crypto.createHmac('sha256', FACEBOOK_CLIENT_SECRET).update(accessToken).digest('hex');
+      params.appsecret_proof = proof;
+    }
+    const resp = await axios.get('https://graph.facebook.com/me', { params });
     const data = resp.data;
     const providerUserId = data.id;
     const email = data.email || `${providerUserId}@facebook.local`;

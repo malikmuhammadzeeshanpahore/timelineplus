@@ -1,7 +1,9 @@
 import express from 'express';
 import axios from 'axios';
+import crypto from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { jwtMiddleware } from '../middleware/auth';
+import { FACEBOOK_CLIENT_SECRET } from '../config';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -12,7 +14,12 @@ router.post('/facebook', jwtMiddleware, async (req: any, res) => {
   if (!accessToken) return res.status(400).send('accessToken required');
   try {
     // validate and fetch profile
-    const resp = await axios.get('https://graph.facebook.com/me', { params: { access_token: accessToken, fields: 'id,name,email' } });
+    const params: any = { access_token: accessToken, fields: 'id,name,email' };
+    if (FACEBOOK_CLIENT_SECRET) {
+      const proof = crypto.createHmac('sha256', FACEBOOK_CLIENT_SECRET).update(accessToken).digest('hex');
+      params.appsecret_proof = proof;
+    }
+    const resp = await axios.get('https://graph.facebook.com/me', { params });
     const data = resp.data;
     const providerUserId = data.id;
     const email = data.email || `${providerUserId}@facebook.local`;

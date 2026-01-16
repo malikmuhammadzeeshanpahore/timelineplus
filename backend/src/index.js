@@ -1,4 +1,6 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const session = require('express-session');
 const passport = require('./auth/passport');
 const oauthRoutes = require('./routes/oauth');
@@ -54,7 +56,6 @@ app.use('/api/account', accountRoutes);
 app.use('/api/pages', pagesRoutes);
 
 // Serve built frontend when available (dist/) otherwise fallback to public/
-const path = require('path');
 const distPath = path.resolve(process.cwd(), 'dist');
 if (fs.existsSync(distPath)) {
   app.use(express.static('dist'));

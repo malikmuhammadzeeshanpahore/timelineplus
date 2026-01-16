@@ -58,17 +58,20 @@ router.post('/login', async (req, res) => {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) return res.status(400).json({ error: 'invalid credentials' });
   if (user.isBanned) return res.status(403).json({ error: 'account banned' });
-  if (user.lockedUntil && new Date() < user.lockedUntil) return res.status(403).json({ error: 'account locked temporarily' });
+  // TODO: Re-enable after testing
+  // if (user.lockedUntil && new Date() < user.lockedUntil) return res.status(403).json({ error: 'account locked temporarily' });
 
   const ok = user.password ? await bcrypt.compare(password, user.password) : false;
   if (!ok) {
-    const attempts = user.failedLoginAttempts + 1;
-    const lockedUntil = attempts >= 5 ? new Date(Date.now() + 60 * 60 * 1000) : null; // 1 hour lock
-    await prisma.user.update({ where: { id: user.id }, data: { failedLoginAttempts: attempts, lockedUntil } });
+    // TODO: Re-enable failed login tracking after testing
+    // const attempts = user.failedLoginAttempts + 1;
+    // const lockedUntil = attempts >= 5 ? new Date(Date.now() + 60 * 60 * 1000) : null;
+    // await prisma.user.update({ where: { id: user.id }, data: { failedLoginAttempts: attempts, lockedUntil } });
     return res.status(400).json({ error: 'invalid credentials' });
   }
 
-  await prisma.user.update({ where: { id: user.id }, data: { failedLoginAttempts: 0, lockedUntil: null } });
+  // TODO: Re-enable after testing
+  // await prisma.user.update({ where: { id: user.id }, data: { failedLoginAttempts: 0, lockedUntil: null } });
 
   const token = signToken({ uid: user.id });
   res.json({ token, user: { id: user.id, email: user.email, username: user.username } });

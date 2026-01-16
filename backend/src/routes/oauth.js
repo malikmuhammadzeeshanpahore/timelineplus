@@ -15,8 +15,8 @@ router.get('/oauth/:provider', (req, res, next) => {
   }
 
   const scopes = {
-    google: ['profile', 'email', 'https://www.googleapis.com/auth/youtube.readonly'],
-    facebook: ['email', 'pages_show_list'],
+    google: ['profile', 'email'],
+    facebook: ['public_profile', 'email'],
   };
 
   passport.authenticate(provider, { scope: scopes[provider] })(req, res, next);

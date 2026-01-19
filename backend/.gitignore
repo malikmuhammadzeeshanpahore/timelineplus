@@ -6,4 +6,3 @@ prisma/dev.db
 dist
 .env.local
 .env.example
-dist

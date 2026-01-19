@@ -11,6 +11,9 @@ model User {
   id        Int                 @id @default(autoincrement())
   email     String              @unique
   username  String?
+  fullName  String?
+  phone     String?
+  ipAddress String?
   photo     String?
   password  String?             // null for OAuth-only accounts
   role      String              @default("freelancer")
@@ -19,6 +22,13 @@ model User {
   emailVerified Boolean         @default(false)
   failedLoginAttempts Int       @default(0)
   lockedUntil DateTime?
+  
+  // Bank Details for Withdrawals
+  accountHolderName String?
+  accountType String?          // "savings", "checking", etc
+  accountNumber String?
+  bankName String?
+  iban String?
   
   // Trust Score System
   trustScore Float             @default(100.0)  // 0-100
@@ -30,8 +40,9 @@ model User {
   createdAt DateTime            @default(now())
   updatedAt DateTime            @updatedAt
   social    UserSocialAccount[]
-  withdrawals WithdrawRequest[]
+  withdrawals Withdrawal[]
   walletTransactions WalletTransaction[]
+  wallet    Wallet?
   taskProofs TaskProof[]
   referralsAsReferrer Referral[] @relation("Referrer")
   referralsAsReferee Referral[] @relation("Referee")
@@ -121,16 +132,30 @@ model UserSocialAccount {
   @@unique([provider, providerUserId])
 }
 
-model WithdrawRequest {
-  id         Int      @id @default(autoincrement())
-  user       User     @relation(fields: [userId], references: [id])
-  userId     Int
-  amount     Int
-  method     String
-  details    String?  // e.g., bank details or manual notes
-  status     String   @default("pending")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+// User Wallet
+model Wallet {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int      @unique
+  balance   Int      @default(0)  // cents
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Withdrawal Requests
+model Withdrawal {
+  id            Int      @id @default(autoincrement())
+  user          User     @relation(fields: [userId], references: [id])
+  userId        Int
+  amount        Int
+  status        String   @default("pending")  // pending, approved, rejected
+  processingFee Int      @default(0)
+  transactionId String?
+  reason        String?
+  approvedBy    Int?
+  approvedAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model WalletTransaction {

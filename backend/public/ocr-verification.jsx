@@ -1,0 +1,901 @@
+import React, { useState, useEffect } from 'react';
+
+const OcrVerification = () => {
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [role, setRole] = useState(localStorage.getItem('role') || 'buyer');
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role') || 'buyer';
+    setToken(token);
+    setRole(role);
+
+    // Load inline scripts from HTML if any
+  }, []);
+
+  const styles = `
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      color: #667eea;
+    }
+
+    .trust-score {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .score-badge {
+      background: #667eea;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+    }
+
+    .score-low {
+      background: #ff6b6b;
+    }
+
+    .score-medium {
+      background: #ffa500;
+    }
+
+    .score-high {
+      background: #51cf66;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .card h2 {
+      color: #667eea;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    .info-box {
+      background: #f8f9ff;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 5px;
+    }
+
+    .info-box.warning {
+      border-left-color: #ffa500;
+      background: #fff8f0;
+    }
+
+    .info-box.danger {
+      border-left-color: #ff6b6b;
+      background: #fff0f0;
+    }
+
+    .info-box.success {
+      border-left-color: #51cf66;
+      background: #f0fff4;
+    }
+
+    .upload-area {
+      border: 2px dashed #667eea;
+      border-radius: 10px;
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin: 15px 0;
+    }
+
+    .upload-area:hover {
+      background: #f8f9ff;
+      border-color: #764ba2;
+    }
+
+    .upload-area.drag-over {
+      background: #f8f9ff;
+      border-color: #764ba2;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .form-group {
+      margin: 15px 0;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    button {
+      background: #667eea;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all 0.3s;
+      margin: 10px 5px 10px 0;
+    }
+
+    button:hover {
+      background: #764ba2;
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .btn-danger {
+      background: #ff6b6b;
+    }
+
+    .btn-danger:hover {
+      background: #e63946;
+    }
+
+    .btn-success {
+      background: #51cf66;
+    }
+
+    .btn-success:hover {
+      background: #40c057;
+    }
+
+    .task-item {
+      background: #f8f9ff;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .task-status {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .status-pending {
+      background: #fff3bf;
+      color: #856404;
+    }
+
+    .status-assigned {
+      background: #cfe2ff;
+      color: #084298;
+    }
+
+    .status-verifying {
+      background: #d1e7dd;
+      color: #0f5132;
+    }
+
+    .status-verified {
+      background: #d1e7dd;
+      color: #0f5132;
+    }
+
+    .status-paid {
+      background: #d1e7dd;
+      color: #0f5132;
+    }
+
+    .earnings {
+      background: white;
+      border: 2px solid #51cf66;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 15px 0;
+    }
+
+    .earnings-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .earnings-item:last-child {
+      border-bottom: none;
+    }
+
+    .earnings-label {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .earnings-value {
+      color: #51cf66;
+      font-weight: bold;
+    }
+
+    .lock-info {
+      background: #fff3bf;
+      border-left: 4px solid #ffa500;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 5px;
+    }
+
+    .preview-image {
+      max-width: 100%;
+      max-height: 300px;
+      margin: 15px 0;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+
+    .verification-result {
+      margin: 20px 0;
+      padding: 15px;
+      border-radius: 5px;
+      display: none;
+    }
+
+    .verification-result.show {
+      display: block;
+    }
+
+    .result-success {
+      background: #d1e7dd;
+      border: 1px solid #badbcc;
+      color: #0f5132;
+    }
+
+    .result-failed {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #842029;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading {
+      text-align: center;
+      color: #667eea;
+      font-weight: bold;
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+
+    .alert-danger {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #842029;
+    }
+
+    .alert-success {
+      background: #d1e7dd;
+      border: 1px solid #badbcc;
+      color: #0f5132;
+    }
+
+    .alert-warning {
+      background: #fff3cd;
+      border: 1px solid #ffecb5;
+      color: #664d03;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2, .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        flex-direction: column;
+        gap: 15px;
+      }
+    }
+
+    .penalty-warning {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+
+    .penalty-warning h3 {
+      color: #664d03;
+      margin-bottom: 10px;
+    }
+
+    .penalty-warning p {
+      color: #664d03;
+      margin: 5px 0;
+    }
+  
+  `;
+
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: styles }} />
+      <div className="container">
+    <!-- Header -->
+    <header>
+      <h1>📸 OCR Task Verification</h1>
+      <div className="trust-score" id="trustScoreDisplay">
+        <span>Trust Score:</span>
+        <div className="score-badge" id="scoreBadge">Loading...</div>
+      </div>
+    </header>
+
+    <!-- Trust Score Info -->
+    <div className="card" id="trustInfo" style="display: none;">
+      <h2>Your Trust Score Info</h2>
+      <div id="trustContent"></div>
+    </div>
+
+    <!-- Ban Warning -->
+    <div className="penalty-warning" id="banWarning" style="display: none;">
+      <h3>⚠️ Your Account is Banned</h3>
+      <p id="banMessage"></p>
+      <button className="btn-danger" onclick="showUnbanPayment()">Pay to Unlock Account</button>
+    </div>
+
+    <!-- Earnings Status -->
+    <div className="card">
+      <h2>💰 Earnings Status</h2>
+      <div className="earnings" id="earningsStatus">
+        <div className="spinner"></div>
+      </div>
+    </div>
+
+    <!-- Task Verification -->
+    <div className="card">
+      <h2>📋 Assign & Complete Tasks</h2>
+      
+      <div id="tasksContainer">
+        <div className="loading">Loading available tasks...</div>
+      </div>
+
+      <div id="activeTaskContainer" style="display: none;">
+        <h3>Active Task</h3>
+        <div id="activeTaskInfo" className="task-item"></div>
+
+        <h3 style="margin-top: 20px;">Submit Screenshot Proof</h3>
+        
+        <div className="penalty-warning">
+          <h3>⏱️ Time Requirement</h3>
+          <p>🔴 You must spend at least <strong>1 minute</strong> on the page/channel</p>
+          <p>❌ If you exit before 1 minute: <strong>-10 Trust Score penalty</strong></p>
+          <p>✅ After 1 minute: Click "Submit Proof"</p>
+        </div>
+
+        <!-- OCR Verification Form -->
+        <div className="form-group">
+          <label>Step 1: Before & After Follower Count</label>
+          <div className="form-row">
+            <div>
+              <label>Followers/Subscribers BEFORE:</label>
+              <input type="number" id="followersBefore" placeholder="e.g., 1000" min="0">
+            </div>
+            <div>
+              <label>Followers/Subscribers AFTER:</label>
+              <input type="number" id="followersAfter" placeholder="e.g., 1001" min="0">
+            </div>
+          </div>
+          <p style="font-size: 12px; color: #666; margin-top: 5px;">Take screenshot showing both numbers</p>
+        </div>
+
+        <div className="form-group">
+          <label>Step 2: Upload Screenshot</label>
+          <div className="upload-area" id="uploadArea" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+            <input type="file" id="imageInput" accept="image/*" onchange="handleImageSelect(event)">
+            <div id="uploadText">
+              <p>📷 Drag & drop screenshot here</p>
+              <p style="font-size: 12px; color: #666;">or click to select</p>
+            </div>
+            <img id="imagePreview" className="preview-image" style="display: none;">
+          </div>
+        </div>
+
+        <div id="verificationResult" className="verification-result"></div>
+
+        <div style="margin-top: 20px;">
+          <button onclick="submitProof()" id="submitBtn" className="btn-success">
+            ✅ Submit Proof & Verify
+          </button>
+          <button onclick="cancelTask()" className="btn-secondary">
+            ❌ Cancel Task
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Completed Tasks -->
+    <div className="card">
+      <h2>✅ My Completed Tasks</h2>
+      <div id="completedTasks" className="loading">Loading...</div>
+    </div>
+
+    <!-- Withdrawal History -->
+    <div className="card">
+      <h2>💸 Withdrawal History</h2>
+      <div id="withdrawalHistory" className="loading">Loading...</div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3000/api';
+    let currentTaskId = null;
+    let selectedImage = null;
+
+    // Get token from localStorage
+    function getToken() {
+      return localStorage.getItem('token');
+    }
+
+    // Load initial data
+    async function loadData() {
+      try {
+        await loadTrustScore();
+        await loadEarningsStatus();
+        await loadAvailableTasks();
+        await loadCompletedTasks();
+        await loadWithdrawalHistory();
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+    }
+
+    // Load trust score
+    async function loadTrustScore() {
+      try {
+        const response = await fetch(`${API_BASE}/campaigns/trust-score`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+
+        const data = await response.json();
+
+        let scoreClass = 'score-high';
+        if (data.trustScore <= 50) scoreClass = 'score-low';
+        else if (data.trustScore <= 70) scoreClass = 'score-medium';
+
+        document.getElementById('scoreBadge').innerHTML = `${data.trustScore.toFixed(1)}% - ${data.tier}`;
+        document.getElementById('scoreBadge').className = `score-badge ${scoreClass}`;
+
+        if (data.isBanned) {
+          document.getElementById('banWarning').style.display = 'block';
+          document.getElementById('banMessage').innerHTML = `
+            ${data.banReason}<br>
+            <strong>Unlock Cost: $${(data.banUnlockCost / 100).toFixed(2)}</strong>
+          `;
+        }
+
+        // Show trust info
+        const trustContent = document.getElementById('trustContent');
+        trustContent.innerHTML = `
+          <div className="info-box ${data.trustScore <= 50 ? 'danger' : data.trustScore <= 70 ? 'warning' : 'success'}">
+            <strong>Current Score:</strong> ${data.trustScore.toFixed(1)}%<br>
+            <strong>Tier:</strong> ${data.tier}<br>
+            <strong>Lock Duration:</strong> ${data.lockDays} days<br>
+            <strong>Max Withdrawal:</strong> ${data.maxWithdraw ? `$${(data.maxWithdraw / 100).toFixed(2)}` : 'Unlimited'}
+          </div>
+          <p>${data.description}</p>
+        `;
+        document.getElementById('trustInfo').style.display = 'block';
+      } catch (error) {
+        console.error('Error loading trust score:', error);
+      }
+    }
+
+    // Load earnings status
+    async function loadEarningsStatus() {
+      try {
+        const response = await fetch(`${API_BASE}/campaigns/earnings-status`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+
+        const data = await response.json();
+
+        let html = `
+          <div className="earnings-item">
+            <span className="earnings-label">Total Earnings:</span>
+            <span className="earnings-value">$${(data.totalEarnings / 100).toFixed(2)}</span>
+          </div>
+          <div className="earnings-item">
+            <span className="earnings-label">Unlocked:</span>
+            <span className="earnings-value">$${(data.unlockedEarnings / 100).toFixed(2)}</span>
+          </div>
+          <div className="earnings-item">
+            <span className="earnings-label">Locked:</span>
+            <span style="color: #ff6b6b; font-weight: bold;">$${(data.lockedEarnings / 100).toFixed(2)}</span>
+          </div>
+        `;
+
+        if (data.nextUnlockDate) {
+          html += `
+            <div className="lock-info">
+              <strong>📅 Next Unlock Date:</strong> ${new Date(data.nextUnlockDate).toLocaleDateString()}<br>
+              <strong>Active Locks:</strong> ${data.activeLocks}
+            </div>
+          `;
+        }
+
+        document.getElementById('earningsStatus').innerHTML = html;
+      } catch (error) {
+        console.error('Error loading earnings:', error);
+      }
+    }
+
+    // Load available tasks
+    async function loadAvailableTasks() {
+      try {
+        const response = await fetch(`${API_BASE}/campaigns/available-tasks`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+
+        const tasks = await response.json();
+
+        if (tasks.length === 0) {
+          document.getElementById('tasksContainer').innerHTML = '<p>No available tasks at the moment.</p>';
+          return;
+        }
+
+        let html = '<div>';
+        for (const task of tasks) {
+          const reward = (task.rewardPerTask / 100).toFixed(2);
+          html += `
+            <div className="task-item">
+              <div>
+                <strong>${task.campaign.title}</strong><br>
+                <small>${task.campaign.type} - $${reward} reward</small>
+              </div>
+              <button onclick="assignTask(${task.id})" className="btn-success">Assign Task</button>
+            </div>
+          `;
+        }
+        html += '</div>';
+        document.getElementById('tasksContainer').innerHTML = html;
+      } catch (error) {
+        console.error('Error loading tasks:', error);
+        document.getElementById('tasksContainer').innerHTML = '<p>Error loading tasks</p>';
+      }
+    }
+
+    // Assign task
+    async function assignTask(taskId) {
+      try {
+        const response = await fetch(`${API_BASE}/campaigns/tasks/${taskId}/assign`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          currentTaskId = taskId;
+          document.getElementById('tasksContainer').style.display = 'none';
+          document.getElementById('activeTaskContainer').style.display = 'block';
+
+          document.getElementById('activeTaskInfo').innerHTML = `
+            <div>
+              <strong>${data.task.campaign.title}</strong><br>
+              <small>Type: ${data.task.campaign.type}</small><br>
+              <small>Target: ${data.task.campaign.targetPage}</small>
+            </div>
+            <div>
+              <a href="${data.task.campaign.targetPage}" target="_blank" className="btn-success">
+                🔗 Go to Target Page
+              </a>
+            </div>
+          `;
+
+          alert('✅ Task assigned! Follow/Subscribe on the page, then come back and submit proof.');
+        }
+      } catch (error) {
+        alert('Error assigning task: ' + error.message);
+      }
+    }
+
+    // Handle file selection
+    function handleImageSelect(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          selectedImage = e.target.result;
+          const preview = document.getElementById('imagePreview');
+          preview.src = selectedImage;
+          preview.style.display = 'block';
+          document.getElementById('uploadText').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Handle drag over
+    function handleDragOver(event) {
+      event.preventDefault();
+      document.getElementById('uploadArea').classList.add('drag-over');
+    }
+
+    // Handle drag leave
+    function handleDragLeave(event) {
+      document.getElementById('uploadArea').classList.remove('drag-over');
+    }
+
+    // Handle drop
+    function handleDrop(event) {
+      event.preventDefault();
+      document.getElementById('uploadArea').classList.remove('drag-over');
+      const file = event.dataTransfer.files[0];
+      if (file) {
+        document.getElementById('imageInput').files = event.dataTransfer.files;
+        handleImageSelect({ target: { files: [file] } });
+      }
+    }
+
+    // Upload area click
+    document.getElementById('uploadArea').addEventListener('click', () => {
+      document.getElementById('imageInput').click();
+    });
+
+    // Submit proof
+    async function submitProof() {
+      if (!currentTaskId) {
+        alert('No task assigned');
+        return;
+      }
+
+      const followersBefore = parseInt(document.getElementById('followersBefore').value);
+      const followersAfter = parseInt(document.getElementById('followersAfter').value);
+
+      if (!selectedImage || !followersBefore || !followersAfter) {
+        alert('Please fill all fields');
+        return;
+      }
+
+      if (followersAfter <= followersBefore) {
+        alert('Followers/Subscribers AFTER must be greater than BEFORE');
+        return;
+      }
+
+      document.getElementById('submitBtn').disabled = true;
+      document.getElementById('submitBtn').innerHTML = '<div className="spinner"></div> Verifying...';
+
+      try {
+        const response = await fetch(`${API_BASE}/campaigns/tasks/${currentTaskId}/submit-proof`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            image: selectedImage,
+            followersBefore,
+            followersAfter
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          showVerificationResult(false, data.message || data.error);
+          document.getElementById('submitBtn').disabled = false;
+          document.getElementById('submitBtn').innerHTML = '✅ Submit Proof & Verify';
+          return;
+        }
+
+        showVerificationResult(true, 'Verification in progress... Check back in 5 seconds');
+        
+        // Reload after 5 seconds
+        setTimeout(() => {
+          loadData();
+          cancelTask();
+        }, 5000);
+      } catch (error) {
+        showVerificationResult(false, error.message);
+        document.getElementById('submitBtn').disabled = false;
+        document.getElementById('submitBtn').innerHTML = '✅ Submit Proof & Verify';
+      }
+    }
+
+    // Show verification result
+    function showVerificationResult(success, message) {
+      const result = document.getElementById('verificationResult');
+      result.className = `verification-result show ${success ? 'result-success' : 'result-failed'}`;
+      result.innerHTML = `
+        <strong>${success ? '✅ Success!' : '❌ Failed!'}</strong><br>
+        ${message}
+      `;
+    }
+
+    // Cancel task
+    function cancelTask() {
+      currentTaskId = null;
+      selectedImage = null;
+      document.getElementById('activeTaskContainer').style.display = 'none';
+      document.getElementById('tasksContainer').style.display = 'block';
+      document.getElementById('followersBefore').value = '';
+      document.getElementById('followersAfter').value = '';
+      document.getElementById('imagePreview').style.display = 'none';
+      document.getElementById('uploadText').style.display = 'block';
+      document.getElementById('verificationResult').innerHTML = '';
+      loadAvailableTasks();
+    }
+
+    // Load completed tasks
+    async function loadCompletedTasks() {
+      try {
+        const response = await fetch(`${API_BASE}/campaigns/my-tasks`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+
+        const tasks = await response.json();
+
+        if (tasks.length === 0) {
+          document.getElementById('completedTasks').innerHTML = '<p>No completed tasks yet.</p>';
+          return;
+        }
+
+        let html = '';
+        for (const task of tasks) {
+          const reward = (task.rewardPerTask / 100).toFixed(2);
+          const proof = task.proofs[0];
+          let statusClass = `status-${task.status}`;
+
+          html += `
+            <div className="task-item">
+              <div>
+                <strong>${task.campaign.title}</strong><br>
+                <small>Type: ${task.campaign.type} | Reward: $${reward}</small><br>
+                ${proof ? `<small>Time: ${proof.timeMinutes} min | OCR Match: ${proof.ocrMatches ? '✅' : '❌'}</small>` : ''}
+              </div>
+              <span className="task-status ${statusClass}">${task.status.toUpperCase()}</span>
+            </div>
+          `;
+        }
+
+        document.getElementById('completedTasks').innerHTML = html;
+      } catch (error) {
+        console.error('Error loading completed tasks:', error);
+      }
+    }
+
+    // Load withdrawal history
+    async function loadWithdrawalHistory() {
+      try {
+        const response = await fetch(`${API_BASE}/withdrawals/history`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+
+        const withdrawals = await response.json();
+
+        if (withdrawals.length === 0) {
+          document.getElementById('withdrawalHistory').innerHTML = '<p>No withdrawal requests yet.</p>';
+          return;
+        }
+
+        let html = '';
+        for (const w of withdrawals) {
+          const statusClass = w.status === 'approved' ? 'status-paid' : w.status === 'pending' ? 'status-assigned' : 'status-rejected';
+          html += `
+            <div className="task-item">
+              <div>
+                <strong>$${(w.amount / 100).toFixed(2)}</strong><br>
+                <small>Method: ${w.method} | Date: ${new Date(w.createdAt).toLocaleDateString()}</small>
+              </div>
+              <span className="task-status ${statusClass}">${w.status.toUpperCase()}</span>
+            </div>
+          `;
+        }
+
+        document.getElementById('withdrawalHistory').innerHTML = html;
+      } catch (error) {
+        console.error('Error loading withdrawal history:', error);
+      }
+    }
+
+    // Show unban payment
+    function showUnbanPayment() {
+      alert('Account unlock payment feature coming soon! Contact support.');
+    }
+
+    // Load on page load
+    window.addEventListener('load', loadData);
+
+    // Refresh data every 30 seconds
+    setInterval(loadData, 30000);
+  </script>
+    </>
+  );
+};
+
+export default OcrVerification;

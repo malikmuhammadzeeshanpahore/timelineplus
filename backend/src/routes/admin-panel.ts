@@ -136,26 +136,26 @@ router.get('/verify/:code', verifyToken, verifyAdmin, async (req, res) => {
 // ==================== USER MANAGEMENT ====================
 
 /**
- * GET /admin-panel/dashboard/:code
+ * GET /admin-panel/dashboard
  * Admin dashboard overview
  */
-router.get('/dashboard/:code', verifyToken, verifyAdmin, async (req, res) => {
+router.get('/dashboard', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const totalUsers = await prisma.user.count();
-    const adminCount = await prisma.user.count({ where: { isAdmin: true } });
-    const bannedCount = await prisma.user.count({ where: { isBanned: true } });
+    const totalAdmins = await prisma.user.count({ where: { isAdmin: true } });
+    const bannedUsers = await prisma.user.count({ where: { isBanned: true } });
     const pendingDeposits = await prisma.deposit.count({ where: { status: 'pending' } });
+    const pendingWithdrawals = await prisma.withdrawal.count({ where: { status: 'pending' } });
     const activeCampaigns = await prisma.campaign.count({ where: { status: 'active' } });
-    const pendingCampaigns = await prisma.campaign.count({ where: { status: 'pending' } });
 
     res.json({
       stats: {
         totalUsers,
-        adminCount,
-        bannedCount,
+        totalAdmins,
+        bannedUsers,
         pendingDeposits,
-        activeCampaigns,
-        pendingCampaigns
+        pendingWithdrawals,
+        activeCampaigns
       }
     });
   } catch (error: any) {
@@ -164,47 +164,44 @@ router.get('/dashboard/:code', verifyToken, verifyAdmin, async (req, res) => {
 });
 
 /**
- * GET /admin-panel/users/:code?q=email&page=1
+ * GET /admin-panel/users?q=email&page=1
  * Search and list users
  */
-router.get('/users/:code', verifyToken, verifyAdmin, async (req, res) => {
+router.get('/users', verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const q = String(req.query.q || '');
+    const q = String(req.query.q || '').trim();
     const page = Number(req.query.page || 1);
     const limit = 20;
 
+    const where: any = q
+      ? {
+          OR: [
+            { email: { contains: q, mode: 'insensitive' } },
+            { username: { contains: q, mode: 'insensitive' } },
+            { phone: { contains: q, mode: 'insensitive' } },
+            { ipAddress: { contains: q } }
+          ]
+        }
+      : {};
+
     const users = await prisma.user.findMany({
-      where: q
-        ? {
-            OR: [
-              { email: { contains: q } },
-              { username: { contains: q } }
-            ]
-          }
-        : {},
+      where,
       skip: (page - 1) * limit,
       take: limit,
       select: {
         id: true,
         email: true,
         username: true,
+        phone: true,
         isAdmin: true,
         isBanned: true,
         role: true,
         createdAt: true
-      }
+      },
+      orderBy: { createdAt: 'desc' }
     });
 
-    const total = await prisma.user.count({
-      where: q
-        ? {
-            OR: [
-              { email: { contains: q } },
-              { username: { contains: q } }
-            ]
-          }
-        : {}
-    });
+    const total = await prisma.user.count({ where });
 
     res.json({ users, total, page, pages: Math.ceil(total / limit) });
   } catch (error: any) {
@@ -213,125 +210,152 @@ router.get('/users/:code', verifyToken, verifyAdmin, async (req, res) => {
 });
 
 /**
- * POST /admin-panel/users/:code/:userId/make-admin
+ * GET /admin-panel/users/:userId
+ * Get detailed user information
+ */
+router.get('/users/:userId', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        wallet: true,
+        socialAccounts: true,
+        deposits: { take: 5, orderBy: { createdAt: 'desc' } },
+        campaigns: { take: 5, orderBy: { createdAt: 'desc' } },
+        campaignTasks: { take: 5, orderBy: { createdAt: 'desc' } },
+        withdrawals: { take: 5, orderBy: { createdAt: 'desc' } }
+      }
+    });
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Calculate statistics
+    const totalEarnings = await prisma.campaignTask.aggregate({
+      where: { freelancerId: userId, status: 'paid' },
+      _sum: { reward: true }
+    });
+
+    const totalWithdrawn = await prisma.withdrawal.aggregate({
+      where: { userId, status: 'approved' },
+      _sum: { amount: true }
+    });
+
+    const totalDeposits = await prisma.deposit.aggregate({
+      where: { userId, status: 'approved' },
+      _sum: { amount: true }
+    });
+
+    res.json({
+      user: {
+        ...user,
+        totalEarnings: totalEarnings._sum.reward || 0,
+        totalWithdrawn: totalWithdrawn._sum.amount || 0,
+        totalDeposits: totalDeposits._sum.amount || 0
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /admin-panel/users/:userId/make-admin
  * Make user an admin
  */
-router.post('/users/:code/:userId/make-admin', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/users/:userId/make-admin', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const userId = Number(req.params.userId);
     
     const user = await prisma.user.update({
       where: { id: userId },
-      data: {
-        isAdmin: true,
-        role: 'admin'
-      }
+      data: { isAdmin: true, role: 'admin' }
     });
 
-    // Log admin action
     await prisma.adminLog.create({
       data: {
         adminId: req.user.id,
         action: 'make_admin',
-        meta: JSON.stringify({ targetUserId: userId })
+        meta: JSON.stringify({ targetUserId: userId, email: user.email })
       }
     });
 
-    res.json({ success: true, user });
+    res.json({ success: true, message: 'User is now an admin' });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
 /**
- * POST /admin-panel/users/:code/:userId/remove-admin
- * Remove admin status
+ * POST /admin-panel/users/:userId/ban
+ * Ban a user
  */
-router.post('/users/:code/:userId/remove-admin', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/users/:userId/ban', verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const userId = Number(req.params.userId);
-    
+    const userId = parseInt(req.params.userId);
+    const { reason } = req.body;
+
+    if (!reason) return res.status(400).json({ error: 'Ban reason required' });
+
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
-        isAdmin: false,
-        role: 'freelancer'
+        isBanned: true,
+        banReason: reason
       }
-    });
-
-    await prisma.adminLog.create({
-      data: {
-        adminId: req.user.id,
-        action: 'remove_admin',
-        meta: JSON.stringify({ targetUserId: userId })
-      }
-    });
-
-    res.json({ success: true, user });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * POST /admin-panel/users/:code/:userId/ban
- * Ban user
- */
-router.post('/users/:code/:userId/ban', verifyToken, verifyAdmin, async (req, res) => {
-  try {
-    const userId = Number(req.params.userId);
-    
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: { isBanned: true }
     });
 
     await prisma.adminLog.create({
       data: {
         adminId: req.user.id,
         action: 'ban_user',
-        meta: JSON.stringify({ targetUserId: userId })
+        meta: JSON.stringify({ userId, email: user.email, reason })
       }
     });
 
-    res.json({ success: true, user });
+    res.json({ success: true, message: `User ${user.email} has been banned` });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
 /**
- * POST /admin-panel/users/:code/:userId/unban
- * Unban user
+ * POST /admin-panel/users/:userId/unban
+ * Unban a user
  */
-router.post('/users/:code/:userId/unban', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/users/:userId/unban', verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const userId = Number(req.params.userId);
-    
+    const userId = parseInt(req.params.userId);
+
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { isBanned: false }
+      data: {
+        isBanned: false,
+        banReason: null,
+        trustScore: 70  // Restore to 70% after unban
+      }
     });
 
     await prisma.adminLog.create({
       data: {
         adminId: req.user.id,
         action: 'unban_user',
-        meta: JSON.stringify({ targetUserId: userId })
+        meta: JSON.stringify({ userId, email: user.email })
       }
     });
 
-    res.json({ success: true, user });
+    res.json({ success: true, message: `User ${user.email} has been unbanned` });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
 /**
- * POST /admin-panel/users/:code/:userId/suspend
+ * POST /admin-panel/users/:userId/suspend
  * Suspend user (temporary ban)
  */
-router.post('/users/:code/:userId/suspend', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/users/:userId/suspend', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const { hours = 24 } = req.body;
     const userId = Number(req.params.userId);
@@ -360,26 +384,29 @@ router.post('/users/:code/:userId/suspend', verifyToken, verifyAdmin, async (req
 // ==================== DEPOSIT MANAGEMENT ====================
 
 /**
- * GET /admin-panel/deposits/:code?status=pending
+ * GET /admin-panel/deposits?status=pending
  * List deposits
  */
-router.get('/deposits/:code', verifyToken, verifyAdmin, async (req, res) => {
+router.get('/deposits', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const status = req.query.status || 'pending';
     const page = Number(req.query.page || 1);
     const limit = 20;
 
+    const where: any = {};
+    if (status && status !== '') {
+      where.status = String(status);
+    }
+
     const deposits = await prisma.deposit.findMany({
-      where: status ? { status: String(status) } : {},
+      where,
       include: { user: { select: { id: true, email: true, username: true } } },
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit
     });
 
-    const total = await prisma.deposit.count({
-      where: status ? { status: String(status) } : {}
-    });
+    const total = await prisma.deposit.count({ where });
 
     res.json({ deposits, total, page, pages: Math.ceil(total / limit) });
   } catch (error: any) {
@@ -388,15 +415,16 @@ router.get('/deposits/:code', verifyToken, verifyAdmin, async (req, res) => {
 });
 
 /**
- * POST /admin-panel/deposits/:code/:depositId/approve
+ * POST /admin-panel/deposits/:depositId/approve
  * Approve deposit
  */
-router.post('/deposits/:code/:depositId/approve', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/deposits/:depositId/approve', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const depositId = Number(req.params.depositId);
 
     const deposit = await prisma.deposit.findUnique({
-      where: { id: depositId }
+      where: { id: depositId },
+      include: { user: true }
     });
 
     if (!deposit) return res.status(404).json({ error: 'Deposit not found' });
@@ -411,12 +439,17 @@ router.post('/deposits/:code/:depositId/approve', verifyToken, verifyAdmin, asyn
     });
 
     // Add funds to wallet
+    await prisma.wallet.update({
+      where: { userId: deposit.userId },
+      data: { balance: { increment: deposit.amount } }
+    });
+
     await prisma.walletTransaction.create({
       data: {
         userId: deposit.userId,
         amount: deposit.amount,
         type: 'deposit',
-        meta: `Deposit approved by admin ${req.user.id}`
+        meta: `Deposit approved by admin`
       }
     });
 
@@ -424,24 +457,26 @@ router.post('/deposits/:code/:depositId/approve', verifyToken, verifyAdmin, asyn
       data: {
         adminId: req.user.id,
         action: 'approve_deposit',
-        meta: JSON.stringify({ depositId, amount: deposit.amount })
+        meta: JSON.stringify({ depositId, userId: deposit.userId, amount: deposit.amount })
       }
     });
 
-    res.json({ success: true, deposit: updated });
+    res.json({ success: true, message: 'Deposit approved' });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
 /**
- * POST /admin-panel/deposits/:code/:depositId/reject
+ * POST /admin-panel/deposits/:depositId/reject
  * Reject deposit
  */
-router.post('/deposits/:code/:depositId/reject', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/deposits/:depositId/reject', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const { reason } = req.body;
     const depositId = Number(req.params.depositId);
+
+    if (!reason) return res.status(400).json({ error: 'Rejection reason required' });
 
     const updated = await prisma.deposit.update({
       where: { id: depositId },
@@ -460,7 +495,226 @@ router.post('/deposits/:code/:depositId/reject', verifyToken, verifyAdmin, async
       }
     });
 
-    res.json({ success: true, deposit: updated });
+    res.json({ success: true, message: 'Deposit rejected' });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==================== WITHDRAWAL MANAGEMENT ====================
+
+/**
+ * GET /admin-panel/withdrawals?status=pending
+ * List withdrawal requests
+ */
+router.get('/withdrawals', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const status = req.query.status || 'pending';
+    const page = Number(req.query.page || 1);
+    const limit = 20;
+
+    const where: any = {};
+    if (status && status !== '') {
+      where.status = String(status);
+    }
+
+    const withdrawals = await prisma.withdrawal.findMany({
+      where,
+      include: { user: { select: { id: true, email: true, username: true, phone: true } } },
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit
+    });
+
+    const total = await prisma.withdrawal.count({ where });
+
+    res.json({ withdrawals, total, page, pages: Math.ceil(total / limit) });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /admin-panel/withdrawals/:withdrawalId
+ * Get detailed withdrawal information
+ */
+router.get('/withdrawals/:withdrawalId', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const withdrawalId = parseInt(req.params.withdrawalId);
+
+    const withdrawal = await prisma.withdrawal.findUnique({
+      where: { id: withdrawalId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            phone: true,
+            accountHolderName: true,
+            accountType: true,
+            accountNumber: true,
+            bankName: true,
+            iban: true
+          }
+        }
+      }
+    });
+
+    if (!withdrawal) return res.status(404).json({ error: 'Withdrawal not found' });
+
+    res.json({ withdrawal });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /admin-panel/withdrawals/:withdrawalId/approve
+ * Approve withdrawal and deduct 20% fee
+ */
+router.post('/withdrawals/:withdrawalId/approve', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const withdrawalId = parseInt(req.params.withdrawalId);
+    const { transactionId } = req.body;
+
+    if (!transactionId) {
+      return res.status(400).json({ error: 'Transaction ID required' });
+    }
+
+    const withdrawal = await prisma.withdrawal.findUnique({
+      where: { id: withdrawalId },
+      include: { user: true }
+    });
+
+    if (!withdrawal) return res.status(404).json({ error: 'Withdrawal not found' });
+    if (withdrawal.status !== 'pending') {
+      return res.status(400).json({ error: 'Withdrawal already processed' });
+    }
+
+    // Calculate fee (20%)
+    const fee = Math.round(withdrawal.amount * 0.2);
+    const netAmount = withdrawal.amount - fee;
+
+    // Update withdrawal status
+    const updated = await prisma.withdrawal.update({
+      where: { id: withdrawalId },
+      data: {
+        status: 'approved',
+        approvedBy: req.user.id,
+        approvedAt: new Date(),
+        transactionId,
+        processingFee: fee
+      }
+    });
+
+    // Deduct from user's wallet
+    await prisma.wallet.update({
+      where: { userId: withdrawal.userId },
+      data: { balance: { decrement: withdrawal.amount } }
+    });
+
+    // Record transaction
+    await prisma.walletTransaction.create({
+      data: {
+        userId: withdrawal.userId,
+        amount: -withdrawal.amount,
+        type: 'withdrawal',
+        meta: `Withdrawal approved - Fee: ${fee}, Net: ${netAmount}`
+      }
+    });
+
+    // Log admin action
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.user.id,
+        action: 'approve_withdrawal',
+        meta: JSON.stringify({
+          withdrawalId,
+          userId: withdrawal.userId,
+          amount: withdrawal.amount,
+          fee,
+          netAmount,
+          transactionId
+        })
+      }
+    });
+
+    res.json({
+      success: true,
+      message: `Withdrawal approved. Amount: $${(withdrawal.amount / 100).toFixed(2)}, Fee: $${(fee / 100).toFixed(2)}, Net: $${(netAmount / 100).toFixed(2)}`
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /admin-panel/withdrawals/:withdrawalId/reject
+ * Reject withdrawal and refund to wallet
+ */
+router.post('/withdrawals/:withdrawalId/reject', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const withdrawalId = parseInt(req.params.withdrawalId);
+    const { reason } = req.body;
+
+    if (!reason) return res.status(400).json({ error: 'Rejection reason required' });
+
+    const withdrawal = await prisma.withdrawal.findUnique({
+      where: { id: withdrawalId },
+      include: { user: true }
+    });
+
+    if (!withdrawal) return res.status(404).json({ error: 'Withdrawal not found' });
+    if (withdrawal.status !== 'pending') {
+      return res.status(400).json({ error: 'Withdrawal already processed' });
+    }
+
+    // Update withdrawal status
+    const updated = await prisma.withdrawal.update({
+      where: { id: withdrawalId },
+      data: {
+        status: 'rejected',
+        reason,
+        approvedBy: req.user.id,
+        approvedAt: new Date()
+      }
+    });
+
+    // Refund to wallet
+    await prisma.wallet.update({
+      where: { userId: withdrawal.userId },
+      data: { balance: { increment: withdrawal.amount } }
+    });
+
+    // Record transaction
+    await prisma.walletTransaction.create({
+      data: {
+        userId: withdrawal.userId,
+        amount: withdrawal.amount,
+        type: 'withdrawal_refund',
+        meta: `Withdrawal rejected - Reason: ${reason}`
+      }
+    });
+
+    // Log admin action
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.user.id,
+        action: 'reject_withdrawal',
+        meta: JSON.stringify({
+          withdrawalId,
+          userId: withdrawal.userId,
+          amount: withdrawal.amount,
+          reason
+        })
+      }
+    });
+
+    res.json({
+      success: true,
+      message: `Withdrawal rejected. $${(withdrawal.amount / 100).toFixed(2)} refunded to user wallet.`
+    });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -469,17 +723,25 @@ router.post('/deposits/:code/:depositId/reject', verifyToken, verifyAdmin, async
 // ==================== CAMPAIGN MANAGEMENT ====================
 
 /**
- * GET /admin-panel/campaigns/:code?status=pending
+// ==================== CAMPAIGN MANAGEMENT ====================
+
+/**
+ * GET /admin-panel/campaigns?status=pending
  * List campaigns awaiting approval
  */
-router.get('/campaigns/:code', verifyToken, verifyAdmin, async (req, res) => {
+router.get('/campaigns', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const status = req.query.status || 'pending';
     const page = Number(req.query.page || 1);
     const limit = 20;
 
+    const where: any = {};
+    if (status && status !== '') {
+      where.status = String(status);
+    }
+
     const campaigns = await prisma.campaign.findMany({
-      where: status ? { status: String(status) } : {},
+      where,
       include: {
         buyer: { select: { id: true, email: true, username: true } },
         campaignTasks: { select: { id: true, status: true } }
@@ -489,9 +751,7 @@ router.get('/campaigns/:code', verifyToken, verifyAdmin, async (req, res) => {
       take: limit
     });
 
-    const total = await prisma.campaign.count({
-      where: status ? { status: String(status) } : {}
-    });
+    const total = await prisma.campaign.count({ where });
 
     res.json({ campaigns, total, page, pages: Math.ceil(total / limit) });
   } catch (error: any) {
@@ -500,10 +760,10 @@ router.get('/campaigns/:code', verifyToken, verifyAdmin, async (req, res) => {
 });
 
 /**
- * POST /admin-panel/campaigns/:code/:campaignId/approve
+ * POST /admin-panel/campaigns/:campaignId/approve
  * Approve campaign
  */
-router.post('/campaigns/:code/:campaignId/approve', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/campaigns/:campaignId/approve', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const campaignId = Number(req.params.campaignId);
 
@@ -520,7 +780,7 @@ router.post('/campaigns/:code/:campaignId/approve', verifyToken, verifyAdmin, as
     const updated = await prisma.campaign.update({
       where: { id: campaignId },
       data: {
-        status: 'approved',
+        status: 'active',
         approvedBy: req.user.id
       }
     });
@@ -545,20 +805,22 @@ router.post('/campaigns/:code/:campaignId/approve', verifyToken, verifyAdmin, as
       }
     });
 
-    res.json({ success: true, campaign: updated, tasksCreated: campaign.targetCount });
+    res.json({ success: true, message: `Campaign approved. ${campaign.targetCount} tasks created.` });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
 /**
- * POST /admin-panel/campaigns/:code/:campaignId/reject
+ * POST /admin-panel/campaigns/:campaignId/reject
  * Reject campaign
  */
-router.post('/campaigns/:code/:campaignId/reject', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/campaigns/:campaignId/reject', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const { reason } = req.body;
     const campaignId = Number(req.params.campaignId);
+
+    if (!reason) return res.status(400).json({ error: 'Rejection reason required' });
 
     const updated = await prisma.campaign.update({
       where: { id: campaignId },
@@ -577,7 +839,7 @@ router.post('/campaigns/:code/:campaignId/reject', verifyToken, verifyAdmin, asy
       }
     });
 
-    res.json({ success: true, campaign: updated });
+    res.json({ success: true, message: 'Campaign rejected' });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

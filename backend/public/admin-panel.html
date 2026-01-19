@@ -13,146 +13,212 @@
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #f5f7fa;
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       padding: 20px;
+    }
+
+    .navbar {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .navbar h1 {
+      font-size: 1.8rem;
+    }
+
+    .navbar-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .navbar button {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid white;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .navbar button:hover {
+      background: rgba(255,255,255,0.3);
     }
 
     .container {
-      width: 100%;
-      max-width: 1200px;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-      overflow: hidden;
+      max-width: 1400px;
+      margin: 0 auto;
     }
 
-    .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 30px;
-      text-align: center;
-    }
-
-    .header h1 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-    }
-
-    .content {
-      padding: 30px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-    }
-
-    .panel {
-      background: #f8f9fa;
-      border-radius: 8px;
-      padding: 20px;
-      border-left: 4px solid #667eea;
-    }
-
-    .panel h2 {
-      color: #667eea;
-      margin-bottom: 15px;
-      font-size: 1.3rem;
-    }
-
-    .stat {
+    .tabs {
       display: flex;
-      justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid #ddd;
+      gap: 10px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
     }
 
-    .stat:last-child {
-      border-bottom: none;
-    }
-
-    .stat label {
-      color: #666;
-    }
-
-    .stat value {
-      font-weight: bold;
-      color: #333;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-family: inherit;
-    }
-
-    button {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+    .tab-btn {
+      background: white;
+      border: 2px solid #ddd;
       padding: 12px 20px;
-      border: none;
       border-radius: 5px;
       cursor: pointer;
-      font-size: 1rem;
-      margin-top: 10px;
-      width: 100%;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: all 0.3s;
     }
 
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    .tab-btn.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-color: transparent;
     }
 
-    .section {
-      margin-top: 30px;
-      padding-top: 30px;
-      border-top: 2px solid #eee;
+    .tab-content {
+      display: none;
     }
 
-    .section h2 {
-      color: #333;
+    .tab-content.active {
+      display: block;
+    }
+
+    .search-box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
       margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .search-box input,
+    .search-box select {
+      flex: 1;
+      min-width: 200px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    .search-box button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.3s;
+      white-space: nowrap;
+    }
+
+    .search-box button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
     }
 
     table {
       width: 100%;
+      background: white;
       border-collapse: collapse;
-      margin-top: 15px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
 
     table th {
-      background: #667eea;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      padding: 12px;
+      padding: 15px;
       text-align: left;
+      font-weight: 600;
     }
 
     table td {
-      padding: 12px;
-      border-bottom: 1px solid #ddd;
+      padding: 15px;
+      border-bottom: 1px solid #eee;
     }
 
     table tr:hover {
       background: #f8f9fa;
     }
 
+    .action-btn {
+      padding: 6px 10px;
+      margin: 2px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: 0.3s;
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    .action-btn.view {
+      background: #3498db;
+      color: white;
+    }
+
+    .action-btn.approve {
+      background: #27ae60;
+      color: white;
+    }
+
+    .action-btn.reject {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .action-btn.ban {
+      background: #e67e22;
+      color: white;
+    }
+
+    .action-btn.unban {
+      background: #27ae60;
+      color: white;
+    }
+
+    .action-btn.admin {
+      background: #9b59b6;
+      color: white;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
     .status {
-      padding: 5px 10px;
+      padding: 5px 12px;
       border-radius: 20px;
       font-size: 0.85rem;
-      text-align: center;
+      font-weight: 600;
       display: inline-block;
+    }
+
+    .status.active {
+      background: #d4edda;
+      color: #155724;
     }
 
     .status.pending {
       background: #fff3cd;
       color: #856404;
+    }
+
+    .status.banned {
+      background: #f8d7da;
+      color: #721c24;
     }
 
     .status.approved {
@@ -165,10 +231,159 @@
       color: #721c24;
     }
 
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      max-width: 700px;
+      width: 90%;
+      margin: auto;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #eee;
+    }
+
+    .modal-header h2 {
+      color: #333;
+      margin: 0;
+    }
+
+    .modal-header .close {
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #999;
+      transition: 0.3s;
+    }
+
+    .modal-header .close:hover {
+      color: #333;
+    }
+
+    .info-row {
+      display: flex;
+      margin: 12px 0;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: #666;
+      min-width: 150px;
+    }
+
+    .info-value {
+      color: #333;
+      flex: 1;
+      word-break: break-all;
+    }
+
+    .info-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 2px solid #eee;
+    }
+
+    .info-section h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    .form-group {
+      margin: 15px 0;
+    }
+
+    .form-group label {
+      display: block;
+      color: #333;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-family: inherit;
+      font-size: 1rem;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .button-group button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: 0.3s;
+    }
+
+    .button-group .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .button-group .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .button-group .btn-danger {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .button-group button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
     .alert {
       padding: 15px;
-      margin: 20px 0;
+      margin-bottom: 20px;
       border-radius: 5px;
+      display: none;
+    }
+
+    .alert.active {
+      display: block;
     }
 
     .alert.success {
@@ -183,130 +398,205 @@
       border: 1px solid #f5c6cb;
     }
 
-    .grid-2 {
+    .stats-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #667eea;
+      margin: 10px 0;
+    }
+
+    .stat-label {
+      color: #666;
+      font-size: 0.9rem;
     }
 
     @media (max-width: 768px) {
-      .grid-2 {
-        grid-template-columns: 1fr;
+      .navbar {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 20px;
       }
 
-      .content {
-        grid-template-columns: 1fr;
+      .tabs {
+        flex-direction: column;
       }
 
-      .header h1 {
-        font-size: 1.8rem;
+      .search-box {
+        flex-direction: column;
+      }
+
+      table {
+        font-size: 0.9rem;
+      }
+
+      table th, table td {
+        padding: 10px;
+      }
+
+      .action-btn {
+        padding: 4px 8px;
+        font-size: 0.75rem;
       }
     }
   </style>
 </head>
 <body>
 
+<!-- Navbar -->
+<div class="navbar">
+  <h1>🔐 Admin Dashboard</h1>
+  <div class="navbar-actions">
+    <button onclick="showSettings()">⚙️ Settings</button>
+    <button onclick="logout()" style="background: #e74c3c;">🚪 Logout</button>
+  </div>
+</div>
+
 <div class="container">
-  <div class="header">
-    <h1>🔐 Admin Panel</h1>
-    <p>Manage Users, Deposits, and Campaigns</p>
+  <!-- Alert -->
+  <div id="alert" class="alert"></div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('users')">👥 Users</button>
+    <button class="tab-btn" onclick="switchTab('deposits')">💰 Deposits</button>
+    <button class="tab-btn" onclick="switchTab('withdrawals')">💳 Withdrawals</button>
+    <button class="tab-btn" onclick="switchTab('campaigns')">📢 Campaigns</button>
   </div>
 
-  <div class="content" style="border-bottom: 2px solid #eee; padding-bottom: 20px;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <div></div>
-      <div style="display: flex; gap: 10px;">
-        <button onclick="showAccountSettings()" style="width: auto; background: #6c757d;">⚙️ Account</button>
-        <button onclick="logout()" style="width: auto; background: #dc3545;">Logout</button>
+  <!-- Dashboard Tab -->
+  <div id="dashboard" class="tab-content active">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Users</div>
+        <div class="stat-value" id="statTotalUsers">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Admins</div>
+        <div class="stat-value" id="statTotalAdmins">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Banned Users</div>
+        <div class="stat-value" id="statBannedUsers">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pending Deposits</div>
+        <div class="stat-value" id="statPendingDeposits">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pending Withdrawals</div>
+        <div class="stat-value" id="statPendingWithdrawals">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Campaigns</div>
+        <div class="stat-value" id="statActiveCampaigns">-</div>
       </div>
     </div>
   </div>
 
-  <div class="content">
-    <!-- Dashboard Stats -->
-    <div class="panel">
-      <h2>📊 Dashboard</h2>
-      <div class="stat">
-        <label>Total Users:</label>
-        <value id="totalUsers">-</value>
-      </div>
-      <div class="stat">
-        <label>Admin Users:</label>
-        <value id="adminCount">-</value>
-      </div>
-      <div class="stat">
-        <label>Banned Users:</label>
-        <value id="bannedCount">-</value>
-      </div>
-      <div class="stat">
-        <label>Pending Deposits:</label>
-        <value id="pendingDeposits">-</value>
-      </div>
-      <div class="stat">
-        <label>Active Campaigns:</label>
-        <value id="activeCampaigns">-</value>
-      </div>
-      <div class="stat">
-        <label>Pending Campaigns:</label>
-        <value id="pendingCampaigns">-</value>
-      </div>
+  <!-- Users Tab -->
+  <div id="users" class="tab-content">
+    <div class="search-box">
+      <input type="text" id="userSearch" placeholder="Search by email, username, phone...">
+      <button onclick="searchUsers()">🔍 Search</button>
+      <button onclick="loadAllUsers()" style="background: #6c757d;">📋 All Users</button>
     </div>
+    <div id="usersTable"></div>
+  </div>
 
-    <!-- User Search -->
-    <div class="panel">
-      <h2>🔍 Search Users</h2>
-      <input type="text" id="searchQuery" placeholder="Email or username">
-      <button onclick="searchUsers()">Search</button>
-      <div id="searchResults" style="margin-top: 15px;"></div>
-    </div>
-
-    <!-- Secret Code Generator -->
-    <div class="panel">
-      <h2>🔑 Generate Secret Codes</h2>
-      <select id="codeType">
-        <option value="add_admin">Add Admin Code</option>
-        <option value="access_panel">Access Panel Code</option>
+  <!-- Deposits Tab -->
+  <div id="deposits" class="tab-content">
+    <div class="search-box">
+      <select id="depositFilter">
+        <option value="">All Status</option>
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
       </select>
-      <input type="number" id="codeCount" value="1" min="1" max="10">
-      <button onclick="generateCodes()">Generate</button>
-      <div id="generatedCodes" style="margin-top: 15px;"></div>
+      <button onclick="loadDeposits()">🔄 Load</button>
     </div>
+    <div id="depositsTable"></div>
   </div>
 
-  <div class="content" style="padding: 30px; border-top: 2px solid #eee;">
-    <!-- Deposits Management -->
-    <div>
-      <h2>💰 Pending Deposits</h2>
-      <div id="depositsList"></div>
+  <!-- Withdrawals Tab -->
+  <div id="withdrawals" class="tab-content">
+    <div class="search-box">
+      <select id="withdrawalFilter">
+        <option value="">All Status</option>
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+      </select>
+      <button onclick="loadWithdrawals()">🔄 Load</button>
     </div>
-
-    <!-- Campaigns Management -->
-    <div>
-      <h2>📢 Pending Campaigns</h2>
-      <div id="campaignsList"></div>
-    </div>
+    <div id="withdrawalsTable"></div>
   </div>
 
-  <!-- Account Settings Modal -->
-  <div id="accountModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-    <div style="background: white; padding: 30px; border-radius: 10px; max-width: 400px; width: 90%;">
-      <h2 style="color: #667eea; margin-bottom: 20px;">⚙️ Account Settings</h2>
+  <!-- Campaigns Tab -->
+  <div id="campaigns" class="tab-content">
+    <div class="search-box">
+      <select id="campaignFilter">
+        <option value="">All Status</option>
+        <option value="pending">Pending</option>
+        <option value="active">Active</option>
+        <option value="completed">Completed</option>
+      </select>
+      <button onclick="loadCampaigns()">🔄 Load</button>
+    </div>
+    <div id="campaignsTable"></div>
+  </div>
+</div>
 
-      <div style="margin-bottom: 20px;">
-        <h3 style="color: #333; margin-bottom: 15px;">🔑 Change Password</h3>
-        <input type="password" id="currentPassword" placeholder="Current password" style="margin: 10px 0;">
-        <input type="password" id="newPassword" placeholder="New password" style="margin: 10px 0;">
-        <input type="password" id="confirmPassword" placeholder="Confirm password" style="margin: 10px 0;">
-        <button onclick="changePassword()" style="width: 100%; margin-top: 10px;">Change Password</button>
-      </div>
+<!-- User Details Modal -->
+<div id="userModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>👤 User Details</h2>
+      <span class="close" onclick="closeModal('userModal')">✕</span>
+    </div>
+    <div id="userModalContent"></div>
+  </div>
+</div>
 
-      <div style="margin-bottom: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
-        <h3 style="color: #333; margin-bottom: 15px;">🔐 Secret Codes</h3>
-        <button onclick="loadSecretCodes()" style="width: 100%; margin-bottom: 10px;">View Secret Codes</button>
-        <div id="secretCodesList" style="max-height: 200px; overflow-y: auto; background: #f8f9fa; padding: 10px; border-radius: 5px;"></div>
-      </div>
+<!-- Withdrawal Approval Modal -->
+<div id="withdrawalModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>💳 Withdrawal Request</h2>
+      <span class="close" onclick="closeModal('withdrawalModal')">✕</span>
+    </div>
+    <div id="withdrawalModalContent"></div>
+  </div>
+</div>
 
-      <button onclick="closeAccountSettings()" style="width: 100%; background: #6c757d;">Close</button>
+<!-- Settings Modal -->
+<div id="settingsModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>⚙️ Admin Settings</h2>
+      <span class="close" onclick="closeModal('settingsModal')">✕</span>
+    </div>
+    <div class="form-group">
+      <label>Change Password</label>
+      <input type="password" id="currentPassword" placeholder="Current Password">
+      <input type="password" id="newPassword" placeholder="New Password" style="margin-top: 10px;">
+      <input type="password" id="confirmPassword" placeholder="Confirm Password" style="margin-top: 10px;">
+      <button onclick="changePassword()" style="width: 100%; margin-top: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer;">Change Password</button>
     </div>
   </div>
 </div>
@@ -314,7 +604,11 @@
 <script>
   const API_URL = '/api';
   let token = localStorage.getItem('token');
-  let adminCode = new URLSearchParams(window.location.search).get('code');
+
+  if (!token) {
+    alert('Please login first');
+    window.location.href = '/';
+  }
 
   async function fetchAdmin(endpoint, options = {}) {
     const headers = {
@@ -323,154 +617,324 @@
       ...options.headers
     };
 
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      ...options,
-      headers
-    });
+    try {
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'API error');
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = '/';
+          return;
+        }
+        const error = await response.json();
+        throw new Error(error.error || 'API error');
+      }
+
+      return await response.json();
+    } catch (error) {
+      showAlert(error.message, 'error');
+      throw error;
     }
+  }
 
-    return response.json();
+  function showAlert(message, type = 'success') {
+    const alert = document.getElementById('alert');
+    alert.textContent = message;
+    alert.className = `alert active ${type}`;
+    setTimeout(() => {
+      alert.classList.remove('active');
+    }, 5000);
+  }
+
+  function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+    document.getElementById(tabName).classList.add('active');
+    event.target.classList.add('active');
+
+    if (tabName === 'dashboard') loadDashboard();
+    else if (tabName === 'users') loadAllUsers();
+    else if (tabName === 'deposits') loadDeposits();
+    else if (tabName === 'withdrawals') loadWithdrawals();
+    else if (tabName === 'campaigns') loadCampaigns();
   }
 
   async function loadDashboard() {
     try {
-      const data = await fetchAdmin(`/admin-panel/dashboard/${adminCode}`);
-      document.getElementById('totalUsers').textContent = data.stats.totalUsers;
-      document.getElementById('adminCount').textContent = data.stats.adminCount;
-      document.getElementById('bannedCount').textContent = data.stats.bannedCount;
-      document.getElementById('pendingDeposits').textContent = data.stats.pendingDeposits;
-      document.getElementById('activeCampaigns').textContent = data.stats.activeCampaigns;
-      document.getElementById('pendingCampaigns').textContent = data.stats.pendingCampaigns;
-
-      loadDeposits();
-      loadCampaigns();
+      const data = await fetchAdmin('/admin-panel/dashboard');
+      document.getElementById('statTotalUsers').textContent = data.stats?.totalUsers || 0;
+      document.getElementById('statTotalAdmins').textContent = data.stats?.totalAdmins || 0;
+      document.getElementById('statBannedUsers').textContent = data.stats?.bannedUsers || 0;
+      document.getElementById('statPendingDeposits').textContent = data.stats?.pendingDeposits || 0;
+      document.getElementById('statPendingWithdrawals').textContent = data.stats?.pendingWithdrawals || 0;
+      document.getElementById('statActiveCampaigns').textContent = data.stats?.activeCampaigns || 0;
     } catch (error) {
-      alert('Error loading dashboard: ' + error.message);
+      console.error('Error loading dashboard:', error);
+    }
+  }
+
+  async function loadAllUsers() {
+    try {
+      const data = await fetchAdmin('/admin-panel/users');
+      renderUsersTable(data.users || []);
+    } catch (error) {
+      console.error('Error loading users:', error);
     }
   }
 
   async function searchUsers() {
-    const query = document.getElementById('searchQuery').value;
+    const query = document.getElementById('userSearch').value.trim();
     if (!query) {
-      alert('Enter email or username to search');
+      showAlert('Enter search query', 'error');
       return;
     }
 
     try {
-      const data = await fetchAdmin(`/admin-panel/users?q=${query}`);
-      let html = '<table><thead><tr><th>Email</th><th>Username</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
-
-      data.users.forEach(user => {
-        const status = user.isBanned ? 'Banned' : (user.isAdmin ? 'Admin' : 'Active');
-        html += `<tr>
-          <td>${user.email}</td>
-          <td>${user.username || '-'}</td>
-          <td>${user.role}</td>
-          <td><span class="status ${status.toLowerCase()}">${status}</span></td>
-          <td>
-            <button onclick="makeAdmin(${user.id})" style="width: 100%; padding: 5px; margin: 3px 0;">Make Admin</button>
-            <button onclick="banUser(${user.id})" style="width: 100%; padding: 5px; margin: 3px 0; background: #dc3545;">Ban</button>
-          </td>
-        </tr>`;
-      });
-
-      html += '</tbody></table>';
-      document.getElementById('searchResults').innerHTML = html;
+      const data = await fetchAdmin(`/admin-panel/users?q=${encodeURIComponent(query)}`);
+      renderUsersTable(data.users || []);
     } catch (error) {
-      alert('Search error: ' + error.message);
+      console.error('Error searching users:', error);
+    }
+  }
+
+  function renderUsersTable(users) {
+    if (!users || users.length === 0) {
+      document.getElementById('usersTable').innerHTML = '<p style="text-align: center; padding: 20px;">No users found</p>';
+      return;
+    }
+
+    let html = `<table>
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Username</th>
+          <th>Phone</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+    users.forEach(user => {
+      const status = user.isBanned ? 'banned' : 'active';
+      const statusText = user.isBanned ? 'Banned' : 'Active';
+      
+      html += `<tr>
+        <td>${user.email}</td>
+        <td>${user.username || '-'}</td>
+        <td>${user.phone || '-'}</td>
+        <td>${user.role || 'user'}</td>
+        <td><span class="status ${status}">${statusText}</span></td>
+        <td>
+          <button class="action-btn view" onclick="viewUserDetails(${user.id})">View</button>
+          ${!user.isAdmin ? `<button class="action-btn admin" onclick="makeAdmin(${user.id})">Admin</button>` : ''}
+          ${!user.isBanned ? `<button class="action-btn ban" onclick="banUser(${user.id})">Ban</button>` : `<button class="action-btn unban" onclick="unbanUser(${user.id})">Unban</button>`}
+        </td>
+      </tr>`;
+    });
+
+    html += '</tbody></table>';
+    document.getElementById('usersTable').innerHTML = html;
+  }
+
+  async function viewUserDetails(userId) {
+    try {
+      const data = await fetchAdmin(`/admin-panel/users/${userId}`);
+      const user = data.user;
+
+      let html = `
+        <div class="info-row">
+          <div class="info-label">Email</div>
+          <div class="info-value">${user.email}</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Username</div>
+          <div class="info-value">${user.username || '-'}</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Full Name</div>
+          <div class="info-value">${user.fullName || '-'}</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Phone</div>
+          <div class="info-value">${user.phone || '-'}</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">IP Address</div>
+          <div class="info-value">${user.ipAddress || '-'}</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Role</div>
+          <div class="info-value"><span class="status active">${user.role}</span></div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Status</div>
+          <div class="info-value"><span class="status ${user.isBanned ? 'banned' : 'active'}">${user.isBanned ? 'Banned' : 'Active'}</span></div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Email Verified</div>
+          <div class="info-value">${user.emailVerified ? '✓ Yes' : '✗ No'}</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Wallet Balance</div>
+          <div class="info-value">$${(user.wallet?.balance / 100 || 0).toFixed(2)}</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Trust Score</div>
+          <div class="info-value">${user.trustScore?.toFixed(2) || '100'}%</div>
+        </div>
+
+        <div class="info-section">
+          <h3>💳 Bank Details</h3>
+          <div class="info-row">
+            <div class="info-label">Account Holder</div>
+            <div class="info-value">${user.accountHolderName || '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Account Type</div>
+            <div class="info-value">${user.accountType || '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Account Number</div>
+            <div class="info-value">${user.accountNumber || '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Bank Name</div>
+            <div class="info-value">${user.bankName || '-'}</div>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <h3>📊 Statistics</h3>
+          <div class="info-row">
+            <div class="info-label">Total Earnings</div>
+            <div class="info-value">$${(user.totalEarnings / 100 || 0).toFixed(2)}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Total Withdrawals</div>
+            <div class="info-value">$${(user.totalWithdrawn / 100 || 0).toFixed(2)}</div>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button class="btn-secondary" onclick="closeModal('userModal')">Close</button>
+          ${!user.isBanned ? `<button class="btn-danger" onclick="banUserWithReason(${user.id})">Ban User</button>` : `<button class="btn-primary" onclick="unbanUser(${user.id})">Unban User</button>`}
+        </div>
+      `;
+
+      document.getElementById('userModalContent').innerHTML = html;
+      document.getElementById('userModal').classList.add('active');
+    } catch (error) {
+      console.error('Error:', error);
     }
   }
 
   async function makeAdmin(userId) {
+    if (confirm('Make this user an admin?')) {
+      try {
+        await fetchAdmin(`/admin-panel/users/${userId}/make-admin`, { method: 'POST' });
+        showAlert('User is now an admin');
+        loadAllUsers();
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
+  }
+
+  async function banUserWithReason(userId) {
+    const reason = prompt('Enter ban reason:');
+    if (!reason) return;
+
     try {
-      await fetchAdmin(`/admin-panel/users/${userId}/make-admin`, {
-        method: 'POST'
+      await fetchAdmin(`/admin-panel/users/${userId}/ban`, {
+        method: 'POST',
+        body: JSON.stringify({ reason })
       });
-      alert('User is now admin');
-      searchUsers();
+      showAlert('User has been banned');
+      closeModal('userModal');
+      loadAllUsers();
     } catch (error) {
-      alert('Error: ' + error.message);
+      console.error('Error:', error);
     }
   }
 
   async function banUser(userId) {
-    try {
-      await fetchAdmin(`/admin-panel/users/${adminCode}/${userId}/ban`, {
-        method: 'POST'
-      });
-      alert('User banned');
-      searchUsers();
-    } catch (error) {
-      alert('Error: ' + error.message);
-    }
+    banUserWithReason(userId);
   }
 
-  async function generateCodes() {
-    try {
-      const type = document.getElementById('codeType').value;
-      const count = Number(document.getElementById('codeCount').value);
-
-      const data = await fetchAdmin(`/admin-panel/secrets/${adminCode}/generate`, {
-        method: 'POST',
-        body: JSON.stringify({ purpose: type, count })
-      });
-
-      let html = '<h4>Generated Codes:</h4>';
-      data.codes.forEach(code => {
-        html += `<div style="background: #f0f0f0; padding: 10px; margin: 5px 0; border-radius: 5px; word-break: break-all;">
-          <code>${code.code}</code>
-        </div>`;
-      });
-
-      document.getElementById('generatedCodes').innerHTML = html;
-    } catch (error) {
-      alert('Error: ' + error.message);
+  async function unbanUser(userId) {
+    if (confirm('Unban this user?')) {
+      try {
+        await fetchAdmin(`/admin-panel/users/${userId}/unban`, { method: 'POST' });
+        showAlert('User has been unbanned');
+        loadAllUsers();
+        closeModal('userModal');
+      } catch (error) {
+        console.error('Error:', error);
+      }
     }
   }
 
   async function loadDeposits() {
     try {
-      const data = await fetchAdmin(`/admin-panel/deposits/${adminCode}?status=pending`);
-      let html = '<table><thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Date</th><th>Actions</th></tr></thead><tbody>';
-
-      if (!data.deposits || data.deposits.length === 0) {
-        html += '<tr><td colspan="5">No pending deposits</td></tr>';
-      } else {
-        data.deposits.forEach(deposit => {
-          html += `<tr>
-            <td>${deposit.user.email}</td>
-            <td>$${(deposit.amount / 100).toFixed(2)}</td>
-            <td>${deposit.method}</td>
-            <td>${new Date(deposit.createdAt).toLocaleDateString()}</td>
-            <td>
-              <button onclick="approveDeposit(${deposit.id})" style="width: 100%; padding: 5px; background: #28a745; margin: 3px 0; color: white; border: none; border-radius: 3px; cursor: pointer;">Approve</button>
-              <button onclick="rejectDeposit(${deposit.id})" style="width: 100%; padding: 5px; background: #dc3545; margin: 3px 0; color: white; border: none; border-radius: 3px; cursor: pointer;">Reject</button>
-            </td>
-          </tr>`;
-        });
-      }
-      });
-
-      html += '</tbody></table>';
-      document.getElementById('depositsList').innerHTML = html;
+      const filter = document.getElementById('depositFilter').value;
+      const endpoint = filter ? `/admin-panel/deposits?status=${filter}` : '/admin-panel/deposits';
+      const data = await fetchAdmin(endpoint);
+      renderDepositsTable(data.deposits || []);
     } catch (error) {
-      console.error('Error loading deposits:', error);
+      console.error('Error:', error);
     }
+  }
+
+  function renderDepositsTable(deposits) {
+    if (!deposits || deposits.length === 0) {
+      document.getElementById('depositsTable').innerHTML = '<p style="text-align: center; padding: 20px;">No deposits found</p>';
+      return;
+    }
+
+    let html = `<table>
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+    deposits.forEach(deposit => {
+      html += `<tr>
+        <td>${deposit.user?.email}</td>
+        <td>$${(deposit.amount / 100).toFixed(2)}</td>
+        <td><span class="status ${deposit.status}">${deposit.status}</span></td>
+        <td>${new Date(deposit.createdAt).toLocaleDateString()}</td>
+        <td>
+          ${deposit.status === 'pending' ? `
+            <button class="action-btn approve" onclick="approveDeposit(${deposit.id})">Approve</button>
+            <button class="action-btn reject" onclick="rejectDeposit(${deposit.id})">Reject</button>
+          ` : ''}
+        </td>
+      </tr>`;
+    });
+
+    html += '</tbody></table>';
+    document.getElementById('depositsTable').innerHTML = html;
   }
 
   async function approveDeposit(depositId) {
     try {
-      await fetchAdmin(`/admin-panel/deposits/${adminCode}/${depositId}/approve`, {
-        method: 'POST'
-      });
-      alert('Deposit approved');
+      await fetchAdmin(`/admin-panel/deposits/${depositId}/approve`, { method: 'POST' });
+      showAlert('Deposit approved');
       loadDeposits();
     } catch (error) {
-      alert('Error: ' + error.message);
+      console.error('Error:', error);
     }
   }
 
@@ -479,52 +943,231 @@
     if (!reason) return;
 
     try {
-      await fetchAdmin(`/admin-panel/deposits/${adminCode}/${depositId}/reject`, {
+      await fetchAdmin(`/admin-panel/deposits/${depositId}/reject`, {
         method: 'POST',
         body: JSON.stringify({ reason })
       });
-      alert('Deposit rejected');
+      showAlert('Deposit rejected');
       loadDeposits();
     } catch (error) {
-      alert('Error: ' + error.message);
+      console.error('Error:', error);
+    }
+  }
+
+  async function loadWithdrawals() {
+    try {
+      const filter = document.getElementById('withdrawalFilter').value;
+      const endpoint = filter ? `/admin-panel/withdrawals?status=${filter}` : '/admin-panel/withdrawals';
+      const data = await fetchAdmin(endpoint);
+      renderWithdrawalsTable(data.withdrawals || []);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  function renderWithdrawalsTable(withdrawals) {
+    if (!withdrawals || withdrawals.length === 0) {
+      document.getElementById('withdrawalsTable').innerHTML = '<p style="text-align: center; padding: 20px;">No withdrawals found</p>';
+      return;
+    }
+
+    let html = `<table>
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Amount</th>
+          <th>Fee (20%)</th>
+          <th>Net Amount</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+    withdrawals.forEach(withdrawal => {
+      const fee = withdrawal.amount * 0.2;
+      const netAmount = withdrawal.amount - fee;
+
+      html += `<tr>
+        <td>${withdrawal.user?.email}</td>
+        <td>$${(withdrawal.amount / 100).toFixed(2)}</td>
+        <td>$${(fee / 100).toFixed(2)}</td>
+        <td>$${(netAmount / 100).toFixed(2)}</td>
+        <td><span class="status ${withdrawal.status}">${withdrawal.status}</span></td>
+        <td>
+          ${withdrawal.status === 'pending' ? `
+            <button class="action-btn view" onclick="viewWithdrawalDetails(${withdrawal.id})">Review</button>
+          ` : ''}
+        </td>
+      </tr>`;
+    });
+
+    html += '</tbody></table>';
+    document.getElementById('withdrawalsTable').innerHTML = html;
+  }
+
+  async function viewWithdrawalDetails(withdrawalId) {
+    try {
+      const data = await fetchAdmin(`/admin-panel/withdrawals/${withdrawalId}`);
+      const w = data.withdrawal;
+      const fee = w.amount * 0.2;
+      const netAmount = w.amount - fee;
+
+      let html = `
+        <div class="info-row">
+          <div class="info-label">User Email</div>
+          <div class="info-value">${w.user?.email}</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Username</div>
+          <div class="info-value">${w.user?.username || '-'}</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Phone</div>
+          <div class="info-value">${w.user?.phone || '-'}</div>
+        </div>
+
+        <div class="info-section">
+          <h3>💳 Bank Details</h3>
+          <div class="info-row">
+            <div class="info-label">Account Holder</div>
+            <div class="info-value">${w.user?.accountHolderName || '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Account Type</div>
+            <div class="info-value">${w.user?.accountType || '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Account Number</div>
+            <div class="info-value">${w.user?.accountNumber || '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Bank Name</div>
+            <div class="info-value">${w.user?.bankName || '-'}</div>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <h3>💰 Amount Details</h3>
+          <div class="info-row">
+            <div class="info-label">Requested Amount</div>
+            <div class="info-value">$${(w.amount / 100).toFixed(2)}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Admin Fee (20%)</div>
+            <div class="info-value" style="color: #e74c3c;">-$${(fee / 100).toFixed(2)}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label" style="font-weight: bold;">Net to Transfer</div>
+            <div class="info-value" style="font-weight: bold; color: #27ae60;">$${(netAmount / 100).toFixed(2)}</div>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button class="btn-secondary" onclick="closeModal('withdrawalModal')">Close</button>
+          <button class="btn-danger" onclick="rejectWithdrawal(${withdrawalId})">Reject</button>
+          <button class="btn-primary" onclick="approveWithdrawalForm(${withdrawalId})">Approve</button>
+        </div>
+      `;
+
+      document.getElementById('withdrawalModalContent').innerHTML = html;
+      document.getElementById('withdrawalModal').classList.add('active');
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  async function approveWithdrawalForm(withdrawalId) {
+    const txnId = prompt('Enter Transaction ID (e.g., bank confirmation):');
+    if (!txnId) return;
+
+    try {
+      await fetchAdmin(`/admin-panel/withdrawals/${withdrawalId}/approve`, {
+        method: 'POST',
+        body: JSON.stringify({ transactionId: txnId })
+      });
+      showAlert('Withdrawal approved! Money transferred.');
+      closeModal('withdrawalModal');
+      loadWithdrawals();
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  async function rejectWithdrawal(withdrawalId) {
+    const reason = prompt('Rejection reason:');
+    if (!reason) return;
+
+    try {
+      await fetchAdmin(`/admin-panel/withdrawals/${withdrawalId}/reject`, {
+        method: 'POST',
+        body: JSON.stringify({ reason })
+      });
+      showAlert('Withdrawal rejected');
+      closeModal('withdrawalModal');
+      loadWithdrawals();
+    } catch (error) {
+      console.error('Error:', error);
     }
   }
 
   async function loadCampaigns() {
     try {
-      const data = await fetchAdmin(`/admin-panel/campaigns/${adminCode}?status=pending`);
-      let html = '<table><thead><tr><th>Title</th><th>Type</th><th>Target</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
-
-      data.campaigns.forEach(campaign => {
-        html += `<tr>
-          <td>${campaign.title}</td>
-          <td>${campaign.type}</td>
-          <td>${campaign.targetCount}</td>
-          <td>$${(campaign.price / 100).toFixed(2)}</td>
-          <td><span class="status pending">${campaign.status}</span></td>
-          <td>
-            <button onclick="approveCampaign(${campaign.id})" style="width: 100%; padding: 5px; background: #28a745; margin: 3px 0;">Approve</button>
-            <button onclick="rejectCampaign(${campaign.id})" style="width: 100%; padding: 5px; background: #dc3545; margin: 3px 0;">Reject</button>
-          </td>
-        </tr>`;
-      });
-
-      html += '</tbody></table>';
-      document.getElementById('campaignsList').innerHTML = html;
+      const filter = document.getElementById('campaignFilter').value;
+      const endpoint = filter ? `/admin-panel/campaigns?status=${filter}` : '/admin-panel/campaigns';
+      const data = await fetchAdmin(endpoint);
+      renderCampaignsTable(data.campaigns || []);
     } catch (error) {
-      console.error('Error loading campaigns:', error);
+      console.error('Error:', error);
     }
+  }
+
+  function renderCampaignsTable(campaigns) {
+    if (!campaigns || campaigns.length === 0) {
+      document.getElementById('campaignsTable').innerHTML = '<p style="text-align: center; padding: 20px;">No campaigns found</p>';
+      return;
+    }
+
+    let html = `<table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Target</th>
+          <th>Price/Task</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+    campaigns.forEach(campaign => {
+      html += `<tr>
+        <td>${campaign.title}</td>
+        <td>${campaign.type}</td>
+        <td>${campaign.targetCount}</td>
+        <td>$${(campaign.pricePerTask / 100).toFixed(2)}</td>
+        <td><span class="status ${campaign.status}">${campaign.status}</span></td>
+        <td>
+          ${campaign.status === 'pending' ? `
+            <button class="action-btn approve" onclick="approveCampaign(${campaign.id})">Approve</button>
+            <button class="action-btn reject" onclick="rejectCampaign(${campaign.id})">Reject</button>
+          ` : ''}
+        </td>
+      </tr>`;
+    });
+
+    html += '</tbody></table>';
+    document.getElementById('campaignsTable').innerHTML = html;
   }
 
   async function approveCampaign(campaignId) {
     try {
-      await fetchAdmin(`/admin-panel/campaigns/${adminCode}/${campaignId}/approve`, {
-        method: 'POST'
-      });
-      alert('Campaign approved and tasks created');
+      await fetchAdmin(`/admin-panel/campaigns/${campaignId}/approve`, { method: 'POST' });
+      showAlert('Campaign approved');
       loadCampaigns();
     } catch (error) {
-      alert('Error: ' + error.message);
+      console.error('Error:', error);
     }
   }
 
@@ -533,32 +1176,23 @@
     if (!reason) return;
 
     try {
-      await fetchAdmin(`/admin-panel/campaigns/${adminCode}/${campaignId}/reject`, {
+      await fetchAdmin(`/admin-panel/campaigns/${campaignId}/reject`, {
         method: 'POST',
         body: JSON.stringify({ reason })
       });
-      alert('Campaign rejected');
+      showAlert('Campaign rejected');
       loadCampaigns();
     } catch (error) {
-      alert('Error: ' + error.message);
+      console.error('Error:', error);
     }
   }
 
-  // Load on startup
-  if (!token || !adminCode) {
-    alert('Please login and provide admin code');
-    window.location.href = '/';
-  } else {
-    loadDashboard();
+  function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
   }
 
-  // Account Settings Functions
-  function showAccountSettings() {
-    document.getElementById('accountModal').style.display = 'flex';
-  }
-
-  function closeAccountSettings() {
-    document.getElementById('accountModal').style.display = 'none';
+  function showSettings() {
+    document.getElementById('settingsModal').classList.add('active');
   }
 
   async function changePassword() {
@@ -567,86 +1201,44 @@
     const confirm = document.getElementById('confirmPassword').value;
 
     if (!current || !newPass || !confirm) {
-      alert('Please fill all fields');
+      showAlert('Fill all fields', 'error');
       return;
     }
 
     if (newPass !== confirm) {
-      alert('Passwords do not match');
+      showAlert('Passwords do not match', 'error');
       return;
     }
 
     if (newPass.length < 6) {
-      alert('Password must be at least 6 characters');
+      showAlert('Password must be 6+ chars', 'error');
       return;
     }
 
     try {
-      await fetchAdmin(`/admin-panel/admin/${adminCode}/change-password`, {
+      await fetchAdmin('/admin-panel/admin/change-password', {
         method: 'POST',
-        body: JSON.stringify({
-          currentPassword: current,
-          newPassword: newPass
-        })
+        body: JSON.stringify({ currentPassword: current, newPassword: newPass })
       });
-
-      alert('Password changed successfully!');
+      showAlert('Password changed');
       document.getElementById('currentPassword').value = '';
       document.getElementById('newPassword').value = '';
       document.getElementById('confirmPassword').value = '';
-      closeAccountSettings();
+      closeModal('settingsModal');
     } catch (error) {
-      alert('Error: ' + error.message);
-    }
-  }
-
-  async function loadSecretCodes() {
-    try {
-      const data = await fetchAdmin(`/admin-panel/secrets/${adminCode}/list`);
-      let html = '<div style="font-size: 0.9rem;">';
-
-      if (data.secrets.length === 0) {
-        html += '<p>No active secret codes</p>';
-      } else {
-        data.secrets.forEach(secret => {
-          html += `
-            <div style="background: white; padding: 10px; margin: 5px 0; border-radius: 3px; display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <div style="font-weight: bold; word-break: break-all;">${secret.code}</div>
-                <div style="color: #666; font-size: 0.85rem;">${secret.purpose}</div>
-              </div>
-              <button onclick="resetSecretCode(${secret.id})" style="width: auto; padding: 5px 10px; background: #ffc107; color: #000;">Reset</button>
-            </div>
-          `;
-        });
-      }
-
-      html += '</div>';
-      document.getElementById('secretCodesList').innerHTML = html;
-    } catch (error) {
-      alert('Error: ' + error.message);
-    }
-  }
-
-  async function resetSecretCode(secretId) {
-    if (!confirm('Reset this secret code? The old one will be disabled.')) return;
-
-    try {
-      const data = await fetchAdmin(`/admin-panel/secrets/${adminCode}/${secretId}/reset`, {
-        method: 'POST'
-      });
-
-      alert(`New code: ${data.newCode}\n\nCopy and save this!`);
-      loadSecretCodes();
-    } catch (error) {
-      alert('Error: ' + error.message);
+      console.error('Error:', error);
     }
   }
 
   function logout() {
-    localStorage.removeItem('token');
-    window.location.href = '/';
+    if (confirm('Logout?')) {
+      localStorage.removeItem('token');
+      window.location.href = '/';
+    }
   }
+
+  // Initial load
+  loadDashboard();
 </script>
 
 </body>

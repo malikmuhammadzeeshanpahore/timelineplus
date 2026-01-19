@@ -723,9 +723,6 @@ router.post('/withdrawals/:withdrawalId/reject', verifyToken, verifyAdmin, async
 // ==================== CAMPAIGN MANAGEMENT ====================
 
 /**
-// ==================== CAMPAIGN MANAGEMENT ====================
-
-/**
  * GET /admin-panel/campaigns?status=pending
  * List campaigns awaiting approval
  */

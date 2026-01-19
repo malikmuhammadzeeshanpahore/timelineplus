@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    .content {
+      padding: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .panel {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      border-left: 4px solid #667eea;
+    }
+
+    .panel h2 {
+      color: #667eea;
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+    }
+
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .stat:last-child {
+      border-bottom: none;
+    }
+
+    .stat label {
+      color: #666;
+    }
+
+    .stat value {
+      font-weight: bold;
+      color: #333;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-family: inherit;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 10px;
+      width: 100%;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .section {
+      margin-top: 30px;
+      padding-top: 30px;
+      border-top: 2px solid #eee;
+    }
+
+    .section h2 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    table th {
+      background: #667eea;
+      color: white;
+      padding: 12px;
+      text-align: left;
+    }
+
+    table td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    table tr:hover {
+      background: #f8f9fa;
+    }
+
+    .status {
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      text-align: center;
+      display: inline-block;
+    }
+
+    .status.pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status.approved {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status.rejected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .alert {
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 5px;
+    }
+
+    .alert.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .content {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>🔐 Admin Panel</h1>
+    <p>Manage Users, Deposits, and Campaigns</p>
+  </div>
+
+  <div class="content" style="border-bottom: 2px solid #eee; padding-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div></div>
+      <div style="display: flex; gap: 10px;">
+        <button onclick="showAccountSettings()" style="width: auto; background: #6c757d;">⚙️ Account</button>
+        <button onclick="logout()" style="width: auto; background: #dc3545;">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Dashboard Stats -->
+    <div class="panel">
+      <h2>📊 Dashboard</h2>
+      <div class="stat">
+        <label>Total Users:</label>
+        <value id="totalUsers">-</value>
+      </div>
+      <div class="stat">
+        <label>Admin Users:</label>
+        <value id="adminCount">-</value>
+      </div>
+      <div class="stat">
+        <label>Banned Users:</label>
+        <value id="bannedCount">-</value>
+      </div>
+      <div class="stat">
+        <label>Pending Deposits:</label>
+        <value id="pendingDeposits">-</value>
+      </div>
+      <div class="stat">
+        <label>Active Campaigns:</label>
+        <value id="activeCampaigns">-</value>
+      </div>
+      <div class="stat">
+        <label>Pending Campaigns:</label>
+        <value id="pendingCampaigns">-</value>
+      </div>
+    </div>
+
+    <!-- User Search -->
+    <div class="panel">
+      <h2>🔍 Search Users</h2>
+      <input type="text" id="searchQuery" placeholder="Email or username">
+      <button onclick="searchUsers()">Search</button>
+      <div id="searchResults" style="margin-top: 15px;"></div>
+    </div>
+
+    <!-- Secret Code Generator -->
+    <div class="panel">
+      <h2>🔑 Generate Secret Codes</h2>
+      <select id="codeType">
+        <option value="add_admin">Add Admin Code</option>
+        <option value="access_panel">Access Panel Code</option>
+      </select>
+      <input type="number" id="codeCount" value="1" min="1" max="10">
+      <button onclick="generateCodes()">Generate</button>
+      <div id="generatedCodes" style="margin-top: 15px;"></div>
+    </div>
+  </div>
+
+  <div class="content" style="padding: 30px; border-top: 2px solid #eee;">
+    <!-- Deposits Management -->
+    <div>
+      <h2>💰 Pending Deposits</h2>
+      <div id="depositsList"></div>
+    </div>
+
+    <!-- Campaigns Management -->
+    <div>
+      <h2>📢 Pending Campaigns</h2>
+      <div id="campaignsList"></div>
+    </div>
+  </div>
+
+  <!-- Account Settings Modal -->
+  <div id="accountModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 30px; border-radius: 10px; max-width: 400px; width: 90%;">
+      <h2 style="color: #667eea; margin-bottom: 20px;">⚙️ Account Settings</h2>
+
+      <div style="margin-bottom: 20px;">
+        <h3 style="color: #333; margin-bottom: 15px;">🔑 Change Password</h3>
+        <input type="password" id="currentPassword" placeholder="Current password" style="margin: 10px 0;">
+        <input type="password" id="newPassword" placeholder="New password" style="margin: 10px 0;">
+        <input type="password" id="confirmPassword" placeholder="Confirm password" style="margin: 10px 0;">
+        <button onclick="changePassword()" style="width: 100%; margin-top: 10px;">Change Password</button>
+      </div>
+
+      <div style="margin-bottom: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+        <h3 style="color: #333; margin-bottom: 15px;">🔐 Secret Codes</h3>
+        <button onclick="loadSecretCodes()" style="width: 100%; margin-bottom: 10px;">View Secret Codes</button>
+        <div id="secretCodesList" style="max-height: 200px; overflow-y: auto; background: #f8f9fa; padding: 10px; border-radius: 5px;"></div>
+      </div>
+
+      <button onclick="closeAccountSettings()" style="width: 100%; background: #6c757d;">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_URL = '/api';
+  let token = localStorage.getItem('token');
+  let adminCode = new URLSearchParams(window.location.search).get('code');
+
+  async function fetchAdmin(endpoint, options = {}) {
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...options.headers
+    };
+
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'API error');
+    }
+
+    return response.json();
+  }
+
+  async function loadDashboard() {
+    try {
+      const data = await fetchAdmin(`/admin-panel/dashboard/${adminCode}`);
+      document.getElementById('totalUsers').textContent = data.stats.totalUsers;
+      document.getElementById('adminCount').textContent = data.stats.adminCount;
+      document.getElementById('bannedCount').textContent = data.stats.bannedCount;
+      document.getElementById('pendingDeposits').textContent = data.stats.pendingDeposits;
+      document.getElementById('activeCampaigns').textContent = data.stats.activeCampaigns;
+      document.getElementById('pendingCampaigns').textContent = data.stats.pendingCampaigns;
+
+      loadDeposits();
+      loadCampaigns();
+    } catch (error) {
+      alert('Error loading dashboard: ' + error.message);
+    }
+  }
+
+  async function searchUsers() {
+    const query = document.getElementById('searchQuery').value;
+    if (!query) {
+      alert('Enter email or username to search');
+      return;
+    }
+
+    try {
+      const data = await fetchAdmin(`/admin-panel/users/${adminCode}?q=${query}`);
+      let html = '<table><thead><tr><th>Email</th><th>Username</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+
+      data.users.forEach(user => {
+        const status = user.isBanned ? 'Banned' : (user.isAdmin ? 'Admin' : 'Active');
+        html += `<tr>
+          <td>${user.email}</td>
+          <td>${user.username || '-'}</td>
+          <td>${user.role}</td>
+          <td><span class="status ${status.toLowerCase()}">${status}</span></td>
+          <td>
+            <button onclick="makeAdmin(${user.id})" style="width: 100%; padding: 5px; margin: 3px 0;">Make Admin</button>
+            <button onclick="banUser(${user.id})" style="width: 100%; padding: 5px; margin: 3px 0; background: #dc3545;">Ban</button>
+          </td>
+        </tr>`;
+      });
+
+      html += '</tbody></table>';
+      document.getElementById('searchResults').innerHTML = html;
+    } catch (error) {
+      alert('Search error: ' + error.message);
+    }
+  }
+
+  async function makeAdmin(userId) {
+    try {
+      await fetchAdmin(`/admin-panel/users/${adminCode}/${userId}/make-admin`, {
+        method: 'POST'
+      });
+      alert('User is now admin');
+      searchUsers();
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
+
+  async function banUser(userId) {
+    try {
+      await fetchAdmin(`/admin-panel/users/${adminCode}/${userId}/ban`, {
+        method: 'POST'
+      });
+      alert('User banned');
+      searchUsers();
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
+
+  async function generateCodes() {
+    try {
+      const type = document.getElementById('codeType').value;
+      const count = Number(document.getElementById('codeCount').value);
+
+      const data = await fetchAdmin(`/admin-panel/secrets/${adminCode}/generate`, {
+        method: 'POST',
+        body: JSON.stringify({ purpose: type, count })
+      });
+
+      let html = '<h4>Generated Codes:</h4>';
+      data.codes.forEach(code => {
+        html += `<div style="background: #f0f0f0; padding: 10px; margin: 5px 0; border-radius: 5px; word-break: break-all;">
+          <code>${code.code}</code>
+        </div>`;
+      });
+
+      document.getElementById('generatedCodes').innerHTML = html;
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
+
+  async function loadDeposits() {
+    try {
+      const data = await fetchAdmin(`/admin-panel/deposits/${adminCode}?status=pending`);
+      let html = '<table><thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Date</th><th>Actions</th></tr></thead><tbody>';
+
+      data.deposits.forEach(deposit => {
+        html += `<tr>
+          <td>${deposit.user.email}</td>
+          <td>$${(deposit.amount / 100).toFixed(2)}</td>
+          <td>${deposit.method}</td>
+          <td>${new Date(deposit.createdAt).toLocaleDateString()}</td>
+          <td>
+            <button onclick="approveDeposit(${deposit.id})" style="width: 100%; padding: 5px; background: #28a745; margin: 3px 0;">Approve</button>
+            <button onclick="rejectDeposit(${deposit.id})" style="width: 100%; padding: 5px; background: #dc3545; margin: 3px 0;">Reject</button>
+          </td>
+        </tr>`;
+      });
+
+      html += '</tbody></table>';
+      document.getElementById('depositsList').innerHTML = html;
+    } catch (error) {
+      console.error('Error loading deposits:', error);
+    }
+  }
+
+  async function approveDeposit(depositId) {
+    try {
+      await fetchAdmin(`/admin-panel/deposits/${adminCode}/${depositId}/approve`, {
+        method: 'POST'
+      });
+      alert('Deposit approved');
+      loadDeposits();
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
+
+  async function rejectDeposit(depositId) {
+    const reason = prompt('Rejection reason:');
+    if (!reason) return;
+
+    try {
+      await fetchAdmin(`/admin-panel/deposits/${adminCode}/${depositId}/reject`, {
+        method: 'POST',
+        body: JSON.stringify({ reason })
+      });
+      alert('Deposit rejected');
+      loadDeposits();
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
+
+  async function loadCampaigns() {
+    try {
+      const data = await fetchAdmin(`/admin-panel/campaigns/${adminCode}?status=pending`);
+      let html = '<table><thead><tr><th>Title</th><th>Type</th><th>Target</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+
+      data.campaigns.forEach(campaign => {
+        html += `<tr>
+          <td>${campaign.title}</td>
+          <td>${campaign.type}</td>
+          <td>${campaign.targetCount}</td>
+          <td>$${(campaign.price / 100).toFixed(2)}</td>
+          <td><span class="status pending">${campaign.status}</span></td>
+          <td>
+            <button onclick="approveCampaign(${campaign.id})" style="width: 100%; padding: 5px; background: #28a745; margin: 3px 0;">Approve</button>
+            <button onclick="rejectCampaign(${campaign.id})" style="width: 100%; padding: 5px; background: #dc3545; margin: 3px 0;">Reject</button>
+          </td>
+        </tr>`;
+      });
+
+      html += '</tbody></table>';
+      document.getElementById('campaignsList').innerHTML = html;
+    } catch (error) {
+      console.error('Error loading campaigns:', error);
+    }
+  }
+
+  async function approveCampaign(campaignId) {
+    try {
+      await fetchAdmin(`/admin-panel/campaigns/${adminCode}/${campaignId}/approve`, {
+        method: 'POST'
+      });
+      alert('Campaign approved and tasks created');
+      loadCampaigns();
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
+
+  async function rejectCampaign(campaignId) {
+    const reason = prompt('Rejection reason:');
+    if (!reason) return;
+
+    try {
+      await fetchAdmin(`/admin-panel/campaigns/${adminCode}/${campaignId}/reject`, {
+        method: 'POST',
+        body: JSON.stringify({ reason })
+      });
+      alert('Campaign rejected');
+      loadCampaigns();
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
+
+  // Load on startup
+  if (!token || !adminCode) {
+    alert('Please login and provide admin code');
+    window.location.href = '/';
+  } else {
+    loadDashboard();
+  }
+
+  // Account Settings Functions
+  function showAccountSettings() {
+    document.getElementById('accountModal').style.display = 'flex';
+  }
+
+  function closeAccountSettings() {
+    document.getElementById('accountModal').style.display = 'none';
+  }
+
+  async function changePassword() {
+    const current = document.getElementById('currentPassword').value;
+    const newPass = document.getElementById('newPassword').value;
+    const confirm = document.getElementById('confirmPassword').value;
+
+    if (!current || !newPass || !confirm) {
+      alert('Please fill all fields');
+      return;
+    }
+
+    if (newPass !== confirm) {
+      alert('Passwords do not match');
+      return;
+    }
+
+    if (newPass.length < 6) {
+      alert('Password must be at least 6 characters');
+      return;
+    }
+
+    try {
+      await fetchAdmin(`/admin-panel/admin/${adminCode}/change-password`, {
+        method: 'POST',
+        body: JSON.stringify({
+          currentPassword: current,
+          newPassword: newPass
+        })
+      });
+
+      alert('Password changed successfully!');
+      document.getElementById('currentPassword').value = '';
+      document.getElementById('newPassword').value = '';
+      document.getElementById('confirmPassword').value = '';
+      closeAccountSettings();
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
+
+  async function loadSecretCodes() {
+    try {
+      const data = await fetchAdmin(`/admin-panel/secrets/${adminCode}/list`);
+      let html = '<div style="font-size: 0.9rem;">';
+
+      if (data.secrets.length === 0) {
+        html += '<p>No active secret codes</p>';
+      } else {
+        data.secrets.forEach(secret => {
+          html += `
+            <div style="background: white; padding: 10px; margin: 5px 0; border-radius: 3px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-weight: bold; word-break: break-all;">${secret.code}</div>
+                <div style="color: #666; font-size: 0.85rem;">${secret.purpose}</div>
+              </div>
+              <button onclick="resetSecretCode(${secret.id})" style="width: auto; padding: 5px 10px; background: #ffc107; color: #000;">Reset</button>
+            </div>
+          `;
+        });
+      }
+
+      html += '</div>';
+      document.getElementById('secretCodesList').innerHTML = html;
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
+
+  async function resetSecretCode(secretId) {
+    if (!confirm('Reset this secret code? The old one will be disabled.')) return;
+
+    try {
+      const data = await fetchAdmin(`/admin-panel/secrets/${adminCode}/${secretId}/reset`, {
+        method: 'POST'
+      });
+
+      alert(`New code: ${data.newCode}\n\nCopy and save this!`);
+      loadSecretCodes();
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('token');
+    window.location.href = '/';
+  }
+</script>
+
+</body>
+</html>

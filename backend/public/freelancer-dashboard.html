@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Freelancer Dashboard - Timeline+</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+      border-bottom: 2px solid #eee;
+    }
+
+    .nav-tabs button {
+      background: none;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      color: #666;
+      font-size: 1rem;
+    }
+
+    .nav-tabs button.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .card h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    .task-item {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border-left: 4px solid #667eea;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+
+    .task-item h4 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .task-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin: 15px 0;
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .info-label {
+      color: #666;
+      font-weight: 500;
+    }
+
+    .info-value {
+      color: #333;
+      font-weight: bold;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .badge.pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .badge.assigned {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+
+    .badge.completed {
+      background: #e2e3e5;
+      color: #383d41;
+    }
+
+    .badge.verified {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .badge.paid {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: transform 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+    }
+
+    button.secondary {
+      background: #6c757d;
+    }
+
+    input, textarea {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-family: inherit;
+      width: 100%;
+      margin: 10px 0;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .stat-box {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .stat-box .value {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+
+    .stat-box .label {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .instructions {
+      background: #e7f3ff;
+      padding: 15px;
+      border-left: 4px solid #2196F3;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+
+    @media (max-width: 768px) {
+      .task-info {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>💰 Freelancer Earnings</h1>
+    <p>Complete tasks and earn money</p>
+
+    <div class="nav-tabs">
+      <button class="active" onclick="switchTab('available')">Available Tasks</button>
+      <button onclick="switchTab('my-tasks')">My Tasks</button>
+      <button onclick="switchTab('earnings')">Earnings</button>
+    </div>
+  </div>
+
+  <!-- Available Tasks Tab -->
+  <div id="available" class="tab-content active">
+    <div id="availableTasksList" class="content"></div>
+  </div>
+
+  <!-- My Tasks Tab -->
+  <div id="my-tasks" class="tab-content">
+    <div id="myTasksList" class="content"></div>
+  </div>
+
+  <!-- Earnings Tab -->
+  <div id="earnings" class="tab-content">
+    <div class="card">
+      <h3>💵 Earnings Summary</h3>
+      <div class="stats">
+        <div class="stat-box">
+          <div class="value" id="totalEarned">$0.00</div>
+          <div class="label">Total Earned</div>
+        </div>
+        <div class="stat-box">
+          <div class="value" id="tasksCompleted">0</div>
+          <div class="label">Tasks Completed</div>
+        </div>
+        <div class="stat-box">
+          <div class="value" id="tasksVerified">0</div>
+          <div class="label">Tasks Verified</div>
+        </div>
+        <div class="stat-box">
+          <div class="value" id="tasksPending">0</div>
+          <div class="label">Pending Review</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📊 Recent Earnings</h3>
+      <div id="earningsList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_URL = '/api';
+  const token = localStorage.getItem('token');
+
+  async function fetchAPI(endpoint, options = {}) {
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...options.headers
+    };
+
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'API error');
+    }
+
+    return response.json();
+  }
+
+  function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.nav-tabs button').forEach(btn => btn.classList.remove('active'));
+    
+    document.getElementById(tabName).classList.add('active');
+    event.target.classList.add('active');
+
+    if (tabName === 'available') {
+      loadAvailableTasks();
+    } else if (tabName === 'my-tasks') {
+      loadMyTasks();
+    } else if (tabName === 'earnings') {
+      loadEarnings();
+    }
+  }
+
+  async function loadAvailableTasks() {
+    try {
+      const data = await fetchAPI('/campaigns/available-tasks');
+      let html = '';
+
+      if (data.tasks.length === 0) {
+        html = '<div class="card"><p>No available tasks at the moment. Check back later!</p></div>';
+      } else {
+        data.tasks.forEach(task => {
+          const campaign = task.campaign;
+          const reward = (task.rewardPerTask / 100).toFixed(2);
+          
+          html += `
+            <div class="task-item">
+              <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                  <h4>${campaign.title}</h4>
+                  <p style="color: #666; margin: 5px 0;">${campaign.description || 'No description'}</p>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-size: 1.8rem; font-weight: bold; color: #28a745;">$${reward}</div>
+                  <div style="color: #666; font-size: 0.9rem;">per task</div>
+                </div>
+              </div>
+
+              <div class="task-info">
+                <div class="info-item">
+                  <span class="info-label">Action:</span>
+                  <span class="info-value">${formatType(campaign.type)}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Progress:</span>
+                  <span class="info-value">${campaign.completedCount}/${campaign.targetCount}</span>
+                </div>
+              </div>
+
+              <div class="instructions">
+                <strong>Instructions:</strong>
+                <p>1. Click "Assign Task" to claim this task</p>
+                <p>2. Go to: <a href="${campaign.targetPage}" target="_blank">${campaign.targetPage}</a></p>
+                <p>3. ${getActionText(campaign.type)}</p>
+                <p>4. Take a screenshot as proof</p>
+                <p>5. Submit the screenshot in your tasks</p>
+                <p>6. Wait for admin verification</p>
+                <p>7. Get paid automatically once verified</p>
+              </div>
+
+              <button onclick="assignTask(${task.id})">Assign Task</button>
+            </div>
+          `;
+        });
+      }
+
+      document.getElementById('availableTasksList').innerHTML = html;
+    } catch (error) {
+      alert('Error loading tasks: ' + error.message);
+    }
+  }
+
+  async function loadMyTasks() {
+    try {
+      const data = await fetchAPI('/campaigns/my-tasks');
+      let html = '';
+
+      if (data.tasks.length === 0) {
+        html = '<div class="card"><p>No assigned tasks. <a href="#" onclick="switchTab(\'available\')">Find tasks</a></p></div>';
+      } else {
+        data.tasks.forEach(task => {
+          const campaign = task.campaign;
+          
+          html += `
+            <div class="task-item">
+              <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                  <h4>${campaign.title}</h4>
+                  <span class="badge ${task.status.toLowerCase()}">${task.status.toUpperCase()}</span>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-size: 1.5rem; font-weight: bold; color: #28a745;">$${(task.rewardPerTask / 100).toFixed(2)}</div>
+                </div>
+              </div>
+
+              <div class="task-info">
+                <div class="info-item">
+                  <span class="info-label">Progress:</span>
+                  <span class="info-value">${task.progress}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Status:</span>
+                  <span class="info-value">${task.status}</span>
+                </div>
+              </div>
+          `;
+
+          if (task.status === 'assigned') {
+            html += `
+              <div style="margin-top: 15px; padding: 15px; background: #e7f3ff; border-radius: 5px;">
+                <p style="color: #0c5460; margin-bottom: 10px;"><strong>✅ Instructions:</strong></p>
+                <ol style="margin-left: 20px; color: #0c5460;">
+                  <li>Go to the page link below</li>
+                  <li>Perform the action (follow/subscribe/like)</li>
+                  <li>Come back and click "Complete Task"</li>
+                  <li>Our system will verify automatically via API</li>
+                </ol>
+                <p style="color: #28a745; margin-top: 10px; font-size: 0.9rem;">
+                  💡 <strong>No screenshots needed!</strong> We verify through the platform's API.
+                </p>
+                <a href="${task.campaign.targetPage}" target="_blank" rel="noopener" style="
+                  display: inline-block;
+                  margin-top: 10px;
+                  padding: 10px 15px;
+                  background: #007bff;
+                  color: white;
+                  border-radius: 5px;
+                  text-decoration: none;
+                  font-weight: 500;
+                ">→ Go to ${formatType(task.campaign.type)} Page</a>
+
+                <button onclick="completeTask(${task.id})" style="
+                  display: block;
+                  width: 100%;
+                  margin-top: 10px;
+                  background: #28a745;
+                ">✅ I Completed the Task - Verify Now</button>
+              </div>
+            `;
+          }
+
+          html += '</div>';
+        });
+      }
+
+      document.getElementById('myTasksList').innerHTML = html;
+    } catch (error) {
+      alert('Error loading your tasks: ' + error.message);
+    }
+  }
+
+  async function loadEarnings() {
+    try {
+      const data = await fetchAPI('/campaigns/my-tasks');
+      
+      let totalEarned = 0;
+      let completed = 0;
+      let verified = 0;
+      let pending = 0;
+
+      data.tasks.forEach(task => {
+        if (task.status === 'completed' || task.status === 'verified') completed++;
+        if (task.status === 'verified' || task.status === 'paid') verified++;
+        if (task.status === 'completed') pending++;
+        if (task.status === 'paid') totalEarned += task.rewardPerTask;
+      });
+
+      document.getElementById('totalEarned').textContent = '$' + (totalEarned / 100).toFixed(2);
+      document.getElementById('tasksCompleted').textContent = completed;
+      document.getElementById('tasksVerified').textContent = verified;
+      document.getElementById('tasksPending').textContent = pending;
+
+      // Show paid tasks
+      let html = '';
+      const paidTasks = data.tasks.filter((t: any) => t.status === 'paid');
+      
+      if (paidTasks.length === 0) {
+        html = '<p>No completed earnings yet.</p>';
+      } else {
+        html = '<table style="width: 100%; border-collapse: collapse;">';
+        html += '<thead><tr><th style="border-bottom: 2px solid #ddd; padding: 10px; text-align: left;">Campaign</th><th style="border-bottom: 2px solid #ddd; padding: 10px; text-align: right;">Amount</th><th style="border-bottom: 2px solid #ddd; padding: 10px; text-align: left;">Date</th></tr></thead>';
+        html += '<tbody>';
+        
+        paidTasks.forEach(task => {
+          html += `<tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 10px;">${task.campaign.title}</td>
+            <td style="padding: 10px; text-align: right; color: #28a745; font-weight: bold;">$${(task.rewardPerTask / 100).toFixed(2)}</td>
+            <td style="padding: 10px;">Just now</td>
+          </tr>`;
+        });
+        
+        html += '</tbody></table>';
+      }
+
+      document.getElementById('earningsList').innerHTML = html;
+    } catch (error) {
+      alert('Error loading earnings: ' + error.message);
+    }
+  }
+
+  async function assignTask(taskId) {
+    try {
+      await fetchAPI(`/campaigns/tasks/${taskId}/assign`, {
+        method: 'POST'
+      });
+      alert('Task assigned! Now complete the action and submit proof.');
+      switchTab('my-tasks');
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
+
+  async function submitProof(taskId) {
+    try {
+      const fileInput = document.getElementById(`proof-${taskId}`);
+      const notes = document.getElementById(`notes-${taskId}`).value;
+
+      if (!fileInput.files || !fileInput.files[0]) {
+        alert('Please select a screenshot');
+        return;
+      }
+
+      // In production, upload to cloud storage (S3, Cloudinary, etc.)
+      // For now, we'll use base64 for demo
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+
+      reader.onload = async (e) => {
+        try {
+          await fetchAPI(`/campaigns/tasks/${taskId}/submit-proof`, {
+            method: 'POST',
+            body: JSON.stringify({
+              proofUrl: e.target.result, // In production, use cloud URL
+              notes
+            })
+          });
+
+          alert('Proof submitted! Waiting for admin verification.');
+          loadMyTasks();
+        } catch (error) {
+          alert('Error submitting proof: ' + error.message);
+        }
+      };
+
+      reader.readAsDataURL(file);
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
+
+  async function completeTask(taskId) {
+    try {
+      alert('Starting automated verification...');
+
+      const response = await fetchAPI(`/campaigns/tasks/${taskId}/submit-proof`, {
+        method: 'POST',
+        body: JSON.stringify({})
+      });
+
+      alert(response.message + '\n\n' + response.estimatedTime);
+      loadMyTasks();
+
+      // Refresh after a few seconds to see updates
+      setTimeout(() => loadMyTasks(), 8000);
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
+
+  function formatType(type) {
+    const types = {
+      'followers': 'Follow',
+      'subscribers': 'Subscribe',
+      'likes': 'Like',
+      'comments': 'Comment',
+      'shares': 'Share',
+      'watch_time': 'Watch Video'
+    };
+    return types[type] || type;
+  }
+
+  function getActionText(type) {
+    const actions = {
+      'followers': '👉 Click the follow button on the page',
+      'subscribers': '👉 Click the subscribe button',
+      'likes': '👉 Click the like/thumbs up button',
+      'comments': '👉 Leave a meaningful comment',
+      'shares': '👉 Share the page to your timeline',
+      'watch_time': '👉 Watch the video until at least 50% complete'
+    };
+    return actions[type] || 'Complete the action';
+  }
+
+  if (!token) {
+    alert('Please login first');
+    window.location.href = '/';
+  } else {
+    loadAvailableTasks();
+  }
+</script>
+
+</body>
+</html>

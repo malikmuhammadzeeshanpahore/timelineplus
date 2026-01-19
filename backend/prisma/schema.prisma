@@ -13,11 +13,20 @@ model User {
   username  String?
   photo     String?
   password  String?             // null for OAuth-only accounts
+  role      String              @default("freelancer")
   isAdmin   Boolean             @default(false)
   isBanned  Boolean             @default(false)
   emailVerified Boolean         @default(false)
   failedLoginAttempts Int       @default(0)
   lockedUntil DateTime?
+  
+  // Trust Score System
+  trustScore Float             @default(100.0)  // 0-100
+  banCount   Int               @default(0)      // 1st, 2nd, 3rd ban
+  banReason  String?
+  banUnlockCost Int?           // 300, 500, 1000
+  bannedUntil DateTime?        // temp ban expiry
+  
   createdAt DateTime            @default(now())
   updatedAt DateTime            @updatedAt
   social    UserSocialAccount[]
@@ -29,6 +38,12 @@ model User {
   notifications Notification[]
   adminLogs AdminLog[]
   assignedTasks Task[]
+  deposits  Deposit[]
+  campaignsAsBuyer Campaign[] @relation("CampaignBuyer")
+  campaignTasks CampaignTask[]
+  banRecords BanRecord[]
+  trustScoreLogs TrustScoreLog[]
+  earningsLocks EarningsLock[]
 }
 
 model Task {
@@ -127,3 +142,135 @@ model WalletTransaction {
   meta      String?
   createdAt DateTime @default(now())
 }
+
+// Admin Secret codes for registration
+model AdminSecret {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  purpose   String   // "add_admin" or "access_panel"
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+// Deposit requests from buyers
+model Deposit {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  amount    Int      // in cents
+  currency  String   @default("USD")
+  method    String   // "card", "bank", "crypto", etc.
+  status    String   @default("pending") // pending, approved, rejected
+  approvedBy Int?    // admin id
+  reason    String?  // rejection reason
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Service campaigns (followers, subscribers, likes, etc.)
+model Campaign {
+  id           Int              @id @default(autoincrement())
+  buyer        User             @relation("CampaignBuyer", fields: [buyerId], references: [id])
+  buyerId      Int
+  title        String
+  type         String           // "followers", "subscribers", "likes", "comments", "shares", "watch_time"
+  targetCount  Int              // total followers/subscribers needed
+  targetPage   String?          // facebook page URL, youtube channel, etc.
+  price        Int              // total price in cents
+  completedCount Int            @default(0)
+  status       String           @default("pending") // pending, approved, active, completed, rejected
+  approvedBy   Int?             // admin id
+  rejectionReason String?
+  description  String?
+  metadata     String?          // JSON with additional data
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  campaignTasks CampaignTask[]
+}
+
+// Individual tasks for a campaign
+model CampaignTask {
+  id         Int              @id @default(autoincrement())
+  campaign   Campaign         @relation(fields: [campaignId], references: [id])
+  campaignId Int
+  freelancer User?            @relation(fields: [freelancerId], references: [id])
+  freelancerId Int?
+  rewardPerTask Int           // in cents (40% of total / target count)
+  status     String           @default("pending") // pending, assigned, completed, verified, paid
+  verificationUrl String?      // proof of action
+  verifiedAt DateTime?
+  paidAt     DateTime?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  proofs     CampaignProof[]
+}
+
+// Campaign completion proofs
+model CampaignProof {
+  id         Int      @id @default(autoincrement())
+  task       CampaignTask @relation(fields: [taskId], references: [id])
+  taskId     Int
+  proofUrl   String   // screenshot, video, etc.
+  status     String   @default("pending") // pending, verified, rejected
+  notes      String?
+  
+  // OCR Verification
+  ocrPageName String?  // extracted from screenshot
+  ocrMatches  Boolean? // does OCR name match target page
+  
+  // Follower Count Tracking
+  followersBefore Int? // follower count before action
+  followersAfter  Int? // follower count after action
+  countIncreased  Boolean? // true if followers/subscribers increased
+  
+  // Time Penalty Tracking
+  taskStartTime DateTime?     // when freelancer clicked "start"
+  proofSubmitTime DateTime    @default(now()) // when screenshot was submitted
+  timeMinutes Int?            // minutes elapsed (proofSubmitTime - taskStartTime)
+  earlyExitPenalty Boolean?   // true if exited within 1 minute
+  trustPenaltyApplied Int     @default(0) // -10 if early exit
+  
+  verifiedAt DateTime?
+  createdAt  DateTime         @default(now())
+}
+
+// Ban records for user account bans
+model BanRecord {
+  id          Int       @id @default(autoincrement())
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int
+  banCount    Int       // 1, 2, or 3
+  reason      String
+  unlockCost  Int       // 300, 500, or 1000 (cents)
+  paid        Boolean   @default(false)
+  unlockedAt  DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+// Trust score log for audit trail
+model TrustScoreLog {
+  id          Int       @id @default(autoincrement())
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int
+  oldScore    Float
+  newScore    Float
+  change      Float     // oldScore - newScore (positive = decrease)
+  reason      String    // "early_exit", "admin_manual", "task_completed", etc.
+  adminId     Int?      // if admin manual change
+  createdAt   DateTime  @default(now())
+}
+
+// Earnings lock tracking
+model EarningsLock {
+  id          Int       @id @default(autoincrement())
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int
+  amount      Int       // locked amount in cents
+  lockDays    Int       // 10, 15, or 20 days based on trust score
+  maxWithdraw Int?      // max withdrawal amount (null = unlimited)
+  unlockedAt  DateTime  // when lock expires
+  withdrawn   Int       @default(0) // total withdrawn
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+

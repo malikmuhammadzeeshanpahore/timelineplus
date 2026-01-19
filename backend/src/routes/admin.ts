@@ -1,9 +1,14 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { jwtMiddleware, adminOnly } from '../middleware/auth';
 
 const prisma = new PrismaClient();
 const router = express.Router();
+
+// Apply auth middleware to all admin routes
+router.use(jwtMiddleware);
+router.use(adminOnly);
 
 // Search users by email or username
 router.get('/users', async (req, res) => {

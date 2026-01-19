@@ -6,9 +6,13 @@ const prisma = new PrismaClient();
 const router = express.Router();
 
 // List tasks with simple filters
-// Only show tasks that have been assigned by an admin (assignedToId != null)
+// Only show tasks that have been assigned by an admin (assignedTo != null)
 router.get('/', async (req, res) => {
-  const tasks = await prisma.task.findMany({ where: { assignedToId: { not: null } } });
+  // Some Prisma client versions/schema differences caused validation errors
+  // when using relation/scalar filters here. Fetch tasks and filter in JS
+  // to avoid schema-dependent where clauses.
+  const all = await prisma.task.findMany();
+  const tasks = all.filter(t => t.assignedToId != null);
   res.json({ tasks });
 });
 

@@ -43,7 +43,7 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
 
           let user = await prisma.user.findUnique({ where: { email } });
           if (!user) {
-            user = await prisma.user.create({ data: { email, username: profile.displayName } });
+            user = await prisma.user.create({ data: { email, username: profile.displayName, role: 'freelancer' } });
           }
 
           await prisma.userSocialAccount.upsert({
@@ -103,7 +103,7 @@ if (FACEBOOK_CLIENT_ID && FACEBOOK_CLIENT_SECRET) {
 
           let user = await prisma.user.findUnique({ where: { email } });
           if (!user) {
-            user = await prisma.user.create({ data: { email, username: fb.name || profile.displayName } });
+            user = await prisma.user.create({ data: { email, username: fb.name || profile.displayName, role: 'freelancer' } });
           }
 
           await prisma.userSocialAccount.upsert({

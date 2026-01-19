@@ -10,17 +10,42 @@ async function main() {
   if (!existing) {
     const hash = await bcrypt.hash(adminPass, 10);
     await prisma.user.create({ data: { email: adminEmail, password: hash, username: 'admin', isAdmin: true, emailVerified: true } });
-    console.log('Admin user created', adminEmail);
+    console.log('✅ Admin user created', adminEmail);
   } else {
-    console.log('Admin user exists');
+    console.log('✅ Admin user exists');
   }
+
+  // Generate admin access secret codes
+  const adminAddCode = 'ADMIN_REGISTER_' + Math.random().toString(36).substring(2, 15).toUpperCase();
+  const adminAccessCode = 'ADMIN_PANEL_' + Math.random().toString(36).substring(2, 15).toUpperCase();
+
+  // Create secret codes for admin panel
+  await prisma.adminSecret.createMany({
+    data: [
+      {
+        code: adminAddCode,
+        purpose: 'add_admin',
+        isActive: true
+      },
+      {
+        code: adminAccessCode,
+        purpose: 'access_panel',
+        isActive: true
+      }
+    ],
+    skipDuplicates: true
+  });
+
+  console.log('\n🔑 Admin Panel Access Codes:');
+  console.log(`📝 Register new admin: /admin-panel/addadmin/${adminAddCode}`);
+  console.log(`🔐 Access admin panel: /admin-panel?code=${adminAccessCode}`);
 
   // create sample tasks
   const t = await prisma.task.createMany({ data: [
     { title: 'Watch 10 minutes', description: 'Watch a YouTube video for 10 minutes', price: 100, quantity: 100, category: 'YouTube' },
     { title: 'Follow on Instagram', description: 'Follow the target Instagram account', price: 50, quantity: 200, category: 'Instagram' },
   ] });
-  console.log('Sample tasks created');
+  console.log('✅ Sample tasks created');
 }
 
 main().catch(e => { console.error(e); process.exit(1); }).finally(() => prisma.$disconnect());

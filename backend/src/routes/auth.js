@@ -14,13 +14,13 @@ function signToken(payload) {
 
 // Register
 router.post('/register', async (req, res) => {
-  const { email, password, username, referrerId } = req.body;
+  const { email, password, username, referrerId, role } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'email and password required' });
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) return res.status(400).json({ error: 'email already in use' });
 
   const hash = await bcrypt.hash(password, 10);
-  const user = await prisma.user.create({ data: { email, password: hash, username } });
+  const user = await prisma.user.create({ data: { email, password: hash, username, role: role || 'freelancer' } });
 
   if (referrerId) {
     try {

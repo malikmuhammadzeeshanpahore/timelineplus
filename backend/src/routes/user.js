@@ -11,7 +11,19 @@ router.get('/me', jwtMiddleware, async (req, res) => {
   if (!user) return res.status(404).send('not found');
   const sum = await prisma.walletTransaction.aggregate({ _sum: { amount: true }, where: { userId: uid } });
   const balance = sum._sum.amount || 0;
-  res.json({ user: { id: user.id, email: user.email, username: user.username, photo: user.photo, emailVerified: user.emailVerified, isBanned: user.isBanned }, social: user.social, balance });
+  res.json({ 
+    user: { 
+      id: user.id, 
+      email: user.email, 
+      username: user.username, 
+      photo: user.photo, 
+      emailVerified: user.emailVerified, 
+      isBanned: user.isBanned,
+      role: user.role || 'guest'  // Include role field
+    }, 
+    social: user.social, 
+    balance 
+  });
 });
 
 router.get('/social', jwtMiddleware, async (req, res) => {

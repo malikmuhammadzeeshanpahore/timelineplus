@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Funds - Timeline+</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-family: inherit;
+      font-size: 1rem;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .pricing-info {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+      border-left: 4px solid #667eea;
+    }
+
+    .pricing-info p {
+      margin: 5px 0;
+      color: #666;
+    }
+
+    .pricing-info strong {
+      color: #333;
+    }
+
+    .method-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .method-option {
+      padding: 15px;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .method-option:hover {
+      border-color: #667eea;
+      background: #f8f9fa;
+    }
+
+    .method-option.selected {
+      border-color: #667eea;
+      background: #f0f3ff;
+    }
+
+    .method-option input[type="radio"] {
+      display: none;
+    }
+
+    .method-name {
+      font-weight: 600;
+      color: #333;
+      margin-top: 5px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #eee;
+    }
+
+    .nav-tabs button {
+      background: none;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      color: #666;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .nav-tabs button.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .deposit-item {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 10px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .deposit-info {
+      flex: 1;
+    }
+
+    .deposit-amount {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .deposit-status {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .deposit-status.pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .deposit-status.approved {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .deposit-status.rejected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+
+    .alert.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    @media (max-width: 768px) {
+      .method-group {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>💳 Add Funds</h1>
+    <p>Deposit money to start campaigns</p>
+  </div>
+
+  <div class="content">
+    <div class="nav-tabs">
+      <button class="active" onclick="switchTab('deposit')">Deposit</button>
+      <button onclick="switchTab('history')">History</button>
+    </div>
+
+    <!-- Deposit Tab -->
+    <div id="deposit" class="tab-content active">
+      <div id="depositAlert"></div>
+
+      <form onsubmit="submitDeposit(event)">
+        <div class="form-group">
+          <label>Amount (USD) *</label>
+          <input type="number" id="amount" required min="10" step="0.01" placeholder="Enter amount">
+        </div>
+
+        <div class="form-group">
+          <label>Payment Method *</label>
+          <div class="method-group">
+            <div class="method-option" onclick="selectMethod('card')">
+              <div>💳</div>
+              <div class="method-name">Card</div>
+            </div>
+            <div class="method-option" onclick="selectMethod('bank')">
+              <div>🏦</div>
+              <div class="method-name">Bank</div>
+            </div>
+            <div class="method-option" onclick="selectMethod('paypal')">
+              <div>🅿️</div>
+              <div class="method-name">PayPal</div>
+            </div>
+            <div class="method-option" onclick="selectMethod('crypto')">
+              <div>₿</div>
+              <div class="method-name">Crypto</div>
+            </div>
+          </div>
+          <input type="hidden" id="method" required>
+        </div>
+
+        <div id="methodDetails"></div>
+
+        <div class="pricing-info">
+          <p>💡 After your deposit is <strong>approved by admin</strong>, your funds will be instantly available to:</p>
+          <ul style="margin-left: 20px; margin-top: 10px;">
+            <li>Create campaigns for followers/subscribers/likes</li>
+            <li>Pay freelancers (60% goes to Timeline+, 40% to freelancer rewards)</li>
+            <li>Withdraw unused balance (minus fees)</li>
+          </ul>
+        </div>
+
+        <button type="submit">Request Deposit</button>
+      </form>
+    </div>
+
+    <!-- History Tab -->
+    <div id="history" class="tab-content">
+      <div id="depositHistory"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_URL = '/api';
+  const token = localStorage.getItem('token');
+
+  async function fetchAPI(endpoint, options = {}) {
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...options.headers
+    };
+
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'API error');
+    }
+
+    return response.json();
+  }
+
+  function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.nav-tabs button').forEach(btn => btn.classList.remove('active'));
+
+    document.getElementById(tabName).classList.add('active');
+    event.target.classList.add('active');
+
+    if (tabName === 'history') {
+      loadHistory();
+    }
+  }
+
+  function selectMethod(method) {
+    document.getElementById('method').value = method;
+    document.querySelectorAll('.method-option').forEach(el => el.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+
+    // Show method-specific details
+    let details = '';
+    switch (method) {
+      case 'card':
+        details = `
+          <div class="form-group">
+            <label>Card Details</label>
+            <input type="text" placeholder="Full Name" required>
+            <input type="text" placeholder="Card Number (4242 4242 4242 4242)" required>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <input type="text" placeholder="MM/YY" required>
+              <input type="text" placeholder="CVC" required>
+            </div>
+          </div>
+        `;
+        break;
+      case 'bank':
+        details = `
+          <div class="form-group">
+            <label>Bank Details</label>
+            <input type="text" placeholder="Account Holder Name" required>
+            <input type="text" placeholder="Bank Account Number" required>
+            <input type="text" placeholder="Routing Number" required>
+          </div>
+        `;
+        break;
+      case 'paypal':
+        details = `
+          <div class="alert alert-success">
+            ✓ You'll be redirected to PayPal to complete the payment securely
+          </div>
+        `;
+        break;
+      case 'crypto':
+        details = `
+          <div class="form-group">
+            <label>Cryptocurrency</label>
+            <select required>
+              <option value="">Select cryptocurrency</option>
+              <option value="btc">Bitcoin</option>
+              <option value="eth">Ethereum</option>
+              <option value="usdc">USDC</option>
+              <option value="usdt">USDT</option>
+            </select>
+          </div>
+          <div class="alert alert-success">
+            ℹ️ You'll receive a wallet address to send funds to. Usually confirmed within 10 minutes.
+          </div>
+        `;
+        break;
+    }
+    document.getElementById('methodDetails').innerHTML = details;
+  }
+
+  async function submitDeposit(event) {
+    event.preventDefault();
+
+    try {
+      const amount = Number(document.getElementById('amount').value) * 100; // convert to cents
+      const method = document.getElementById('method').value;
+
+      if (!method) {
+        alert('Please select a payment method');
+        return;
+      }
+
+      const response = await fetchAPI('/deposits/request', {
+        method: 'POST',
+        body: JSON.stringify({ amount, method })
+      });
+
+      showAlert('success', `✓ Deposit request created! Your deposit of $${response.deposit.amount / 100} is awaiting admin approval.`);
+      event.target.reset();
+      document.getElementById('methodDetails').innerHTML = '';
+      setTimeout(() => switchTab('history'), 2000);
+    } catch (error) {
+      showAlert('error', '✗ Error: ' + error.message);
+    }
+  }
+
+  async function loadHistory() {
+    try {
+      const data = await fetchAPI('/deposits/my-deposits');
+
+      if (data.deposits.length === 0) {
+        document.getElementById('depositHistory').innerHTML = '<p>No deposits yet.</p>';
+        return;
+      }
+
+      let html = '';
+      data.deposits.forEach(deposit => {
+        html += `
+          <div class="deposit-item">
+            <div class="deposit-info">
+              <div class="deposit-amount">$${(deposit.amount / 100).toFixed(2)}</div>
+              <div style="color: #666; font-size: 0.9rem;">
+                ${deposit.method} • ${new Date(deposit.createdAt).toLocaleDateString()}
+              </div>
+              ${deposit.reason ? `<div style="color: #721c24; margin-top: 5px;">⚠ ${deposit.reason}</div>` : ''}
+            </div>
+            <span class="deposit-status ${deposit.status.toLowerCase()}">${deposit.status.toUpperCase()}</span>
+          </div>
+        `;
+      });
+
+      document.getElementById('depositHistory').innerHTML = html;
+    } catch (error) {
+      alert('Error loading history: ' + error.message);
+    }
+  }
+
+  function showAlert(type, message) {
+    const alertDiv = document.getElementById('depositAlert');
+    alertDiv.className = `alert ${type}`;
+    alertDiv.textContent = message;
+    alertDiv.style.display = 'block';
+  }
+
+  if (!token) {
+    alert('Please login first');
+    window.location.href = '/';
+  }
+</script>
+
+</body>
+</html>

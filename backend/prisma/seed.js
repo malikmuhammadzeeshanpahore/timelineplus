@@ -1,30 +1,50 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcrypt');
-
-const prisma = new PrismaClient();
-
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const client_1 = require("@prisma/client");
+const bcrypt_1 = __importDefault(require("bcrypt"));
+const prisma = new client_1.PrismaClient();
 async function main() {
-  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@timelineplus.site';
-  const adminPass = process.env.SEED_ADMIN_PASS || 'Admin123!';
-  const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
-  if (!existing) {
-    const hash = await bcrypt.hash(adminPass, 10);
-    await prisma.user.create({ data: { email: adminEmail, password: hash, username: 'admin', isAdmin: true, emailVerified: true } });
-    console.log('Admin user created', adminEmail);
-  } else {
-    console.log('Admin user exists');
-  }
-
-  // create sample tasks
-  const tasks = [
-    { title: 'Watch 10 minutes', description: 'Watch a YouTube video for 10 minutes', price: 100, quantity: 100, category: 'YouTube' },
-    { title: 'Follow on Instagram', description: 'Follow the target Instagram account', price: 50, quantity: 200, category: 'Instagram' },
-  ];
-  for (const t of tasks) {
-    const existingTask = await prisma.task.findFirst({ where: { title: t.title } });
-    if (!existingTask) await prisma.task.create({ data: t });
-  }
-  console.log('Sample tasks created');
+    const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@timelineplus.site';
+    const adminPass = process.env.SEED_ADMIN_PASS || 'Admin123!';
+    const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
+    if (!existing) {
+        const hash = await bcrypt_1.default.hash(adminPass, 10);
+        await prisma.user.create({ data: { email: adminEmail, password: hash, username: 'admin', isAdmin: true, emailVerified: true } });
+        console.log('✅ Admin user created', adminEmail);
+    }
+    else {
+        console.log('✅ Admin user exists');
+    }
+    // Generate admin access secret codes
+    const adminAddCode = 'ADMIN_REGISTER_' + Math.random().toString(36).substring(2, 15).toUpperCase();
+    const adminAccessCode = 'ADMIN_PANEL_' + Math.random().toString(36).substring(2, 15).toUpperCase();
+    // Create secret codes for admin panel
+    await prisma.adminSecret.createMany({
+        data: [
+            {
+                code: adminAddCode,
+                purpose: 'add_admin',
+                isActive: true
+            },
+            {
+                code: adminAccessCode,
+                purpose: 'access_panel',
+                isActive: true
+            }
+        ],
+        skipDuplicates: true
+    });
+    console.log('\n🔑 Admin Panel Access Codes:');
+    console.log(`📝 Register new admin: /admin-panel/addadmin/${adminAddCode}`);
+    console.log(`🔐 Access admin panel: /admin-panel?code=${adminAccessCode}`);
+    // create sample tasks
+    const t = await prisma.task.createMany({ data: [
+            { title: 'Watch 10 minutes', description: 'Watch a YouTube video for 10 minutes', price: 100, quantity: 100, category: 'YouTube' },
+            { title: 'Follow on Instagram', description: 'Follow the target Instagram account', price: 50, quantity: 200, category: 'Instagram' },
+        ] });
+    console.log('✅ Sample tasks created');
 }
-
 main().catch(e => { console.error(e); process.exit(1); }).finally(() => prisma.$disconnect());

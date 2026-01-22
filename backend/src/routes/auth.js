@@ -54,26 +54,32 @@ router.get('/verify', async (req, res) => {
 // Login
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'email and password required' });
+  console.log('Login attempt:', { email, hasPassword: !!password, bodyKeys: Object.keys(req.body) });
+  
+  if (!email || !password) {
+    console.log('Login validation failed:', { email, password, error: 'email and password required' });
+    return res.status(400).json({ error: 'email and password required' });
+  }
+  
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) return res.status(400).json({ error: 'invalid credentials' });
-  if (user.isBanned) return res.status(403).json({ error: 'account banned' });
-  // TODO: Re-enable after testing
-  // if (user.lockedUntil && new Date() < user.lockedUntil) return res.status(403).json({ error: 'account locked temporarily' });
+  if (!user) {
+    console.log('User not found:', { email });
+    return res.status(400).json({ error: 'invalid credentials' });
+  }
+  
+  if (user.isBanned) {
+    console.log('User banned:', { email });
+    return res.status(403).json({ error: 'account banned' });
+  }
 
   const ok = user.password ? await bcrypt.compare(password, user.password) : false;
   if (!ok) {
-    // TODO: Re-enable failed login tracking after testing
-    // const attempts = user.failedLoginAttempts + 1;
-    // const lockedUntil = attempts >= 5 ? new Date(Date.now() + 60 * 60 * 1000) : null;
-    // await prisma.user.update({ where: { id: user.id }, data: { failedLoginAttempts: attempts, lockedUntil } });
+    console.log('Password incorrect:', { email });
     return res.status(400).json({ error: 'invalid credentials' });
   }
 
-  // TODO: Re-enable after testing
-  // await prisma.user.update({ where: { id: user.id }, data: { failedLoginAttempts: 0, lockedUntil: null } });
-
   const token = signToken({ uid: user.id });
+  console.log('Login successful:', { email, userId: user.id });
   res.json({ token, user: { id: user.id, email: user.email, username: user.username } });
 });
 

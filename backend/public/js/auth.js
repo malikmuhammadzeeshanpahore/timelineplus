@@ -38,10 +38,34 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if(loginForm){ attachRoleSelector(loginForm);
     loginForm.addEventListener('submit', async (e)=>{
       e.preventDefault();
-      const f = Object.fromEntries(new FormData(loginForm));
+      const formData = new FormData(loginForm);
+      const f = Object.fromEntries(formData);
+      
+      // Debug logging
+      console.log('Form data extracted:', { email: f.email, username: f.username, password: f.password ? '***' : 'MISSING', role: f.role });
+      
+      // Ensure email is set
+      const email = f.email || f.username;
+      const password = f.password;
+      
+      if (!email || !password) {
+        console.error('Missing email or password', { email, password });
+        showToast('Email and password are required');
+        return;
+      }
+      
+      const payload = { email, password };
+      console.log('Sending login request with:', { email: payload.email, password: '***' });
+      
       try{
-        const res = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email: f.username || f.email, password: f.password }) });
+        const res = await fetch('/api/auth/login', { 
+          method:'POST', 
+          headers:{'Content-Type':'application/json'}, 
+          body: JSON.stringify(payload)
+        });
         const j = await res.json();
+        console.log('Login response:', { status: res.status, ok: res.ok, hasToken: !!j.token, error: j.error });
+        
         if(res.ok && j.token){
           localStorage.setItem('token', j.token);
           localStorage.setItem('role', f.role || 'freelancer');
@@ -53,9 +77,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
             location.href = dest;
           }, 600);
         } else {
+          console.error('Login failed:', j.error || 'Unknown error');
           showToast(j.error || 'Login failed');
         }
-      }catch(err){ console.error(err); showToast('Network error'); }
+      }catch(err){ console.error('Login network error:', err); showToast('Network error: ' + err.message); }
     });
   }
 

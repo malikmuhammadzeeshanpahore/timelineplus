@@ -49,13 +49,13 @@ const Index = () => {
       </div>
       <div className="remember">
         <label><input type="checkbox" /> Remember me</label>
-        <a href="/forgot.html">Forgot Password?</a>
+        <a href="/forgot/">Forgot Password?</a>
       </div>
       <button type="submit" className="btnn">Login</button>
       <div className="button">
         <a href="/api/auth/oauth/google"><i className="ri-google-fill"></i> Google</a> &nbsp;--&nbsp; <a href="/api/auth/oauth/facebook"><i className="ri-facebook-fill"></i> Facebook</a>
       </div>
-      <p style="text-align:center;margin-top:18px;color:rgba(255,255,255,0.8)">New? <a href="/register.html">Create an account</a></p>
+      <p style="text-align:center;margin-top:18px;color:rgba(255,255,255,0.8)">New? <a href="/register/">Create an account</a></p>
     </form>
   </div>
 

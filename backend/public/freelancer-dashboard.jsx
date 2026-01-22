@@ -128,7 +128,7 @@ const FreelancerDashboard = () => {
     async function loadDashboard() {
       const token = localStorage.getItem('token');
       if (!token) {
-        window.location.href = '/register.html';
+        window.location.href = '/register/';
         return;
       }
 
@@ -159,7 +159,7 @@ const FreelancerDashboard = () => {
                 <td>${task.campaign.title}</td>
                 <td>${task.campaign.type}</td>
                 <td>$${(task.rewardPerTask / 100).toFixed(2)}</td>
-                <td><span className="badge badge-${task.status === 'paid' ? 'success' : task.status === 'assigned' ? 'info' : 'warning'}">${task.status}</span></td>
+                <td><span class="badge badge-${task.status === 'paid' ? 'success' : task.status === 'assigned' ? 'info' : 'warning'}">${task.status}</span></td>
               </tr>
             `;
           });

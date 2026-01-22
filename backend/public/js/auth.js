@@ -46,8 +46,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
           localStorage.setItem('token', j.token);
           localStorage.setItem('role', f.role || 'freelancer');
           showToast('Login successful');
-          // redirect to /dashboard (role-specific)
-          setTimeout(()=>{ location.href = '/dashboard'; }, 600);
+          // redirect to role-specific dashboard
+          setTimeout(()=>{
+            const role = f.role || 'freelancer';
+            const dest = (role === 'freelancer') ? '/freelancer-dashboard/' : '/dashboard-buyer/';
+            location.href = dest;
+          }, 600);
         } else {
           showToast(j.error || 'Login failed');
         }

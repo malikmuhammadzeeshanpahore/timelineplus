@@ -1,4 +1,4 @@
-import express, { Response, NextFunction } from 'express';
+const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../config');
@@ -9,12 +9,8 @@ const { applyEarlyExitPenalty, createEarningsLock, getUserEarningsStatus, getLoc
 const prisma = new PrismaClient();
 const router = express.Router();
 
-interface AuthRequest extends express.Request {
-  user?;
-}
-
 // Verify JWT
-function jwtMiddleware(req: AuthRequest, res: Response, next: NextFunction) {
+function jwtMiddleware(req, res, next) {
   const auth = req.headers.authorization;
   if (!auth || !auth.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
   
@@ -255,7 +251,7 @@ router.post('/tasks/:taskId/submit-proof', jwtMiddleware, async (req, res) => {
 
     // Calculate time elapsed
     const now = new Date();
-    const timeMinutes = calculateTimeElapsed(proof.taskStartTime!, now);
+    const timeMinutes = calculateTimeElapsed(proof.taskStartTime, now);
 
     // Check for early exit (< 1 minute)
     if (timeMinutes < 1) {
@@ -311,7 +307,7 @@ router.post('/tasks/:taskId/submit-proof', jwtMiddleware, async (req, res) => {
             task.campaign.targetPage || '',
             parseInt(followersBefore),
             parseInt(followersAfter),
-            proof.taskStartTime!,
+            proof.taskStartTime,
             now
           );
 

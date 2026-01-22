@@ -50,136 +50,137 @@ function build() {
   console.log('Copying static assets...');
   copyRecursive(PUBLIC, DIST, ['.html', '.jsx']);
 
-  // Process JSX files and generate HTML entry points
-  const files = fs.readdirSync(PUBLIC).filter(f => f.endsWith('.jsx'));
+  // Process JSX files and generate static HTML entry points by extracting
+  // the rendered fragment and inline styles from the JSX files. This avoids
+  // requiring a frontend bundler in production and fixes blank pages.
+  let files = fs.readdirSync(PUBLIC).filter(f => f.endsWith('.jsx'));
   console.log('Processing JSX files:', files);
 
-  // Create main app entry point
-  let imports = '';
-  let routes = '';
-  
+  // Detect duplicate files by content hash and remove duplicates in public
+  const hashes = {};
+  const crypto = require('crypto');
   files.forEach(f => {
-    const componentName = path.basename(f, '.jsx')
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join('');
-    
-    imports += `import ${componentName} from '../public/${f.replace('.jsx', '')}';\n`;
-    const routeName = '/' + path.basename(f, '.jsx') + '.html';
-    routes += `  case '${routeName}':\n    return <${componentName} />;\n`;
+    const p = path.join(PUBLIC, f);
+    const content = fs.readFileSync(p, 'utf8');
+    const h = crypto.createHash('md5').update(content).digest('hex');
+    if (hashes[h]) {
+      // duplicate found - remove the duplicate file
+      console.log('Removing duplicate public file:', f, 'same as', hashes[h]);
+      fs.unlinkSync(p);
+    } else {
+      hashes[h] = f;
+    }
   });
 
-  // Create App.jsx
-  const appJsx = `import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+  // Recompute files after dedupe
+  files = fs.readdirSync(PUBLIC).filter(f => f.endsWith('.jsx'));
 
-${imports}
+  for (const f of files) {
+    const inPath = path.join(PUBLIC, f);
+    try {
+      const jsx = fs.readFileSync(inPath, 'utf8');
 
-const App = () => {
-  const currentPath = window.location.pathname;
-  
-  const getComponent = () => {
-    switch(currentPath) {
-${routes}
-      default:
-        return null;
+      // Extract styles if present: const styles = `...`;
+      let styles = '';
+      const stylesMatch = jsx.match(/const\s+styles\s*=\s*`([\s\S]*?)`/);
+      if (stylesMatch) styles = stylesMatch[1].trim();
+
+      // Extract script tags (both inline and src) present in the JSX body
+      const scriptTagRegex = /<script[\s\S]*?<\/script>/gi;
+      const scriptMatches = jsx.match(scriptTagRegex);
+
+      // Extract fragment content between return (<> and </>)
+      const retMatch = jsx.match(/return\s*\(\s*<>\s*([\s\S]*?)\s*<\/>\s*\)/);
+      let body = retMatch ? retMatch[1].trim() : '';
+
+      // Remove original <script> tags from the body (we'll reference external JS files instead)
+      body = body.replace(scriptTagRegex, '');
+
+      // The body may contain JSX expressions; we will output the HTML as-is
+      // since our converted components used raw HTML in the JSX.
+
+      // Convert className back to class for static HTML
+      body = body.replace(/className=/g, 'class=');
+
+      // Remove JSX-only fragments (e.g., <style dangerouslySetInnerHTML=... />)
+      body = body.replace(/<style[\s\S]*?dangerouslySetInnerHTML[\s\S]*?\/?>/gi, '');
+
+      // Compose final HTML
+      const base = path.basename(f, '.jsx');
+      const titleMatch = jsx.match(/<title[^>]*>([^<]+)<\/title>/i);
+      const title = titleMatch ? titleMatch[1] : 'TimelinePlus';
+
+      const outDir = path.join(DIST, base);
+      fs.mkdirSync(outDir, { recursive: true });
+      // Process scripts: write inline script content to external JS files (to satisfy CSP)
+      let scriptsHtml = '';
+      if (scriptMatches && scriptMatches.length > 0) {
+        const jsDir = path.join(DIST, 'js');
+        if (!fs.existsSync(jsDir)) fs.mkdirSync(jsDir, { recursive: true });
+        const externalScripts = [];
+        let inlineContent = '';
+        for (const tag of scriptMatches) {
+          const srcMatch = tag.match(/src=["']([^"']+)["']/i);
+          if (srcMatch) {
+            // copy external script reference as-is
+            externalScripts.push(`<script src="${srcMatch[1]}"></script>`);
+          } else {
+            // extract inner content
+            const inner = tag.replace(/^<script[^>]*>/i, '').replace(/<\/script>$/i, '');
+            inlineContent += inner + '\n';
+          }
+        }
+        if (inlineContent.trim()) {
+          const outJs = path.join(jsDir, `${base}.js`);
+          fs.writeFileSync(outJs, inlineContent, 'utf8');
+          externalScripts.unshift(`<script src="/js/${base}.js"></script>`);
+        }
+        scriptsHtml = externalScripts.join('\n');
+      }
+
+      // For root index, inject a client-side redirect based on localStorage.role
+      let redirectScript = '';
+      if (base === 'index') {
+        redirectScript = `<script>const token = localStorage.getItem('token'); if(token){const role = localStorage.getItem('role')||'buyer'; const dest = (role==='freelancer')?'/freelancer-dashboard/':'/dashboard-buyer/'; window.location.replace(dest);}</script>`;
+      }
+
+      // Build HTML without inline scripts (strip any <script> blocks)
+      let html = `<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width,initial-scale=1">\n  <title>${title}</title>\n  ${styles ? `<style>\n${styles}\n</style>` : ''}\n</head>\n<body>\n${redirectScript}\n${body}\n</body>\n</html>`;
+
+      // remove any inline script blocks that may remain
+      html = html.replace(scriptTagRegex, '');
+
+      // append external script references (if we generated any)
+      if (scriptsHtml && scriptsHtml.length) {
+        html = html.replace('\n</body>', `\n${scriptsHtml}\n</body>`);
+      }
+
+      fs.writeFileSync(path.join(outDir, 'index.html'), html, 'utf8');
+
+      // Keep root index for index.jsx
+      if (base === 'index') {
+        fs.writeFileSync(path.join(DIST, 'index.html'), html, 'utf8');
+      }
+
+      // Also expose header partial at /header.html for legacy fetch() calls
+      if (base === 'header') {
+        fs.writeFileSync(path.join(DIST, 'header.html'), body, 'utf8');
+      }
+
+      // Dashboard alias handling: create /dashboard pointing to appropriate page
+      if (/dashboard/.test(base) && base !== 'dashboard') {
+        const aliasDir = path.join(DIST, 'dashboard');
+        fs.mkdirSync(aliasDir, { recursive: true });
+        fs.writeFileSync(path.join(aliasDir, 'index.html'), html, 'utf8');
+      }
+
+      console.log('Built', f, '->', path.join(base, 'index.html'));
+    } catch (e) {
+      console.error('ERROR processing', f, ':', e.message);
     }
-  };
+  }
 
-  return <>{getComponent()}</>;
-};
-
-export default App;
-`;
-
-  fs.writeFileSync(path.join(DIST, 'App.jsx'), appJsx, 'utf8');
-
-  // Create main index.html with React app mount
-  const indexHtml = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TimelinePlus</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-  </style>
-</head>
-<body>
-  <div id="root"></div>
-  <script src="/index.js"></script>
-</body>
-</html>
-`;
-
-  fs.writeFileSync(path.join(DIST, 'index.html'), indexHtml, 'utf8');
-
-  // Create JSX file routes that render individual components
-  files.forEach(f => {
-    const base = path.basename(f, '.jsx');
-    const componentName = base
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join('');
-
-    const pageJsx = `import React from 'react';
-import ${componentName} from '../public/${base}';
-
-export default ${componentName};
-`;
-
-    const outDir = path.join(DIST, base);
-    fs.mkdirSync(outDir, { recursive: true });
-    fs.writeFileSync(path.join(outDir, 'index.jsx'), pageJsx, 'utf8');
-
-    // Create HTML wrapper for each JSX page
-    const pageHtml = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TimelinePlus - ${base}</title>
-</head>
-<body>
-  <div id="root"></div>
-  <script src="/_jsx/${base}.js"></script>
-</body>
-</html>
-`;
-    fs.writeFileSync(path.join(outDir, 'index.html'), pageHtml, 'utf8');
-    console.log('Built', f, '->', path.join(base, 'index.html'));
-  });
-
-  // Create special alias for dashboard
-  const dashboardDir = path.join(DIST, 'dashboard');
-  fs.mkdirSync(dashboardDir, { recursive: true });
-  const dashboardHtml = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TimelinePlus - Dashboard</title>
-</head>
-<body>
-  <div id="root"></div>
-  <script>
-    const role = localStorage.getItem('role') || 'buyer';
-    const redirect = role === 'freelancer' ? '/freelancer-dashboard.html' : '/dashboard-buyer.html';
-    window.location.href = redirect;
-  </script>
-</body>
-</html>
-`;
-  fs.writeFileSync(path.join(dashboardDir, 'index.html'), dashboardHtml, 'utf8');
-
-  console.log('Build complete. dist/ contains built site.');
+  console.log('Build complete. dist/ contains built static pages.');
 }
 
 if (require.main === module) build();

@@ -132,7 +132,7 @@ const DashboardBuyer = () => {
     async function loadDashboard() {
       const token = localStorage.getItem('token');
       if (!token) {
-        window.location.href = '/register.html';
+        window.location.href = '/register/';
         return;
       }
 
@@ -170,8 +170,8 @@ const DashboardBuyer = () => {
                 <td>${campaign.type}</td>
                 <td>
                   ${campaign.completedCount}/${campaign.targetCount}
-                  <div className="progress-bar">
-                    <div className="progress-fill" style="width: ${progress}%"></div>
+                  <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${progress}%"></div>
                   </div>
                 </td>
                 <td><span className="badge badge-${campaign.status === 'active' ? 'info' : campaign.status === 'completed' ? 'success' : 'pending'}">${campaign.status}</span></td>

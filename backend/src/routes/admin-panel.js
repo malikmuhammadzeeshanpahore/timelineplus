@@ -1,4 +1,4 @@
-import express, { Response, NextFunction } from 'express';
+const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -7,13 +7,8 @@ const { JWT_SECRET } = require('../config');
 const prisma = new PrismaClient();
 const router = express.Router();
 
-// Types
-interface AuthRequest extends express.Request {
-  user?;
-}
-
 // Verify JWT token middleware
-function verifyToken(req: AuthRequest, res: Response, next: NextFunction) {
+function verifyToken(req, res, next) {
   const auth = req.headers.authorization;
   if (!auth || !auth.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
   
@@ -28,7 +23,7 @@ function verifyToken(req: AuthRequest, res: Response, next: NextFunction) {
 }
 
 // Verify admin middleware
-async function verifyAdmin(req: AuthRequest, res: Response, next: NextFunction) {
+async function verifyAdmin(req, res, next) {
   if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
   
   const user = await prisma.user.findUnique({
@@ -42,7 +37,7 @@ async function verifyAdmin(req: AuthRequest, res: Response, next: NextFunction) 
 }
 
 // Verify admin secret code
-function verifyAdminCode(req: AuthRequest, res: Response, next: NextFunction) {
+function verifyAdminCode(req, res, next) {
   const { code } = req.params;
   if (!code) return res.status(400).json({ error: 'Secret code required' });
   req.user = { ...req.user, code };

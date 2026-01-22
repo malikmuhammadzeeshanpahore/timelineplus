@@ -54,6 +54,17 @@ app.use('/api/user', userRoutes);
 const accountRoutes = require('./routes/account');
 app.use('/api/account', accountRoutes);
 app.use('/api/pages', pagesRoutes);
+// Campaigns route
+const campaignsRoutes = require('./routes/campaigns');
+app.use('/api/campaigns', campaignsRoutes);
+// Admin-panel routes (separate admin UI endpoints)
+const adminPanelRoutes = require('./routes/admin-panel');
+app.use('/api/admin-panel', adminPanelRoutes);
+
+// Ensure unmatched /api/* requests return JSON 404 instead of falling through to HTML
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: 'not found' });
+});
 
 // Serve built frontend when available (dist/) otherwise fallback to public/
 const distPath = path.resolve(process.cwd(), 'dist');

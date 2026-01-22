@@ -167,11 +167,11 @@ const Header = () => {
       justify-content: space-between;
       align-items: center;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      position: sticky;
+              <button data-action="toggleUserMenu">👤</button>
       top: 0;
-      z-index: 1000;
-    }
-
+                <a href="#" data-action="showProfile">Profile</a>
+                <a href="#" data-action="showSettings">Settings</a>
+                <a href="#" data-action="logout">Logout</a>
     #header h1 {
       margin: 0;
       font-size: 24px;
@@ -300,9 +300,9 @@ const Header = () => {
 
   <nav id="navMenu"></nav>
 
-  <div className="user-info">
+  <div class="user-info">
     <span id="userDisplay">Loading...</span>
-    <div className="user-menu">
+    <div class="user-menu">
       <button onclick="toggleUserMenu()">👤</button>
       <div id="userDropdown" className="dropdown">
         <a href="javascript:" onclick="showProfile()">Profile</a>
@@ -314,19 +314,19 @@ const Header = () => {
 </header>
 
 <!-- User Menu Modals -->
-<div id="profileModal" className="modal-overlay" onclick="closeModal(event)">
-  <div className="modal" onclick="event.stopPropagation()">
+<div id="profileModal" class="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
     <h2>👤 Your Profile</h2>
     <div id="profileContent"></div>
-    <button onclick="closeModal()" className="secondary">Close</button>
+    <button onclick="closeModal()" class="secondary">Close</button>
   </div>
 </div>
 
-<div id="settingsModal" className="modal-overlay" onclick="closeModal(event)">
-  <div className="modal" onclick="event.stopPropagation()">
+<div id="settingsModal" class="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
     <h2>⚙️ Settings</h2>
     <div id="settingsContent"></div>
-    <button onclick="closeModal()" className="secondary">Close</button>
+    <button onclick="closeModal()" class="secondary">Close</button>
   </div>
 </div>
 
@@ -339,7 +339,7 @@ const Header = () => {
   async function initializeHeader() {
     const token = localStorage.getItem('token');
     if (!token) {
-      window.location.href = '/register.html';
+      window.location.href = '/register/';
       return;
     }
 
@@ -351,7 +351,7 @@ const Header = () => {
 
       if (!response.ok) {
         localStorage.removeItem('token');
-        window.location.href = '/register.html';
+        window.location.href = '/register/';
         return;
       }
 
@@ -369,20 +369,20 @@ const Header = () => {
       if (user.isAdmin) {
         navHTML = `
           <a href="/admin-panel/?code=${getAdminCode()}">Admin Panel</a>
-          <a href="/dashboard-admin.html">Dashboard</a>
+          <a href="/dashboard-admin/">Dashboard</a>
         `;
       } else if (role === 'buyer') {
         navHTML = `
-          <a href="/campaigns.html">Campaigns</a>
-          <a href="/dashboard-buyer.html">Dashboard</a>
-          <a href="/deposit.html">Deposit</a>
-          <a href="/withdrawals.html">Withdrawals</a>
+          <a href="/campaigns/">Campaigns</a>
+          <a href="/dashboard-buyer/">Dashboard</a>
+          <a href="/deposit/">Deposit</a>
+          <a href="/withdrawal-details/">Withdrawals</a>
         `;
       } else if (role === 'freelancer') {
         navHTML = `
-          <a href="/ocr-verification.html">Tasks</a>
-          <a href="/freelancer-dashboard.html">Dashboard</a>
-          <a href="/withdrawals.html">Withdrawals</a>
+          <a href="/ocr-verification/">Tasks</a>
+          <a href="/freelancer-dashboard/">Dashboard</a>
+          <a href="/withdrawal-details/">Withdrawals</a>
         `;
       }
 
@@ -390,7 +390,7 @@ const Header = () => {
     } catch (error) {
       console.error('Error initializing header:', error);
       localStorage.removeItem('token');
-      window.location.href = '/register.html';
+      window.location.href = '/register/';
     }
   }
 
@@ -511,7 +511,7 @@ const Header = () => {
   function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('adminCode');
-    window.location.href = '/register.html';
+    window.location.href = '/register/';
   }
 
   // Close dropdown when clicking elsewhere

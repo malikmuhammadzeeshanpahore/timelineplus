@@ -16,7 +16,7 @@ const prisma = new PrismaClient();
 async function verifyFacebookAction(
   freelancerId,
   buyerId,
-  actionType: 'followers' | 'likes' | 'comments' | 'shares',
+  actionType,
   targetPageId
 ) {
   try {
@@ -84,7 +84,7 @@ async function verifyFacebookAction(
 async function verifyYouTubeAction(
   freelancerId,
   channelId,
-  actionType: 'subscribers' | 'likes' | 'watch_time'
+  actionType
 ) {
   try {
     // Get freelancer's YouTube account
@@ -135,7 +135,7 @@ async function verifyYouTubeAction(
 async function verifyInstagramAction(
   freelancerId,
   accountId,
-  actionType: 'followers' | 'likes' | 'comments'
+  actionType
 ) {
   try {
     // Get freelancer's Instagram account
@@ -268,7 +268,7 @@ async function autoVerifyWithRetry(
   actionType,
   maxRetries = 3
 ) {
-  let lastError: VerificationResult = { verified: false, error: 'Unknown error' };
+  let lastError = { verified: false, error: 'Unknown error' };
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     const result = await detectPlatformAndVerify(

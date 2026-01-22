@@ -36,6 +36,9 @@ const Profile = () => {
           <p><strong>Name:</strong> <span id="pf-name">—</span></p>
           <p><strong>Username:</strong> <span id="pf-username">—</span></p>
           <p><strong>Email:</strong> <span id="pf-email">—</span></p>
+          <p><strong>Age:</strong> <span id="pf-age">—</span></p>
+          <p><strong>Gender:</strong> <span id="pf-gender">—</span></p>
+          <p><strong>City:</strong> <span id="pf-city">—</span></p>
           <p><strong>Current Balance:</strong> $<span id="pf-balance">—</span></p>
         </div>
         <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px">
@@ -44,6 +47,7 @@ const Profile = () => {
           <a className="btn-primary" href="/profile.html"><i className="ri-user-line"></i> Account Details</a>
           <a className="btn-primary" href="/download.html"><i className="ri-smartphone-line"></i> Download App</a>
           <button className="btn-primary" id="btnLogout"><i className="ri-logout-box-line"></i> Logout</button>
+          <button className="btn-outline" id="btnEditProfile" style={{ marginLeft: '6px' }}>Edit Profile</button>
         </div>
       </div>
 

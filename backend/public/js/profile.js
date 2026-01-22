@@ -5,8 +5,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const nameEl = document.getElementById('pf-name');
   const userEl = document.getElementById('pf-username');
   const emailEl = document.getElementById('pf-email');
+  const ageEl = document.getElementById('pf-age');
+  const genderEl = document.getElementById('pf-gender');
+  const cityEl = document.getElementById('pf-city');
   const balEl = document.getElementById('pf-balance');
   const socialList = document.getElementById('socialList');
+  let currentUser = null;
 
   async function load(){
     try{
@@ -14,9 +18,13 @@ document.addEventListener('DOMContentLoaded', ()=>{
       if(res.status===401){ return; }
       const j = await res.json();
       const u = j.user;
+      currentUser = u;
       nameEl.innerText = u.username || u.email || 'Account Holder';
       userEl.innerText = u.username || '-';
       emailEl.innerText = u.email;
+      ageEl && (ageEl.innerText = (u.age!=null)? String(u.age) : '-');
+      genderEl && (genderEl.innerText = u.gender || '-');
+      cityEl && (cityEl.innerText = u.city || '-');
       const raw = (j.balance!=null)? j.balance:0; balEl.innerText = (raw===0)? '0.00' : (Number(raw)/100).toFixed(2);
       renderUserPanel(u, raw);
     }catch(err){ console.error(err); }
@@ -52,6 +60,20 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('link-google')?.addEventListener('click', ()=>{ window.open('/api/auth/oauth/google','_blank','width=600,height=700'); showToast('A popup will open to complete Google linking.'); });
   document.getElementById('link-facebook')?.addEventListener('click', ()=>{ window.open('/api/auth/oauth/facebook','_blank','width=600,height=700'); showToast('A popup will open to complete Facebook linking.'); });
   document.getElementById('refresh-social')?.addEventListener('click', ()=>loadSocial());
+
+  document.getElementById('btnEditProfile')?.addEventListener('click', async ()=>{
+    if(!currentUser) return showToast('Profile not loaded yet');
+    const fullName = prompt('Full name', currentUser.fullName || '');
+    const age = prompt('Age (leave empty to unset)', currentUser.age!=null?String(currentUser.age):'');
+    const gender = prompt('Gender', currentUser.gender || '');
+    const city = prompt('City', currentUser.city || '');
+    const payload = { fullName, age: age===''?null:age, gender, city };
+    try{
+      const res = await fetch('/api/user/profile/update', { method: 'POST', headers: authHeaders(), body: JSON.stringify(payload) });
+      const j = await res.json();
+      if(res.ok){ showToast('Profile updated'); load(); } else { showToast(j.error || 'Update failed'); }
+    }catch(err){ console.error(err); showToast('Network error'); }
+  });
 
   load();
 });

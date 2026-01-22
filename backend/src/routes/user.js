@@ -16,6 +16,10 @@ router.get('/me', jwtMiddleware, async (req, res) => {
       id: user.id, 
       email: user.email, 
       username: user.username, 
+      fullName: user.fullName,
+      age: user.age,
+      gender: user.gender,
+      city: user.city,
       photo: user.photo, 
       emailVerified: user.emailVerified, 
       isBanned: user.isBanned,
@@ -46,6 +50,9 @@ router.post('/profile/update', jwtMiddleware, async (req, res) => {
   const {
     fullName,
     username,
+    age,
+    gender,
+    city,
     accountHolderName,
     accountType,
     accountNumber,
@@ -57,6 +64,9 @@ router.post('/profile/update', jwtMiddleware, async (req, res) => {
     const data = {};
     if (fullName !== undefined) data.fullName = fullName;
     if (username !== undefined) data.username = username;
+    if (age !== undefined) data.age = (age === null || age === '') ? null : Number(age);
+    if (gender !== undefined) data.gender = gender;
+    if (city !== undefined) data.city = city;
     if (accountHolderName !== undefined) data.accountHolderName = accountHolderName;
     if (accountType !== undefined) data.accountType = accountType;
     if (accountNumber !== undefined) data.accountNumber = accountNumber;

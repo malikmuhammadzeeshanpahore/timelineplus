@@ -15,6 +15,9 @@ model User {
   phone     String?
   ipAddress String?
   photo     String?
+  age       Int?
+  gender    String?
+  city      String?
   password  String?             // null for OAuth-only accounts
   role      String              @default("freelancer")
   isAdmin   Boolean             @default(false)

@@ -1,4 +1,4 @@
-import express, { Response, NextFunction } from 'express';
+const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../config');
@@ -7,15 +7,11 @@ const { getUserEarningsStatus, getLockConfig } = require('../services/trust-scor
 const prisma = new PrismaClient();
 const router = express.Router();
 
-interface AuthRequest extends express.Request {
-  user?;
-}
-
 // Verify JWT
-function jwtMiddleware(req: AuthRequest, res: Response, next: NextFunction) {
+function verifyToken(req, res, next) {
   const auth = req.headers.authorization;
   if (!auth || !auth.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
-  
+
   const token = auth.slice(7);
   try {
     const data = jwt.verify(token, JWT_SECRET);
@@ -30,7 +26,7 @@ function jwtMiddleware(req: AuthRequest, res: Response, next: NextFunction) {
  * GET /withdrawals/status
  * Get withdrawal status and limits
  */
-router.get('/status', jwtMiddleware, async (req, res) => {
+router.get('/status', verifyToken, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
@@ -77,7 +73,7 @@ router.get('/status', jwtMiddleware, async (req, res) => {
  * Create withdrawal request
  * Body: { amount, method }
  */
-router.post('/request', jwtMiddleware, async (req, res) => {
+router.post('/request', verifyToken, async (req, res) => {
   try {
     const { amount, method } = req.body;
 
@@ -185,7 +181,7 @@ router.post('/request', jwtMiddleware, async (req, res) => {
  * GET /withdrawals/history
  * Get user's withdrawal history
  */
-router.get('/history', jwtMiddleware, async (req, res) => {
+router.get('/history', verifyToken, async (req, res) => {
   try {
     const withdrawals = await prisma.withdrawRequest.findMany({
       where: { userId: req.user.id },
@@ -202,7 +198,7 @@ router.get('/history', jwtMiddleware, async (req, res) => {
  * POST /withdrawals/:withdrawalId/cancel
  * Cancel pending withdrawal
  */
-router.post('/:withdrawalId/cancel', jwtMiddleware, async (req, res) => {
+router.post('/:withdrawalId/cancel', verifyToken, async (req, res) => {
   try {
     const { withdrawalId } = req.params;
 
@@ -240,29 +236,15 @@ router.post('/:withdrawalId/cancel', jwtMiddleware, async (req, res) => {
  * === ADMIN ENDPOINTS ===
  */
 
-function verifyToken(req: AuthRequest, res: Response, next: NextFunction) {
-  const auth = req.headers.authorization;
-  if (!auth || !auth.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
-  
-  const token = auth.slice(7);
-  try {
-    const data = jwt.verify(token, JWT_SECRET);
-    req.user = { id: data.uid };
-    next();
-  } catch (err) {
-    res.status(401).json({ error: 'Invalid token' });
-  }
-}
-
-async function verifyAdmin(req: AuthRequest, res: Response, next: NextFunction) {
+async function verifyAdmin(req, res, next) {
   if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
-  
+
   const user = await prisma.user.findUnique({
     where: { id: req.user.id }
   });
-  
-  if (!user?.isAdmin) return res.status(403).json({ error: 'Admin only' });
-  
+
+  if (!user || !user.isAdmin) return res.status(403).json({ error: 'Admin only' });
+
   req.user.isAdmin = true;
   next();
 }

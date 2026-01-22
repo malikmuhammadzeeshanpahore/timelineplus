@@ -57,6 +57,9 @@ app.use('/api/pages', pagesRoutes);
 // Campaigns route
 const campaignsRoutes = require('./routes/campaigns');
 app.use('/api/campaigns', campaignsRoutes);
+// Withdrawals routes
+const withdrawalsRoutes = require('./routes/withdrawals');
+app.use('/api/withdrawals', withdrawalsRoutes);
 // Admin-panel routes (separate admin UI endpoints)
 const adminPanelRoutes = require('./routes/admin-panel');
 app.use('/api/admin-panel', adminPanelRoutes);

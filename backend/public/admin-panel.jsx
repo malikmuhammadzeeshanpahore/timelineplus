@@ -466,23 +466,34 @@ const AdminPanel = () => {
   
   `;
 
-  return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: styles }} />
-      <!-- Navbar -->
-<div className="navbar">
-  <h1>🔐 Admin Dashboard</h1>
-  <div className="navbar-actions">
-    <button onclick="showSettings()">⚙️ Settings</button>
-    <button onclick="logout()" style="background: #e74c3c;">🚪 Logout</button>
-  </div>
-</div>
+const handleShowSettings = () => {
+  setShowSettings(true);
+};
+
+const handleLogout = () => {
+  if (confirm('Logout?')) {
+    localStorage.removeItem('token');
+    window.location.href = '/';
+  }
+};
+
+return (
+  <>
+    <style dangerouslySetInnerHTML={{ __html: styles }} />
+    {/* Navbar */}
+    <div className="navbar">
+      <h1>🔐 Admin Dashboard</h1>
+      <div className="navbar-actions">
+        <button onClick={handleShowSettings}>⚙️ Settings</button>
+        <button onClick={handleLogout} style={{background: '#e74c3c'}}>🚪 Logout</button>
+      </div>
+    </div>
 
 <div className="container">
-  <!-- Alert -->
+  {/* Alert */}
   <div id="alert" className="alert"></div>
 
-  <!-- Tabs -->
+  {/* Tabs */}
   <div className="tabs">
     <button className="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
     <button className="tab-btn" onclick="switchTab('users')">👥 Users</button>
@@ -491,7 +502,7 @@ const AdminPanel = () => {
     <button className="tab-btn" onclick="switchTab('campaigns')">📢 Campaigns</button>
   </div>
 
-  <!-- Dashboard Tab -->
+  {/* Dashboard Tab */}
   <div id="dashboard" className="tab-content active">
     <div className="stats-grid">
       <div className="stat-card">
@@ -521,17 +532,17 @@ const AdminPanel = () => {
     </div>
   </div>
 
-  <!-- Users Tab -->
+  {/* Users Tab */}
   <div id="users" className="tab-content">
     <div className="search-box">
-      <input type="text" id="userSearch" placeholder="Search by email, username, phone...">
+      <input type="text" id="userSearch" placeholder="Search by email, username, phone..." />
       <button onclick="searchUsers()">🔍 Search</button>
       <button onclick="loadAllUsers()" style="background: #6c757d;">📋 All Users</button>
     </div>
     <div id="usersTable"></div>
   </div>
 
-  <!-- Deposits Tab -->
+  {/* Deposits Tab */}
   <div id="deposits" className="tab-content">
     <div className="search-box">
       <select id="depositFilter">
@@ -545,7 +556,7 @@ const AdminPanel = () => {
     <div id="depositsTable"></div>
   </div>
 
-  <!-- Withdrawals Tab -->
+  {/* Withdrawals Tab */}
   <div id="withdrawals" className="tab-content">
     <div className="search-box">
       <select id="withdrawalFilter">
@@ -559,7 +570,7 @@ const AdminPanel = () => {
     <div id="withdrawalsTable"></div>
   </div>
 
-  <!-- Campaigns Tab -->
+  {/* Campaigns Tab */}
   <div id="campaigns" className="tab-content">
     <div className="search-box">
       <select id="campaignFilter">
@@ -574,7 +585,7 @@ const AdminPanel = () => {
   </div>
 </div>
 
-<!-- User Details Modal -->
+{/* User Details Modal */}
 <div id="userModal" className="modal">
   <div className="modal-content">
     <div className="modal-header">
@@ -585,7 +596,7 @@ const AdminPanel = () => {
   </div>
 </div>
 
-<!-- Withdrawal Approval Modal -->
+{/* Withdrawal Approval Modal */}
 <div id="withdrawalModal" className="modal">
   <div className="modal-content">
     <div className="modal-header">
@@ -596,7 +607,7 @@ const AdminPanel = () => {
   </div>
 </div>
 
-<!-- Settings Modal -->
+{/* Settings Modal */}
 <div id="settingsModal" className="modal">
   <div className="modal-content">
     <div className="modal-header">
@@ -605,15 +616,22 @@ const AdminPanel = () => {
     </div>
     <div className="form-group">
       <label>Change Password</label>
-      <input type="password" id="currentPassword" placeholder="Current Password">
-      <input type="password" id="newPassword" placeholder="New Password" style="margin-top: 10px;">
-      <input type="password" id="confirmPassword" placeholder="Confirm Password" style="margin-top: 10px;">
-      <button onclick="changePassword()" style="width: 100%; margin-top: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer;">Change Password</button>
-    </div>
-  </div>
-</div>
+      <input type="password" id="currentPassword" placeholder="Current Password" />
+      <input type="password" id="newPassword" placeholder="New Password" style={{marginTop: '10px'}} />
+      <input type="password" id="confirmPassword" placeholder="Confirm Password" style={{marginTop: '10px'}} />
+            <button onclick="changePassword()" style={{width: '100%', marginTop: '15px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', padding: '10px', borderRadius: '5px', cursor: 'pointer'}}>Change Password</button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
 
-<script>
+export default AdminPanel;
+
+{/* Script should run after component mounts */}
+{typeof window !== 'undefined' && (
+  <script>
   const API_URL = '/api';
   let token = localStorage.getItem('token');
 
@@ -1248,12 +1266,5 @@ const AdminPanel = () => {
       window.location.href = '/';
     }
   }
-
-  // Initial load
-  loadDashboard();
-</script>
-    </>
-  );
-};
 
 export default AdminPanel;

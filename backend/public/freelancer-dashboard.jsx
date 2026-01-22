@@ -1,73 +1,4 @@
-import React, { useState, useEffect } from 'react';
-
 const FreelancerDashboard = () => {
-  const [totalEarnings, setTotalEarnings] = useState('0.00');
-  const [availableEarnings, setAvailableEarnings] = useState('0.00');
-  const [lockedEarnings, setLockedEarnings] = useState('0.00');
-  const [trustScore, setTrustScore] = useState('100');
-  const [recentTasks, setRecentTasks] = useState([]);
-  const [taskStats, setTaskStats] = useState({ total: 0, paid: 0, assigned: 0, pending: 0 });
-  const [withdrawals, setWithdrawals] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      window.location.href = '/register/';
-      return;
-    }
-
-    const loadData = async () => {
-      try {
-        const userRes = await fetch(`${window.location.origin}/api/user/me`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (userRes.ok) {
-          const userData = await userRes.json();
-          setTotalEarnings((userData.balance / 100).toFixed(2));
-          setTrustScore(userData.user.trustScore?.toFixed(1) || '100');
-        }
-
-        const earningsRes = await fetch(`${window.location.origin}/api/campaigns/earnings-status`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (earningsRes.ok) {
-          const earningsData = await earningsRes.json();
-          setAvailableEarnings((earningsData.unlockedEarnings / 100).toFixed(2));
-          setLockedEarnings((earningsData.lockedEarnings / 100).toFixed(2));
-        }
-
-        const tasksRes = await fetch(`${window.location.origin}/api/campaigns/my-tasks`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (tasksRes.ok) {
-          const allTasks = await tasksRes.json();
-          setRecentTasks(allTasks.slice(0, 5));
-          setTaskStats({
-            total: allTasks.length,
-            paid: allTasks.filter(t => t.status === 'paid').length,
-            assigned: allTasks.filter(t => t.status === 'assigned').length,
-            pending: allTasks.filter(t => t.status === 'pending').length
-          });
-        }
-
-        const withdrawalsRes = await fetch(`${window.location.origin}/api/withdrawals/history`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (withdrawalsRes.ok) {
-          const withdrawalsData = await withdrawalsRes.json();
-          setWithdrawals(Array.isArray(withdrawalsData) ? withdrawalsData.slice(0, 5) : []);
-        }
-      } catch (err) {
-        console.error('Dashboard load error:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
-
   const styles = `
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -116,16 +47,9 @@ const FreelancerDashboard = () => {
     .stat-item.warning { background: #fff3cd; }
   `;
 
-  const getBadgeClass = (status) => {
-    if (status === 'paid' || status === 'approved') return 'badge-success';
-    if (status === 'assigned') return 'badge-info';
-    if (status === 'pending') return 'badge-warning';
-    return 'badge-danger';
-  };
-
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: styles }} />
+      <style>{styles}</style>
       <div id="headerContainer"></div>
 
       <div className="container">
@@ -134,108 +58,66 @@ const FreelancerDashboard = () => {
         <div className="stats">
           <div className="stat-card">
             <h3>💰 Total Earnings</h3>
-            <div className="value">${totalEarnings}</div>
+            <div className="value" id="totalEarnings">-</div>
           </div>
           <div className="stat-card">
             <h3>💸 Available to Withdraw</h3>
-            <div className="value">${availableEarnings}</div>
+            <div className="value" id="availableEarnings">-</div>
           </div>
           <div className="stat-card">
             <h3>⏱️ Locked Earnings</h3>
-            <div className="value">${lockedEarnings}</div>
+            <div className="value" id="lockedEarnings">-</div>
           </div>
           <div className="stat-card">
             <h3>⭐ Trust Score</h3>
-            <div className="value">{trustScore}%</div>
+            <div className="value" id="trustScore">-</div>
           </div>
         </div>
 
         <div className="card">
           <h2>📋 Recent Tasks</h2>
-          {loading ? (
+          <div id="tasksContainer">
             <div className="loading">Loading...</div>
-          ) : recentTasks.length > 0 ? (
-            <table>
-              <thead>
-                <tr>
-                  <th>Campaign</th>
-                  <th>Type</th>
-                  <th>Reward</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentTasks.map((task, i) => (
-                  <tr key={i}>
-                    <td>{task.campaign?.title || 'N/A'}</td>
-                    <td>{task.campaign?.type || 'N/A'}</td>
-                    <td>${(task.rewardPerTask / 100).toFixed(2)}</td>
-                    <td><span className={`badge ${getBadgeClass(task.status)}`}>{task.status}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p>No tasks yet</p>
-          )}
+          </div>
         </div>
 
         <div className="card">
           <h2>📈 Task Statistics</h2>
-          <div className="stat-grid">
+          <div className="stat-grid" id="statsGrid">
             <div className="stat-item">
-              <strong>{taskStats.total}</strong><br />Total Tasks
+              <strong id="statTotal">0</strong><br />Total Tasks
             </div>
             <div className="stat-item">
-              <strong>{taskStats.paid}</strong><br />Paid
+              <strong id="statPaid">0</strong><br />Paid
             </div>
             <div className="stat-item info">
-              <strong>{taskStats.assigned}</strong><br />Assigned
+              <strong id="statAssigned">0</strong><br />Assigned
             </div>
             <div className="stat-item warning">
-              <strong>{taskStats.pending}</strong><br />Pending
+              <strong id="statPending">0</strong><br />Pending
             </div>
           </div>
         </div>
 
         <div className="card">
           <h2>💳 Recent Withdrawals</h2>
-          {withdrawals.length > 0 ? (
-            <table>
-              <thead>
-                <tr>
-                  <th>Amount</th>
-                  <th>Method</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {withdrawals.map((w, i) => (
-                  <tr key={i}>
-                    <td>${(w.amount / 100).toFixed(2)}</td>
-                    <td>{w.method}</td>
-                    <td><span className={`badge ${getBadgeClass(w.status)}`}>{w.status}</span></td>
-                    <td>{new Date(w.createdAt).toLocaleDateString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p>No withdrawals yet</p>
-          )}
+          <div id="withdrawalsContainer">
+            <div className="loading">Loading...</div>
+          </div>
         </div>
       </div>
-
-      <script src="/js/header.js"></script>
-      <script>
-        {`fetch('/header.html').then(r => r.text()).then(html => {
-          const c = document.getElementById('headerContainer');
-          if (c) c.innerHTML = html;
-        });`}
-      </script>
     </>
   );
 };
 
 export default FreelancerDashboard;
+
+// This script runs after the page loads to populate data
+setTimeout(() => {
+  const scripts = document.querySelectorAll('script[src="/js/freelancer-dashboard.js"]');
+  if (scripts.length === 0) {
+    const script = document.createElement('script');
+    script.src = '/js/freelancer-dashboard.js';
+    document.body.appendChild(script);
+  }
+}, 100);

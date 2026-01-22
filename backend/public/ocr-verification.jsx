@@ -405,8 +405,8 @@ const OcrVerification = () => {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: styles }} />
-      <div className="container">
-    <!-- Header -->
+  <div className="container">
+    {/* Header */}
     <header>
       <h1>📸 OCR Task Verification</h1>
       <div className="trust-score" id="trustScoreDisplay">
@@ -415,20 +415,20 @@ const OcrVerification = () => {
       </div>
     </header>
 
-    <!-- Trust Score Info -->
-    <div className="card" id="trustInfo" style="display: none;">
+    {/* Trust Score Info */}
+    <div className="card" id="trustInfo" style={{ display: 'none' }}>
       <h2>Your Trust Score Info</h2>
       <div id="trustContent"></div>
     </div>
 
-    <!-- Ban Warning -->
-    <div className="penalty-warning" id="banWarning" style="display: none;">
+    {/* Ban Warning */}
+    <div className="penalty-warning" id="banWarning" style={{ display: 'none' }}>
       <h3>⚠️ Your Account is Banned</h3>
       <p id="banMessage"></p>
-      <button className="btn-danger" onclick="showUnbanPayment()">Pay to Unlock Account</button>
+      <button className="btn-danger" type="button">Pay to Unlock Account</button>
     </div>
 
-    <!-- Earnings Status -->
+    {/* Earnings Status */}
     <div className="card">
       <h2>💰 Earnings Status</h2>
       <div className="earnings" id="earningsStatus">
@@ -436,464 +436,72 @@ const OcrVerification = () => {
       </div>
     </div>
 
-    <!-- Task Verification -->
+    {/* Task Verification */}
     <div className="card">
       <h2>📋 Assign & Complete Tasks</h2>
-      
       <div id="tasksContainer">
         <div className="loading">Loading available tasks...</div>
       </div>
-
-      <div id="activeTaskContainer" style="display: none;">
+      <div id="activeTaskContainer" style={{ display: 'none' }}>
         <h3>Active Task</h3>
         <div id="activeTaskInfo" className="task-item"></div>
-
-        <h3 style="margin-top: 20px;">Submit Screenshot Proof</h3>
-        
+        <h3 style={{ marginTop: 20 }}>Submit Screenshot Proof</h3>
         <div className="penalty-warning">
           <h3>⏱️ Time Requirement</h3>
           <p>🔴 You must spend at least <strong>1 minute</strong> on the page/channel</p>
           <p>❌ If you exit before 1 minute: <strong>-10 Trust Score penalty</strong></p>
           <p>✅ After 1 minute: Click "Submit Proof"</p>
         </div>
-
-        <!-- OCR Verification Form -->
+        {/* OCR Verification Form */}
         <div className="form-group">
           <label>Step 1: Before & After Follower Count</label>
           <div className="form-row">
             <div>
               <label>Followers/Subscribers BEFORE:</label>
-              <input type="number" id="followersBefore" placeholder="e.g., 1000" min="0">
+              <input type="number" id="followersBefore" placeholder="e.g., 1000" min="0" />
             </div>
             <div>
               <label>Followers/Subscribers AFTER:</label>
-              <input type="number" id="followersAfter" placeholder="e.g., 1001" min="0">
+              <input type="number" id="followersAfter" placeholder="e.g., 1001" min="0" />
             </div>
           </div>
-          <p style="font-size: 12px; color: #666; margin-top: 5px;">Take screenshot showing both numbers</p>
+          <p style={{ fontSize: 12, color: '#666', marginTop: 5 }}>Take screenshot showing both numbers</p>
         </div>
-
         <div className="form-group">
           <label>Step 2: Upload Screenshot</label>
-          <div className="upload-area" id="uploadArea" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-            <input type="file" id="imageInput" accept="image/*" onchange="handleImageSelect(event)">
+          <div className="upload-area" id="uploadArea">
+            <input type="file" id="imageInput" accept="image/*" />
             <div id="uploadText">
               <p>📷 Drag & drop screenshot here</p>
-              <p style="font-size: 12px; color: #666;">or click to select</p>
+              <p style={{ fontSize: 12, color: '#666' }}>or click to select</p>
             </div>
-            <img id="imagePreview" className="preview-image" style="display: none;">
+            <img id="imagePreview" className="preview-image" style={{ display: 'none' }} alt="Preview" />
           </div>
         </div>
-
         <div id="verificationResult" className="verification-result"></div>
-
-        <div style="margin-top: 20px;">
-          <button onclick="submitProof()" id="submitBtn" className="btn-success">
+        <div style={{ marginTop: 20 }}>
+          <button id="submitBtn" className="btn-success" type="button">
             ✅ Submit Proof & Verify
           </button>
-          <button onclick="cancelTask()" className="btn-secondary">
+          <button className="btn-secondary" type="button">
             ❌ Cancel Task
           </button>
         </div>
       </div>
     </div>
 
-    <!-- My Completed Tasks -->
+    {/* My Completed Tasks */}
     <div className="card">
       <h2>✅ My Completed Tasks</h2>
       <div id="completedTasks" className="loading">Loading...</div>
     </div>
 
-    <!-- Withdrawal History -->
+    {/* Withdrawal History */}
     <div className="card">
       <h2>💸 Withdrawal History</h2>
       <div id="withdrawalHistory" className="loading">Loading...</div>
     </div>
   </div>
-
-  <script>
-    const API_BASE = 'http://localhost:3000/api';
-    let currentTaskId = null;
-    let selectedImage = null;
-
-    // Get token from localStorage
-    function getToken() {
-      return localStorage.getItem('token');
-    }
-
-    // Load initial data
-    async function loadData() {
-      try {
-        await loadTrustScore();
-        await loadEarningsStatus();
-        await loadAvailableTasks();
-        await loadCompletedTasks();
-        await loadWithdrawalHistory();
-      } catch (error) {
-        console.error('Error loading data:', error);
-      }
-    }
-
-    // Load trust score
-    async function loadTrustScore() {
-      try {
-        const response = await fetch(`${API_BASE}/campaigns/trust-score`, {
-          headers: { 'Authorization': `Bearer ${getToken()}` }
-        });
-
-        const data = await response.json();
-
-        let scoreClass = 'score-high';
-        if (data.trustScore <= 50) scoreClass = 'score-low';
-        else if (data.trustScore <= 70) scoreClass = 'score-medium';
-
-        document.getElementById('scoreBadge').innerHTML = `${data.trustScore.toFixed(1)}% - ${data.tier}`;
-        document.getElementById('scoreBadge').className = `score-badge ${scoreClass}`;
-
-        if (data.isBanned) {
-          document.getElementById('banWarning').style.display = 'block';
-          document.getElementById('banMessage').innerHTML = `
-            ${data.banReason}<br>
-            <strong>Unlock Cost: $${(data.banUnlockCost / 100).toFixed(2)}</strong>
-          `;
-        }
-
-        // Show trust info
-        const trustContent = document.getElementById('trustContent');
-        trustContent.innerHTML = `
-          <div className="info-box ${data.trustScore <= 50 ? 'danger' : data.trustScore <= 70 ? 'warning' : 'success'}">
-            <strong>Current Score:</strong> ${data.trustScore.toFixed(1)}%<br>
-            <strong>Tier:</strong> ${data.tier}<br>
-            <strong>Lock Duration:</strong> ${data.lockDays} days<br>
-            <strong>Max Withdrawal:</strong> ${data.maxWithdraw ? `$${(data.maxWithdraw / 100).toFixed(2)}` : 'Unlimited'}
-          </div>
-          <p>${data.description}</p>
-        `;
-        document.getElementById('trustInfo').style.display = 'block';
-      } catch (error) {
-        console.error('Error loading trust score:', error);
-      }
-    }
-
-    // Load earnings status
-    async function loadEarningsStatus() {
-      try {
-        const response = await fetch(`${API_BASE}/campaigns/earnings-status`, {
-          headers: { 'Authorization': `Bearer ${getToken()}` }
-        });
-
-        const data = await response.json();
-
-        let html = `
-          <div className="earnings-item">
-            <span className="earnings-label">Total Earnings:</span>
-            <span className="earnings-value">$${(data.totalEarnings / 100).toFixed(2)}</span>
-          </div>
-          <div className="earnings-item">
-            <span className="earnings-label">Unlocked:</span>
-            <span className="earnings-value">$${(data.unlockedEarnings / 100).toFixed(2)}</span>
-          </div>
-          <div className="earnings-item">
-            <span className="earnings-label">Locked:</span>
-            <span style="color: #ff6b6b; font-weight: bold;">$${(data.lockedEarnings / 100).toFixed(2)}</span>
-          </div>
-        `;
-
-        if (data.nextUnlockDate) {
-          html += `
-            <div className="lock-info">
-              <strong>📅 Next Unlock Date:</strong> ${new Date(data.nextUnlockDate).toLocaleDateString()}<br>
-              <strong>Active Locks:</strong> ${data.activeLocks}
-            </div>
-          `;
-        }
-
-        document.getElementById('earningsStatus').innerHTML = html;
-      } catch (error) {
-        console.error('Error loading earnings:', error);
-      }
-    }
-
-    // Load available tasks
-    async function loadAvailableTasks() {
-      try {
-        const response = await fetch(`${API_BASE}/campaigns/available-tasks`, {
-          headers: { 'Authorization': `Bearer ${getToken()}` }
-        });
-
-        const tasks = await response.json();
-
-        if (tasks.length === 0) {
-          document.getElementById('tasksContainer').innerHTML = '<p>No available tasks at the moment.</p>';
-          return;
-        }
-
-        let html = '<div>';
-        for (const task of tasks) {
-          const reward = (task.rewardPerTask / 100).toFixed(2);
-          html += `
-            <div className="task-item">
-              <div>
-                <strong>${task.campaign.title}</strong><br>
-                <small>${task.campaign.type} - $${reward} reward</small>
-              </div>
-              <button onclick="assignTask(${task.id})" className="btn-success">Assign Task</button>
-            </div>
-          `;
-        }
-        html += '</div>';
-        document.getElementById('tasksContainer').innerHTML = html;
-      } catch (error) {
-        console.error('Error loading tasks:', error);
-        document.getElementById('tasksContainer').innerHTML = '<p>Error loading tasks</p>';
-      }
-    }
-
-    // Assign task
-    async function assignTask(taskId) {
-      try {
-        const response = await fetch(`${API_BASE}/campaigns/tasks/${taskId}/assign`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${getToken()}` }
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          currentTaskId = taskId;
-          document.getElementById('tasksContainer').style.display = 'none';
-          document.getElementById('activeTaskContainer').style.display = 'block';
-
-          document.getElementById('activeTaskInfo').innerHTML = `
-            <div>
-              <strong>${data.task.campaign.title}</strong><br>
-              <small>Type: ${data.task.campaign.type}</small><br>
-              <small>Target: ${data.task.campaign.targetPage}</small>
-            </div>
-            <div>
-              <a href="${data.task.campaign.targetPage}" target="_blank" className="btn-success">
-                🔗 Go to Target Page
-              </a>
-            </div>
-          `;
-
-          alert('✅ Task assigned! Follow/Subscribe on the page, then come back and submit proof.');
-        }
-      } catch (error) {
-        alert('Error assigning task: ' + error.message);
-      }
-    }
-
-    // Handle file selection
-    function handleImageSelect(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          selectedImage = e.target.result;
-          const preview = document.getElementById('imagePreview');
-          preview.src = selectedImage;
-          preview.style.display = 'block';
-          document.getElementById('uploadText').style.display = 'none';
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    // Handle drag over
-    function handleDragOver(event) {
-      event.preventDefault();
-      document.getElementById('uploadArea').classList.add('drag-over');
-    }
-
-    // Handle drag leave
-    function handleDragLeave(event) {
-      document.getElementById('uploadArea').classList.remove('drag-over');
-    }
-
-    // Handle drop
-    function handleDrop(event) {
-      event.preventDefault();
-      document.getElementById('uploadArea').classList.remove('drag-over');
-      const file = event.dataTransfer.files[0];
-      if (file) {
-        document.getElementById('imageInput').files = event.dataTransfer.files;
-        handleImageSelect({ target: { files: [file] } });
-      }
-    }
-
-    // Upload area click
-    document.getElementById('uploadArea').addEventListener('click', () => {
-      document.getElementById('imageInput').click();
-    });
-
-    // Submit proof
-    async function submitProof() {
-      if (!currentTaskId) {
-        alert('No task assigned');
-        return;
-      }
-
-      const followersBefore = parseInt(document.getElementById('followersBefore').value);
-      const followersAfter = parseInt(document.getElementById('followersAfter').value);
-
-      if (!selectedImage || !followersBefore || !followersAfter) {
-        alert('Please fill all fields');
-        return;
-      }
-
-      if (followersAfter <= followersBefore) {
-        alert('Followers/Subscribers AFTER must be greater than BEFORE');
-        return;
-      }
-
-      document.getElementById('submitBtn').disabled = true;
-      document.getElementById('submitBtn').innerHTML = '<div className="spinner"></div> Verifying...';
-
-      try {
-        const response = await fetch(`${API_BASE}/campaigns/tasks/${currentTaskId}/submit-proof`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${getToken()}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            image: selectedImage,
-            followersBefore,
-            followersAfter
-          })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          showVerificationResult(false, data.message || data.error);
-          document.getElementById('submitBtn').disabled = false;
-          document.getElementById('submitBtn').innerHTML = '✅ Submit Proof & Verify';
-          return;
-        }
-
-        showVerificationResult(true, 'Verification in progress... Check back in 5 seconds');
-        
-        // Reload after 5 seconds
-        setTimeout(() => {
-          loadData();
-          cancelTask();
-        }, 5000);
-      } catch (error) {
-        showVerificationResult(false, error.message);
-        document.getElementById('submitBtn').disabled = false;
-        document.getElementById('submitBtn').innerHTML = '✅ Submit Proof & Verify';
-      }
-    }
-
-    // Show verification result
-    function showVerificationResult(success, message) {
-      const result = document.getElementById('verificationResult');
-      result.className = `verification-result show ${success ? 'result-success' : 'result-failed'}`;
-      result.innerHTML = `
-        <strong>${success ? '✅ Success!' : '❌ Failed!'}</strong><br>
-        ${message}
-      `;
-    }
-
-    // Cancel task
-    function cancelTask() {
-      currentTaskId = null;
-      selectedImage = null;
-      document.getElementById('activeTaskContainer').style.display = 'none';
-      document.getElementById('tasksContainer').style.display = 'block';
-      document.getElementById('followersBefore').value = '';
-      document.getElementById('followersAfter').value = '';
-      document.getElementById('imagePreview').style.display = 'none';
-      document.getElementById('uploadText').style.display = 'block';
-      document.getElementById('verificationResult').innerHTML = '';
-      loadAvailableTasks();
-    }
-
-    // Load completed tasks
-    async function loadCompletedTasks() {
-      try {
-        const response = await fetch(`${API_BASE}/campaigns/my-tasks`, {
-          headers: { 'Authorization': `Bearer ${getToken()}` }
-        });
-
-        const tasks = await response.json();
-
-        if (tasks.length === 0) {
-          document.getElementById('completedTasks').innerHTML = '<p>No completed tasks yet.</p>';
-          return;
-        }
-
-        let html = '';
-        for (const task of tasks) {
-          const reward = (task.rewardPerTask / 100).toFixed(2);
-          const proof = task.proofs[0];
-          let statusClass = `status-${task.status}`;
-
-          html += `
-            <div className="task-item">
-              <div>
-                <strong>${task.campaign.title}</strong><br>
-                <small>Type: ${task.campaign.type} | Reward: $${reward}</small><br>
-                ${proof ? `<small>Time: ${proof.timeMinutes} min | OCR Match: ${proof.ocrMatches ? '✅' : '❌'}</small>` : ''}
-              </div>
-              <span className="task-status ${statusClass}">${task.status.toUpperCase()}</span>
-            </div>
-          `;
-        }
-
-        document.getElementById('completedTasks').innerHTML = html;
-      } catch (error) {
-        console.error('Error loading completed tasks:', error);
-      }
-    }
-
-    // Load withdrawal history
-    async function loadWithdrawalHistory() {
-      try {
-        const response = await fetch(`${API_BASE}/withdrawals/history`, {
-          headers: { 'Authorization': `Bearer ${getToken()}` }
-        });
-
-        const withdrawals = await response.json();
-
-        if (withdrawals.length === 0) {
-          document.getElementById('withdrawalHistory').innerHTML = '<p>No withdrawal requests yet.</p>';
-          return;
-        }
-
-        let html = '';
-        for (const w of withdrawals) {
-          const statusClass = w.status === 'approved' ? 'status-paid' : w.status === 'pending' ? 'status-assigned' : 'status-rejected';
-          html += `
-            <div className="task-item">
-              <div>
-                <strong>$${(w.amount / 100).toFixed(2)}</strong><br>
-                <small>Method: ${w.method} | Date: ${new Date(w.createdAt).toLocaleDateString()}</small>
-              </div>
-              <span className="task-status ${statusClass}">${w.status.toUpperCase()}</span>
-            </div>
-          `;
-        }
-
-        document.getElementById('withdrawalHistory').innerHTML = html;
-      } catch (error) {
-        console.error('Error loading withdrawal history:', error);
-      }
-    }
-
-    // Show unban payment
-    function showUnbanPayment() {
-      alert('Account unlock payment feature coming soon! Contact support.');
-    }
-
-    // Load on page load
-    window.addEventListener('load', loadData);
-
-    // Refresh data every 30 seconds
-    setInterval(loadData, 30000);
-  </script>
     </>
   );
 };

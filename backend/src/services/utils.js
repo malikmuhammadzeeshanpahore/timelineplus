@@ -3,11 +3,11 @@ const { sendMail } = require('./mailer');
 
 const prisma = new PrismaClient();
 
-async function logAdmin(adminId, action, meta?) {
+async function logAdmin(adminId, action, meta) {
   await prisma.adminLog.create({ data: { adminId, action, meta: meta ? JSON.stringify(meta) : undefined } });
 }
 
-async function notifyUser(userId, title, body, meta?) {
+async function notifyUser(userId, title, body, meta) {
   await prisma.notification.create({ data: { userId, title, body, meta: meta ? JSON.stringify(meta) : undefined } });
   // fetch email and send mail 
   const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -16,7 +16,7 @@ async function notifyUser(userId, title, body, meta?) {
   }
 }
 
-async function creditWallet(userId, amount, type, meta?) {
+async function creditWallet(userId, amount, type, meta) {
   await prisma.walletTransaction.create({ data: { userId, amount, type, meta: meta ? JSON.stringify(meta) : undefined } });
 }
 

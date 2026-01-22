@@ -143,21 +143,30 @@ function build() {
         scriptsHtml = externalScripts.join('\n');
       }
 
-      // For root index, inject a client-side redirect based on localStorage.role
-      let redirectScript = '';
+      // For root index, redirect based on localStorage.role
+      // For dashboard pages, redirect if no token
+      let redirectScriptContent = '';
       if (base === 'index') {
-        redirectScript = `<script>const token = localStorage.getItem('token'); if(token){const role = localStorage.getItem('role')||'buyer'; const dest = (role==='freelancer')?'/freelancer-dashboard/':'/dashboard-buyer/'; window.location.replace(dest);}</script>`;
+        redirectScriptContent = `const token = localStorage.getItem('token'); if(token){const role = localStorage.getItem('role')||'buyer'; const dest = (role==='freelancer')?'/freelancer-dashboard/':'/dashboard-buyer/'; window.location.replace(dest);}`;
+      } else if (base === 'freelancer-dashboard' || base === 'dashboard-buyer') {
+        redirectScriptContent = `if(!localStorage.getItem('token')){window.location.replace('/');}`;
       }
 
-      // Build HTML without inline scripts (strip any <script> blocks)
-      let html = `<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width,initial-scale=1">\n  <title>${title}</title>\n  ${styles ? `<style>\n${styles}\n</style>` : ''}\n</head>\n<body>\n${redirectScript}\n${body}\n</body>\n</html>`;
-
-      // remove any inline script blocks that may remain
-      html = html.replace(scriptTagRegex, '');
+      // Build HTML without inline scripts
+      let html = `<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width,initial-scale=1">\n  <title>${title}</title>\n  ${styles ? `<style>\n${styles}\n</style>` : ''}\n</head>\n<body>\n${body}\n</body>\n</html>`;
 
       // append external script references (if we generated any)
       if (scriptsHtml && scriptsHtml.length) {
         html = html.replace('\n</body>', `\n${scriptsHtml}\n</body>`);
+      }
+      
+      // Add redirect script as external file reference if needed
+      if (redirectScriptContent) {
+        const jsDir = path.join(DIST, 'js');
+        if (!fs.existsSync(jsDir)) fs.mkdirSync(jsDir, { recursive: true });
+        const redirectJs = path.join(jsDir, `${base}-auth.js`);
+        fs.writeFileSync(redirectJs, redirectScriptContent, 'utf8');
+        html = html.replace('</body>', `<script src="/js/${base}-auth.js"></script>\n</body>`);
       }
 
       fs.writeFileSync(path.join(outDir, 'index.html'), html, 'utf8');

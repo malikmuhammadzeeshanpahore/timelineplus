@@ -3,15 +3,100 @@ import React, { useState, useEffect } from 'react';
 const Campaigns = () => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [role, setRole] = useState(localStorage.getItem('role') || 'buyer');
+  const [activeTab, setActiveTab] = useState('my-campaigns');
+  const [campaigns, setCampaigns] = useState([]);
+  const [loadingCampaigns, setLoadingCampaigns] = useState(false);
+  const [form, setForm] = useState({
+    title: '',
+    type: '',
+    targetCount: '',
+    price: '',
+    targetPage: '',
+    description: ''
+  });
+  const [commission, setCommission] = useState('0.00');
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role') || 'buyer';
-    setToken(token);
-    setRole(role);
+    if (!token) {
+      alert('Please login first');
+      window.location.href = '/';
+    }
+  }, [token]);
 
-    // Load inline scripts from HTML if any
-  }, []);
+  useEffect(() => {
+    if (activeTab === 'my-campaigns') {
+      fetchCampaigns();
+    }
+    // eslint-disable-next-line
+  }, [activeTab]);
+
+  const fetchAPI = async (endpoint, options = {}) => {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...options.headers
+    };
+    const response = await fetch(`/api${endpoint}`, {
+      ...options,
+      headers
+    });
+    if (!response.ok) {
+      let error = {};
+      try {
+        error = await response.json();
+      } catch {
+        error = { error: 'API error' };
+      }
+      throw new Error(error.error || 'API error');
+    }
+    return response.json();
+  };
+
+  const fetchCampaigns = async () => {
+    setLoadingCampaigns(true);
+    try {
+      const data = await fetchAPI('/campaigns/my-campaigns');
+      setCampaigns(data.campaigns || []);
+    } catch (error) {
+      alert('Error loading campaigns: ' + error.message);
+    }
+    setLoadingCampaigns(false);
+  };
+
+  const handleCreateCampaign = async (event) => {
+    event.preventDefault();
+    setCreating(true);
+    try {
+      const data = {
+        title: form.title,
+        type: form.type,
+        targetCount: Number(form.targetCount),
+        price: Math.floor(Number(form.price) * 100),
+        targetPage: form.targetPage,
+        description: form.description
+      };
+      await fetchAPI('/campaigns/create', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      alert('Campaign created! Awaiting admin approval.');
+      setForm({
+        title: '',
+        type: '',
+        targetCount: '',
+        price: '',
+        targetPage: '',
+        description: ''
+      });
+      setCommission('0.00');
+      setActiveTab('my-campaigns');
+      fetchCampaigns();
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+    setCreating(false);
+  };
 
   const styles = `
 
@@ -265,259 +350,256 @@ const Campaigns = () => {
     <>
       <style dangerouslySetInnerHTML={{ __html: styles }} />
       <div className="container">
-  <div className="header">
-    <h1>🎯 Campaigns</h1>
-    <p>Manage your followers, subscribers, and engagement campaigns</p>
+<div className="header">
+  <h1>🎯 Campaigns</h1>
+  <p>Manage your followers, subscribers, and engagement campaigns</p>
 
-    <div className="nav-tabs">
-      <button className="active" onclick="switchTab('my-campaigns')">My Campaigns</button>
-      <button onclick="switchTab('create')">Create Campaign</button>
-      <button onclick="switchTab('how-it-works')">How It Works</button>
-    </div>
-  </div>
-
-  <!-- My Campaigns Tab -->
-  <div id="my-campaigns" className="tab-content active">
-    <div id="campaignsList" className="content"></div>
-  </div>
-
-  <!-- Create Campaign Tab -->
-  <div id="create" className="tab-content">
-    <div className="card">
-      <h3>Create New Campaign</h3>
-      <form onsubmit="createCampaign(event)">
-        <div>
-          <label>Campaign Title *</label>
-          <input type="text" id="title" required placeholder="e.g., Get 1000 Instagram Followers">
-        </div>
-
-        <div>
-          <label>Campaign Type *</label>
-          <select id="type" required>
-            <option value="">Select type</option>
-            <option value="followers">Followers</option>
-            <option value="subscribers">Subscribers</option>
-            <option value="likes">Likes</option>
-            <option value="comments">Comments</option>
-            <option value="shares">Shares</option>
-            <option value="watch_time">Watch Time</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Target Count *</label>
-          <input type="number" id="targetCount" required min="1" placeholder="e.g., 1000">
-        </div>
-
-        <div>
-          <label>Total Price (USD) *</label>
-          <input type="number" id="price" required min="1" step="0.01" placeholder="e.g., 100">
-          <small>You will pay 60% commission ($<span id="commission">0</span>) + your profit is 40%</small>
-        </div>
-
-        <div>
-          <label>Target Page/Profile Link *</label>
-          <input type="url" id="targetPage" required placeholder="https://facebook.com/yourpage">
-        </div>
-
-        <div>
-          <label>Description</label>
-          <textarea id="description" placeholder="Add campaign details and instructions..."></textarea>
-        </div>
-
-        <button type="submit">Create Campaign</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- How It Works Tab -->
-  <div id="how-it-works" className="tab-content">
-    <div className="card">
-      <h3>📋 How It Works</h3>
-      <div style="line-height: 1.8;">
-        <h4 style="margin-top: 20px; color: #667eea;">1️⃣ Create Campaign</h4>
-        <p>You create a campaign (e.g., get 1000 followers for your page) and set the price.</p>
-
-        <h4 style="margin-top: 20px; color: #667eea;">2️⃣ Payment Split</h4>
-        <ul style="margin-left: 20px;">
-          <li><strong>60%</strong> goes to Timeline+ (platform commission)</li>
-          <li><strong>40%</strong> becomes tasks for freelancers</li>
-        </ul>
-        <p>Example: If you pay $1000, $600 is commission and $400 creates 1000 tasks ($0.40 per task)</p>
-
-        <h4 style="margin-top: 20px; color: #667eea;">3️⃣ Freelancers Complete Tasks</h4>
-        <p>1000 freelancers each complete 1 task (follow your page, subscribe to channel, etc.)</p>
-        <p>Each freelancer earns the reward for completing their task</p>
-
-        <h4 style="margin-top: 20px; color: #667eea;">4️⃣ Admin Verification</h4>
-        <p>Admin reviews and verifies each completion with screenshots and API checks</p>
-        <p>Once verified, freelancer gets paid automatically</p>
-
-        <h4 style="margin-top: 20px; color: #667eea;">5️⃣ Progress Tracking</h4>
-        <p>Your dashboard shows real-time progress (e.g., 45/1000 followers received)</p>
-
-        <h4 style="margin-top: 20px; color: #667eea;">⚠️ Security & Verification</h4>
-        <ul style="margin-left: 20px;">
-          <li>Screenshots required for proof</li>
-          <li>API verification (Facebook, YouTube, etc.)</li>
-          <li>Fraud detection system</li>
-          <li>Each freelancer can only complete one task per campaign</li>
-        </ul>
-      </div>
-    </div>
+  <div className="nav-tabs">
+    <button
+      className={activeTab === 'my-campaigns' ? 'active' : ''}
+      onClick={() => setActiveTab('my-campaigns')}
+    >
+      My Campaigns
+    </button>
+    <button
+      className={activeTab === 'create' ? 'active' : ''}
+      onClick={() => setActiveTab('create')}
+    >
+      Create Campaign
+    </button>
+    <button
+      className={activeTab === 'how-it-works' ? 'active' : ''}
+      onClick={() => setActiveTab('how-it-works')}
+    >
+      How It Works
+    </button>
   </div>
 </div>
 
-<script>
-  const API_URL = '/api';
-  const token = localStorage.getItem('token');
-
-  async function fetchAPI(endpoint, options = {}) {
-    const headers = {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      ...options.headers
-    };
-
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      ...options,
-      headers
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'API error');
-    }
-
-    return response.json();
-  }
-
-  function switchTab(tabName) {
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.nav-tabs button').forEach(btn => btn.classList.remove('active'));
-    
-    document.getElementById(tabName).classList.add('active');
-    event.target.classList.add('active');
-
-    if (tabName === 'my-campaigns') {
-      loadCampaigns();
-    }
-  }
-
-  async function loadCampaigns() {
-    try {
-      const data = await fetchAPI('/campaigns/my-campaigns');
-      let html = '';
-
-      if (data.campaigns.length === 0) {
-        html = '<div className="card"><p>No campaigns yet. <a href="#" onclick="switchTab(\'create\')">Create one</a></p></div>';
-      } else {
-        data.campaigns.forEach(campaign => {
-          html += `
-            <div className="campaign-item">
-              <div style="display: flex; justify-content: space-between; align-items: start;">
-                <div>
-                  <h4>${campaign.title}</h4>
-                  <span className="badge ${campaign.status}">${campaign.status.toUpperCase()}</span>
-                </div>
-                <div style="text-align: right;">
-                  <div style="font-size: 1.5rem; font-weight: bold; color: #667eea;">
-                    ${campaign.progressPercent || 0}%
-                  </div>
-                  <div style="color: #666; font-size: 0.9rem;">
-                    ${campaign.progress}
-                  </div>
-                </div>
+{/* My Campaigns Tab */}
+<div
+  id="my-campaigns"
+  className={`tab-content${activeTab === 'my-campaigns' ? ' active' : ''}`}
+>
+  <div id="campaignsList" className="content">
+    {loadingCampaigns ? (
+      <div className="card"><p>Loading...</p></div>
+    ) : campaigns.length === 0 ? (
+      <div className="card">
+        <p>
+          No campaigns yet.{' '}
+          <a href="#" onClick={e => { e.preventDefault(); setActiveTab('create'); }}>
+            Create one
+          </a>
+        </p>
+      </div>
+    ) : (
+      campaigns.map(campaign => (
+        <div className="campaign-item" key={campaign._id}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+            <div>
+              <h4>{campaign.title}</h4>
+              <span className={`badge ${campaign.status}`}>{campaign.status.toUpperCase()}</span>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#667eea' }}>
+                {campaign.progressPercent || 0}%
               </div>
-
-              <div className="progress-bar">
-                <div className="progress-fill" style="width: ${campaign.progressPercent || 0}%">
-                  ${campaign.progressPercent > 5 ? campaign.progressPercent + '%' : ''}
-                </div>
-              </div>
-
-              <div className="campaign-info">
-                <div className="info-item">
-                  <span className="info-label">Type:</span>
-                  <span className="info-value">${campaign.type}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">Total Price:</span>
-                  <span className="info-value">$${(campaign.price / 100).toFixed(2)}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">Your Profit (40%):</span>
-                  <span className="info-value" style="color: #28a745;">$${(campaign.price * 0.4 / 100).toFixed(2)}</span>
-                </div>
-              </div>
-
-              <h5 style="margin-top: 15px; color: #333;">Task Status:</h5>
-              <div className="stats">
-                <div className="stat-box">
-                  <div className="value">${campaign.taskStatus.pending}</div>
-                  <div className="label">Pending</div>
-                </div>
-                <div className="stat-box">
-                  <div className="value">${campaign.taskStatus.assigned}</div>
-                  <div className="label">In Progress</div>
-                </div>
-                <div className="stat-box">
-                  <div className="value">${campaign.taskStatus.verified}</div>
-                  <div className="label">Verified</div>
-                </div>
-                <div className="stat-box">
-                  <div className="value">${campaign.taskStatus.paid}</div>
-                  <div className="label">Paid Out</div>
-                </div>
+              <div style={{ color: '#666', fontSize: '0.9rem' }}>
+                {campaign.progress}
               </div>
             </div>
-          `;
-        });
-      }
+          </div>
+          <div className="progress-bar">
+            <div
+              className="progress-fill"
+              style={{ width: `${campaign.progressPercent || 0}%` }}
+            >
+              {campaign.progressPercent > 5 ? `${campaign.progressPercent}%` : ''}
+            </div>
+          </div>
+          <div className="campaign-info">
+            <div className="info-item">
+              <span className="info-label">Type:</span>
+              <span className="info-value">{campaign.type}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Total Price:</span>
+              <span className="info-value">${(campaign.price / 100).toFixed(2)}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Your Profit (40%):</span>
+              <span className="info-value" style={{ color: '#28a745' }}>
+                ${((campaign.price * 0.4) / 100).toFixed(2)}
+              </span>
+            </div>
+          </div>
+          <h5 style={{ marginTop: 15, color: '#333' }}>Task Status:</h5>
+          <div className="stats">
+            <div className="stat-box">
+              <div className="value">{campaign.taskStatus.pending}</div>
+              <div className="label">Pending</div>
+            </div>
+            <div className="stat-box">
+              <div className="value">{campaign.taskStatus.assigned}</div>
+              <div className="label">In Progress</div>
+            </div>
+            <div className="stat-box">
+              <div className="value">{campaign.taskStatus.verified}</div>
+              <div className="label">Verified</div>
+            </div>
+            <div className="stat-box">
+              <div className="value">{campaign.taskStatus.paid}</div>
+              <div className="label">Paid Out</div>
+            </div>
+          </div>
+        </div>
+      ))
+    )}
+  </div>
+</div>
 
-      document.getElementById('campaignsList').innerHTML = html;
-    } catch (error) {
-      alert('Error loading campaigns: ' + error.message);
-    }
-  }
+{/* Create Campaign Tab */}
+<div
+  id="create"
+  className={`tab-content${activeTab === 'create' ? ' active' : ''}`}
+>
+  <div className="card">
+    <h3>Create New Campaign</h3>
+    <form onSubmit={handleCreateCampaign}>
+      <div>
+        <label>Campaign Title *</label>
+        <input
+          type="text"
+          id="title"
+          required
+          placeholder="e.g., Get 1000 Instagram Followers"
+          value={form.title}
+          onChange={e => setForm({ ...form, title: e.target.value })}
+        />
+      </div>
+      <div>
+        <label>Campaign Type *</label>
+        <select
+          id="type"
+          required
+          value={form.type}
+          onChange={e => setForm({ ...form, type: e.target.value })}
+        >
+          <option value="">Select type</option>
+          <option value="followers">Followers</option>
+          <option value="subscribers">Subscribers</option>
+          <option value="likes">Likes</option>
+          <option value="comments">Comments</option>
+          <option value="shares">Shares</option>
+          <option value="watch_time">Watch Time</option>
+        </select>
+      </div>
+      <div>
+        <label>Target Count *</label>
+        <input
+          type="number"
+          id="targetCount"
+          required
+          min="1"
+          placeholder="e.g., 1000"
+          value={form.targetCount}
+          onChange={e => setForm({ ...form, targetCount: e.target.value })}
+        />
+      </div>
+      <div>
+        <label>Total Price (USD) *</label>
+        <input
+          type="number"
+          id="price"
+          required
+          min="1"
+          step="0.01"
+          placeholder="e.g., 100"
+          value={form.price}
+          onChange={e => {
+            setForm({ ...form, price: e.target.value });
+            setCommission((Number(e.target.value) * 0.6).toFixed(2));
+          }}
+        />
+        <small>
+          You will pay 60% commission ($
+          <span id="commission">{commission}</span>
+          ) + your profit is 40%
+        </small>
+      </div>
+      <div>
+        <label>Target Page/Profile Link *</label>
+        <input
+          type="url"
+          id="targetPage"
+          required
+          placeholder="https://facebook.com/yourpage"
+          value={form.targetPage}
+          onChange={e => setForm({ ...form, targetPage: e.target.value })}
+        />
+      </div>
+      <div>
+        <label>Description</label>
+        <textarea
+          id="description"
+          placeholder="Add campaign details and instructions..."
+          value={form.description}
+          onChange={e => setForm({ ...form, description: e.target.value })}
+        />
+      </div>
+      <button type="submit" disabled={creating}>
+        {creating ? 'Creating...' : 'Create Campaign'}
+      </button>
+    </form>
+  </div>
+</div>
 
-  async function createCampaign(event) {
-    event.preventDefault();
-
-    try {
-      const data = {
-        title: document.getElementById('title').value,
-        type: document.getElementById('type').value,
-        targetCount: Number(document.getElementById('targetCount').value),
-        price: Math.floor(Number(document.getElementById('price').value) * 100), // convert to cents
-        targetPage: document.getElementById('targetPage').value,
-        description: document.getElementById('description').value
-      };
-
-      const response = await fetchAPI('/campaigns/create', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      });
-
-      alert('Campaign created! Awaiting admin approval.');
-      event.target.reset();
-      switchTab('my-campaigns');
-    } catch (error) {
-      alert('Error: ' + error.message);
-    }
-  }
-
-  // Update commission display
-  document.getElementById('price')?.addEventListener('input', function() {
-    const commission = Number(this.value) * 0.6;
-    document.getElementById('commission').textContent = commission.toFixed(2);
-  });
-
-  if (!token) {
-    alert('Please login first');
-    window.location.href = '/';
-  }
-</script>
+{/* How It Works Tab */}
+<div
+  id="how-it-works"
+  className={`tab-content${activeTab === 'how-it-works' ? ' active' : ''}`}
+>
+  <div className="card">
+    <h3>📋 How It Works</h3>
+    <div style={{ lineHeight: 1.8 }}>
+      <h4 style={{ marginTop: 20, color: '#667eea' }}>1️⃣ Create Campaign</h4>
+      <p>
+        You create a campaign (e.g., get 1000 followers for your page) and set the price.
+      </p>
+      <h4 style={{ marginTop: 20, color: '#667eea' }}>2️⃣ Payment Split</h4>
+      <ul style={{ marginLeft: 20 }}>
+        <li>
+          <strong>60%</strong> goes to Timeline+ (platform commission)
+        </li>
+        <li>
+          <strong>40%</strong> becomes tasks for freelancers
+        </li>
+      </ul>
+      <p>
+        Example: If you pay $1000, $600 is commission and $400 creates 1000 tasks ($0.40 per task)
+      </p>
+      <h4 style={{ marginTop: 20, color: '#667eea' }}>3️⃣ Freelancers Complete Tasks</h4>
+      <p>
+        1000 freelancers each complete 1 task (follow your page, subscribe to channel, etc.)
+      </p>
+      <p>Each freelancer earns the reward for completing their task</p>
+      <h4 style={{ marginTop: 20, color: '#667eea' }}>4️⃣ Admin Verification</h4>
+      <p>Admin reviews and verifies each completion with screenshots and API checks</p>
+      <p>Once verified, freelancer gets paid automatically</p>
+      <h4 style={{ marginTop: 20, color: '#667eea' }}>5️⃣ Progress Tracking</h4>
+      <p>Your dashboard shows real-time progress (e.g., 45/1000 followers received)</p>
+      <h4 style={{ marginTop: 20, color: '#667eea' }}>⚠️ Security & Verification</h4>
+      <ul style={{ marginLeft: 20 }}>
+        <li>Screenshots required for proof</li>
+        <li>API verification (Facebook, YouTube, etc.)</li>
+        <li>Fraud detection system</li>
+        <li>Each freelancer can only complete one task per campaign</li>
+      </ul>
+    </div>
+  </div>
+</div>
+      </div>
     </>
   );
 };

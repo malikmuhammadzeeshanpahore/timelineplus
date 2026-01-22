@@ -36,15 +36,6 @@ const Index = () => {
     <>
       <style>{styles}</style>
 
-      <script>
-        const token = localStorage.getItem('token');
-        if(token){
-          const role = localStorage.getItem('role')||'buyer';
-          const dest = (role==='freelancer')?'/freelancer-dashboard/':'/dashboard-buyer/';
-          window.location.replace(dest);
-        }
-      </script>
-
       <header className="header">
         <div className="nav">
           <div className="brand">

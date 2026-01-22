@@ -10,7 +10,21 @@ const Support = () => {
     setToken(token);
     setRole(role);
 
-    // Load inline scripts from HTML if any
+    // Attach event listener for ticket form submission
+    const ticketForm = document.getElementById('ticketForm');
+    if (ticketForm) {
+      const handler = (e) => {
+        e.preventDefault();
+        if (typeof showToast === 'function') {
+          showToast('Ticket submitted — we will respond soon');
+        } else {
+          alert('Ticket submitted — we will respond soon');
+        }
+        e.target.reset();
+      };
+      ticketForm.addEventListener('submit', handler);
+      return () => ticketForm.removeEventListener('submit', handler);
+    }
   }, []);
 
   return (
@@ -33,10 +47,7 @@ const Support = () => {
 </div>
 <aside><div className="card"><h3>Help Center</h3><p className="small">FAQs and common issues.</p><ul style="margin-top:8px;color:var(--muted)"><li>How do refunds work?</li><li>How to submit proof?</li><li>Dispute and chargeback policy</li></ul></div></aside></div></main>
 <footer style="text-align:center;padding:20px;color:rgba(255,255,255,0.6);">© TimelinePlus 2026</footer>
-<script src="/js/site.js"></script>
-<script>
-  document.getElementById('ticketForm')?.addEventListener('submit', (e)=>{ e.preventDefault(); showToast('Ticket submitted — we will respond soon'); e.target.reset(); });
-</script>
+{/* <script src="/js/site.js"></script> */}
     </>
   );
 };

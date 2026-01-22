@@ -257,240 +257,278 @@ const Deposit = () => {
   
   `;
 
-  return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: styles }} />
-      <div className="container">
-  <div className="header">
-    <h1>💳 Add Funds</h1>
-    <p>Deposit money to start campaigns</p>
-  </div>
+  // React state for UI
+  const [activeTab, setActiveTab] = useState('deposit');
+  const [amount, setAmount] = useState('');
+  const [method, setMethod] = useState('');
+  const [methodDetails, setMethodDetails] = useState(null);
+  const [alert, setAlert] = useState({ type: '', message: '' });
+  const [history, setHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
-  <div className="content">
-    <div className="nav-tabs">
-      <button className="active" onclick="switchTab('deposit')">Deposit</button>
-      <button onclick="switchTab('history')">History</button>
-    </div>
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!token) {
+      alert('Please login first');
+      window.location.href = '/';
+    }
+  }, [token]);
 
-    <!-- Deposit Tab -->
-    <div id="deposit" className="tab-content active">
-      <div id="depositAlert"></div>
+  // Fetch deposit history when switching to history tab
+  useEffect(() => {
+    if (activeTab === 'history') {
+      loadHistory();
+    }
+    // eslint-disable-next-line
+  }, [activeTab]);
 
-      <form onsubmit="submitDeposit(event)">
-        <div className="form-group">
-          <label>Amount (USD) *</label>
-          <input type="number" id="amount" required min="10" step="0.01" placeholder="Enter amount">
-        </div>
-
-        <div className="form-group">
-          <label>Payment Method *</label>
-          <div className="method-group">
-            <div className="method-option" onclick="selectMethod('card')">
-              <div>💳</div>
-              <div className="method-name">Card</div>
-            </div>
-            <div className="method-option" onclick="selectMethod('bank')">
-              <div>🏦</div>
-              <div className="method-name">Bank</div>
-            </div>
-            <div className="method-option" onclick="selectMethod('paypal')">
-              <div>🅿️</div>
-              <div className="method-name">PayPal</div>
-            </div>
-            <div className="method-option" onclick="selectMethod('crypto')">
-              <div>₿</div>
-              <div className="method-name">Crypto</div>
-            </div>
-          </div>
-          <input type="hidden" id="method" required>
-        </div>
-
-        <div id="methodDetails"></div>
-
-        <div className="pricing-info">
-          <p>💡 After your deposit is <strong>approved by admin</strong>, your funds will be instantly available to:</p>
-          <ul style="margin-left: 20px; margin-top: 10px;">
-            <li>Create campaigns for followers/subscribers/likes</li>
-            <li>Pay freelancers (60% goes to Timeline+, 40% to freelancer rewards)</li>
-            <li>Withdraw unused balance (minus fees)</li>
-          </ul>
-        </div>
-
-        <button type="submit">Request Deposit</button>
-      </form>
-    </div>
-
-    <!-- History Tab -->
-    <div id="history" className="tab-content">
-      <div id="depositHistory"></div>
-    </div>
-  </div>
-</div>
-
-<script>
-  const API_URL = '/api';
-  const token = localStorage.getItem('token');
-
-  async function fetchAPI(endpoint, options = {}) {
+  // Helper for API calls
+  const fetchAPI = async (endpoint, options = {}) => {
     const headers = {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
-      ...options.headers
+      ...options.headers,
     };
-
-    const response = await fetch(`${API_URL}${endpoint}`, {
+    const response = await fetch(`/api${endpoint}`, {
       ...options,
-      headers
+      headers,
     });
-
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'API error');
     }
-
     return response.json();
-  }
+  };
 
-  function switchTab(tabName) {
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.nav-tabs button').forEach(btn => btn.classList.remove('active'));
+  // Tab switching
+  const handleTab = (tab) => {
+    setActiveTab(tab);
+    setAlert({ type: '', message: '' });
+  };
 
-    document.getElementById(tabName).classList.add('active');
-    event.target.classList.add('active');
-
-    if (tabName === 'history') {
-      loadHistory();
-    }
-  }
-
-  function selectMethod(method) {
-    document.getElementById('method').value = method;
-    document.querySelectorAll('.method-option').forEach(el => el.classList.remove('selected'));
-    event.currentTarget.classList.add('selected');
-
-    // Show method-specific details
-    let details = '';
-    switch (method) {
+  // Payment method selection
+  const handleMethod = (selectedMethod) => {
+    setMethod(selectedMethod);
+    let details = null;
+    switch (selectedMethod) {
       case 'card':
-        details = `
+        details = (
           <div className="form-group">
             <label>Card Details</label>
-            <input type="text" placeholder="Full Name" required>
-            <input type="text" placeholder="Card Number (4242 4242 4242 4242)" required>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-              <input type="text" placeholder="MM/YY" required>
-              <input type="text" placeholder="CVC" required>
+            <input type="text" placeholder="Full Name" required />
+            <input type="text" placeholder="Card Number (4242 4242 4242 4242)" required />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <input type="text" placeholder="MM/YY" required />
+              <input type="text" placeholder="CVC" required />
             </div>
           </div>
-        `;
+        );
         break;
       case 'bank':
-        details = `
+        details = (
           <div className="form-group">
             <label>Bank Details</label>
-            <input type="text" placeholder="Account Holder Name" required>
-            <input type="text" placeholder="Bank Account Number" required>
-            <input type="text" placeholder="Routing Number" required>
+            <input type="text" placeholder="Account Holder Name" required />
+            <input type="text" placeholder="Bank Account Number" required />
+            <input type="text" placeholder="Routing Number" required />
           </div>
-        `;
+        );
         break;
       case 'paypal':
-        details = `
-          <div className="alert alert-success">
+        details = (
+          <div className="alert success">
             ✓ You'll be redirected to PayPal to complete the payment securely
           </div>
-        `;
+        );
         break;
       case 'crypto':
-        details = `
-          <div className="form-group">
-            <label>Cryptocurrency</label>
-            <select required>
-              <option value="">Select cryptocurrency</option>
-              <option value="btc">Bitcoin</option>
-              <option value="eth">Ethereum</option>
-              <option value="usdc">USDC</option>
-              <option value="usdt">USDT</option>
-            </select>
-          </div>
-          <div className="alert alert-success">
-            ℹ️ You'll receive a wallet address to send funds to. Usually confirmed within 10 minutes.
-          </div>
-        `;
+        details = (
+          <>
+            <div className="form-group">
+              <label>Cryptocurrency</label>
+              <select required>
+                <option value="">Select cryptocurrency</option>
+                <option value="btc">Bitcoin</option>
+                <option value="eth">Ethereum</option>
+                <option value="usdc">USDC</option>
+                <option value="usdt">USDT</option>
+              </select>
+            </div>
+            <div className="alert success">
+              ℹ️ You'll receive a wallet address to send funds to. Usually confirmed within 10 minutes.
+            </div>
+          </>
+        );
         break;
+      default:
+        details = null;
     }
-    document.getElementById('methodDetails').innerHTML = details;
-  }
+    setMethodDetails(details);
+  };
 
-  async function submitDeposit(event) {
-    event.preventDefault();
-
+  // Deposit form submit
+  const handleDeposit = async (e) => {
+    e.preventDefault();
+    if (!method) {
+      setAlert({ type: 'error', message: 'Please select a payment method' });
+      return;
+    }
     try {
-      const amount = Number(document.getElementById('amount').value) * 100; // convert to cents
-      const method = document.getElementById('method').value;
-
-      if (!method) {
-        alert('Please select a payment method');
-        return;
-      }
-
       const response = await fetchAPI('/deposits/request', {
         method: 'POST',
-        body: JSON.stringify({ amount, method })
+        body: JSON.stringify({ amount: Number(amount) * 100, method }),
       });
-
-      showAlert('success', `✓ Deposit request created! Your deposit of $${response.deposit.amount / 100} is awaiting admin approval.`);
-      event.target.reset();
-      document.getElementById('methodDetails').innerHTML = '';
-      setTimeout(() => switchTab('history'), 2000);
+      setAlert({
+        type: 'success',
+        message: `✓ Deposit request created! Your deposit of $${response.deposit.amount / 100} is awaiting admin approval.`,
+      });
+      setAmount('');
+      setMethod('');
+      setMethodDetails(null);
+      setTimeout(() => setActiveTab('history'), 2000);
     } catch (error) {
-      showAlert('error', '✗ Error: ' + error.message);
+      setAlert({ type: 'error', message: '✗ Error: ' + error.message });
     }
-  }
+  };
 
-  async function loadHistory() {
+  // Load deposit history
+  const loadHistory = async () => {
+    setLoadingHistory(true);
     try {
       const data = await fetchAPI('/deposits/my-deposits');
-
-      if (data.deposits.length === 0) {
-        document.getElementById('depositHistory').innerHTML = '<p>No deposits yet.</p>';
-        return;
-      }
-
-      let html = '';
-      data.deposits.forEach(deposit => {
-        html += `
-          <div className="deposit-item">
-            <div className="deposit-info">
-              <div className="deposit-amount">$${(deposit.amount / 100).toFixed(2)}</div>
-              <div style="color: #666; font-size: 0.9rem;">
-                ${deposit.method} • ${new Date(deposit.createdAt).toLocaleDateString()}
-              </div>
-              ${deposit.reason ? `<div style="color: #721c24; margin-top: 5px;">⚠ ${deposit.reason}</div>` : ''}
-            </div>
-            <span className="deposit-status ${deposit.status.toLowerCase()}">${deposit.status.toUpperCase()}</span>
-          </div>
-        `;
-      });
-
-      document.getElementById('depositHistory').innerHTML = html;
+      setHistory(data.deposits);
     } catch (error) {
-      alert('Error loading history: ' + error.message);
+      setAlert({ type: 'error', message: 'Error loading history: ' + error.message });
     }
-  }
+    setLoadingHistory(false);
+  };
 
-  function showAlert(type, message) {
-    const alertDiv = document.getElementById('depositAlert');
-    alertDiv.className = `alert ${type}`;
-    alertDiv.textContent = message;
-    alertDiv.style.display = 'block';
-  }
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: styles }} />
+      <div className="container">
+        <div className="header">
+          <h1>💳 Add Funds</h1>
+          <p>Deposit money to start campaigns</p>
+        </div>
+        <div className="content">
+          <div className="nav-tabs">
+            <button
+              className={activeTab === 'deposit' ? 'active' : ''}
+              type="button"
+              onClick={() => handleTab('deposit')}
+            >
+              Deposit
+            </button>
+            <button
+              className={activeTab === 'history' ? 'active' : ''}
+              type="button"
+              onClick={() => handleTab('history')}
+            >
+              History
+            </button>
+          </div>
 
-  if (!token) {
-    alert('Please login first');
-    window.location.href = '/';
-  }
-</script>
+          {/* Deposit Tab */}
+          <div id="deposit" className={`tab-content${activeTab === 'deposit' ? ' active' : ''}`}>
+            {alert.message && (
+              <div className={`alert ${alert.type}`}>{alert.message}</div>
+            )}
+            <form onSubmit={handleDeposit}>
+              <div className="form-group">
+                <label>Amount (USD) *</label>
+                <input
+                  type="number"
+                  required
+                  min="10"
+                  step="0.01"
+                  placeholder="Enter amount"
+                  value={amount}
+                  onChange={e => setAmount(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label>Payment Method *</label>
+                <div className="method-group">
+                  <div
+                    className={`method-option${method === 'card' ? ' selected' : ''}`}
+                    onClick={() => handleMethod('card')}
+                  >
+                    <div>💳</div>
+                    <div className="method-name">Card</div>
+                  </div>
+                  <div
+                    className={`method-option${method === 'bank' ? ' selected' : ''}`}
+                    onClick={() => handleMethod('bank')}
+                  >
+                    <div>🏦</div>
+                    <div className="method-name">Bank</div>
+                  </div>
+                  <div
+                    className={`method-option${method === 'paypal' ? ' selected' : ''}`}
+                    onClick={() => handleMethod('paypal')}
+                  >
+                    <div>🅿️</div>
+                    <div className="method-name">PayPal</div>
+                  </div>
+                  <div
+                    className={`method-option${method === 'crypto' ? ' selected' : ''}`}
+                    onClick={() => handleMethod('crypto')}
+                  >
+                    <div>₿</div>
+                    <div className="method-name">Crypto</div>
+                  </div>
+                </div>
+                <input type="hidden" value={method} required readOnly />
+              </div>
+              <div id="methodDetails">{methodDetails}</div>
+              <div className="pricing-info">
+                <p>
+                  💡 After your deposit is <strong>approved by admin</strong>, your funds will be instantly available to:
+                </p>
+                <ul style={{ marginLeft: 20, marginTop: 10 }}>
+                  <li>Create campaigns for followers/subscribers/likes</li>
+                  <li>Pay freelancers (60% goes to Timeline+, 40% to freelancer rewards)</li>
+                  <li>Withdraw unused balance (minus fees)</li>
+                </ul>
+              </div>
+              <button type="submit">Request Deposit</button>
+            </form>
+          </div>
+
+          {/* History Tab */}
+          <div id="history" className={`tab-content${activeTab === 'history' ? ' active' : ''}`}>
+            {loadingHistory ? (
+              <div>Loading...</div>
+            ) : (
+              <div id="depositHistory">
+                {history.length === 0 ? (
+                  <p>No deposits yet.</p>
+                ) : (
+                  history.map(deposit => (
+                    <div className="deposit-item" key={deposit._id}>
+                      <div className="deposit-info">
+                        <div className="deposit-amount">${(deposit.amount / 100).toFixed(2)}</div>
+                        <div style={{ color: '#666', fontSize: '0.9rem' }}>
+                          {deposit.method} • {new Date(deposit.createdAt).toLocaleDateString()}
+                        </div>
+                        {deposit.reason && (
+                          <div style={{ color: '#721c24', marginTop: 5 }}>
+                            ⚠ {deposit.reason}
+                          </div>
+                        )}
+                      </div>
+                      <span className={`deposit-status ${deposit.status.toLowerCase()}`}>
+                        {deposit.status.toUpperCase()}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </>
   );
 };

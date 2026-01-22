@@ -1,42 +1,4 @@
-import React, { useState } from 'react';
-
 const Register = () => {
-  const [role, setRole] = useState('freelancer');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      const res = await fetch(`${window.location.origin}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password, role })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('role', role);
-        window.location.href = role === 'freelancer' ? '/freelancer-dashboard/' : '/dashboard-buyer/';
-      } else {
-        const error = await res.json();
-        setError(error.message || 'Registration failed');
-      }
-    } catch (err) {
-      setError('Error: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const styles = `
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
@@ -64,78 +26,45 @@ const Register = () => {
     p { text-align: center; margin-top: 15px; color: #666; }
     p a { color: #667eea; text-decoration: none; }
     p a:hover { text-decoration: underline; }
-    .error { color: #d32f2f; background: #ffebee; padding: 12px; border-radius: 5px; margin-bottom: 15px; font-size: 14px; }
+    #error { color: #d32f2f; background: #ffebee; padding: 12px; border-radius: 5px; margin-bottom: 15px; font-size: 14px; display: none; }
   `;
-
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: styles }} />
+      <style>{styles}</style>
+
       <header className="header">
         <div className="nav">
           <div className="brand">
-            <img src="/logo.png" alt="TimelinePlus" />
+            <img src="/logo.png" alt="TimelinePlus"/>
             <span className="label">TimelinePlus</span>
           </div>
         </div>
       </header>
 
       <div className="content">
-        <form onSubmit={handleSubmit}>
+        <form id="registerForm">
           <h2>Create Account</h2>
 
-          {error && <div className="error">{error}</div>}
+          <div id="error"></div>
 
           <div className="role-selector">
-            <div
-              className={`role-pill ${role === 'freelancer' ? 'active' : ''}`}
-              onClick={() => setRole('freelancer')}
-            >
-              Freelancer
-            </div>
-            <div
-              className={`role-pill ${role === 'buyer' ? 'active' : ''}`}
-              onClick={() => setRole('buyer')}
-            >
-              Buyer
-            </div>
+            <div className="role-pill active" data-role="freelancer">Freelancer</div>
+            <div className="role-pill" data-role="buyer">Buyer</div>
           </div>
 
           <div className="input-box">
-            <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
+            <input type="text" id="username" placeholder="Username" required/>
             <i className="ri-user-fill"></i>
           </div>
           <div className="input-box">
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <input type="email" id="email" placeholder="Email" required/>
             <i className="ri-mail-fill"></i>
           </div>
           <div className="input-box">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <i
-              className={`ri-${showPassword ? 'eye' : 'eye-off'}-fill`}
-              onClick={() => setShowPassword(!showPassword)}
-            ></i>
+            <input type="password" id="password" placeholder="Password" required/>
+            <i className="ri-eye-off-fill toggle-password" id="togglePassword"></i>
           </div>
-          <button type="submit" disabled={loading}>
-            {loading ? 'Registering...' : 'Register'}
-          </button>
+          <button type="submit" id="registerBtn">Register</button>
           <div className="button">
             <a href="/api/auth/oauth/google"><i className="ri-google-fill"></i> Google</a> — <a href="/api/auth/oauth/facebook"><i className="ri-facebook-fill"></i> Facebook</a>
           </div>
@@ -144,8 +73,8 @@ const Register = () => {
       </div>
 
       <script src="/js/site.js"></script>
+      <script src="/js/auth.js"></script>
     </>
   );
 };
-
 export default Register;

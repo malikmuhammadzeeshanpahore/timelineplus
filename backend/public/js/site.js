@@ -166,4 +166,3 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load user and render header/navbar
   loadUserAndHeader();
 });
-});

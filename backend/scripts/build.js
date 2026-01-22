@@ -102,6 +102,11 @@ function build() {
       // Convert className back to class for static HTML
       body = body.replace(/className=/g, 'class=');
 
+      // Replace <style>{styles}</style> with actual styles
+      if (styles) {
+        body = body.replace(/<style>\{styles\}<\/style>/gi, `<style>\n${styles}\n</style>`);
+      }
+
       // Remove JSX-only fragments (e.g., <style dangerouslySetInnerHTML=... />)
       body = body.replace(/<style[\s\S]*?dangerouslySetInnerHTML[\s\S]*?\/?>/gi, '');
 

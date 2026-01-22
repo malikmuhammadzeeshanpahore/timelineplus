@@ -1,20 +1,74 @@
 import React, { useState, useEffect } from 'react';
 
 const FreelancerDashboard = () => {
-  const [token, setToken] = useState(localStorage.getItem('token'));
-  const [role, setRole] = useState(localStorage.getItem('role') || 'buyer');
+  const [totalEarnings, setTotalEarnings] = useState('0.00');
+  const [availableEarnings, setAvailableEarnings] = useState('0.00');
+  const [lockedEarnings, setLockedEarnings] = useState('0.00');
+  const [trustScore, setTrustScore] = useState('100');
+  const [recentTasks, setRecentTasks] = useState([]);
+  const [taskStats, setTaskStats] = useState({ total: 0, paid: 0, assigned: 0, pending: 0 });
+  const [withdrawals, setWithdrawals] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role') || 'buyer';
-    setToken(token);
-    setRole(role);
+    if (!token) {
+      window.location.href = '/register/';
+      return;
+    }
 
-    // Load inline scripts from HTML if any
+    const loadData = async () => {
+      try {
+        const userRes = await fetch(`${window.location.origin}/api/user/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          setTotalEarnings((userData.balance / 100).toFixed(2));
+          setTrustScore(userData.user.trustScore?.toFixed(1) || '100');
+        }
+
+        const earningsRes = await fetch(`${window.location.origin}/api/campaigns/earnings-status`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (earningsRes.ok) {
+          const earningsData = await earningsRes.json();
+          setAvailableEarnings((earningsData.unlockedEarnings / 100).toFixed(2));
+          setLockedEarnings((earningsData.lockedEarnings / 100).toFixed(2));
+        }
+
+        const tasksRes = await fetch(`${window.location.origin}/api/campaigns/my-tasks`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (tasksRes.ok) {
+          const allTasks = await tasksRes.json();
+          setRecentTasks(allTasks.slice(0, 5));
+          setTaskStats({
+            total: allTasks.length,
+            paid: allTasks.filter(t => t.status === 'paid').length,
+            assigned: allTasks.filter(t => t.status === 'assigned').length,
+            pending: allTasks.filter(t => t.status === 'pending').length
+          });
+        }
+
+        const withdrawalsRes = await fetch(`${window.location.origin}/api/withdrawals/history`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (withdrawalsRes.ok) {
+          const withdrawalsData = await withdrawalsRes.json();
+          setWithdrawals(Array.isArray(withdrawalsData) ? withdrawalsData.slice(0, 5) : []);
+        }
+      } catch (err) {
+        console.error('Dashboard load error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
   const styles = `
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -56,180 +110,130 @@ const FreelancerDashboard = () => {
     .badge-danger { background: #f8d7da; color: #842029; }
     .badge-info { background: #cfe2ff; color: #084298; }
     .loading { text-align: center; color: #667eea; font-weight: bold; }
-  
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+    .stat-item { background: #d1e7dd; padding: 15px; border-radius: 5px; text-align: center; }
+    .stat-item.info { background: #cfe2ff; }
+    .stat-item.warning { background: #fff3cd; }
   `;
+
+  const getBadgeClass = (status) => {
+    if (status === 'paid' || status === 'approved') return 'badge-success';
+    if (status === 'assigned') return 'badge-info';
+    if (status === 'pending') return 'badge-warning';
+    return 'badge-danger';
+  };
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: styles }} />
-      <!-- Include Dynamic Header -->
-  <div id="headerContainer"></div>
+      <div id="headerContainer"></div>
 
-  <div className="container">
-    <h1>📊 Freelancer Dashboard</h1>
+      <div className="container">
+        <h1>📊 Freelancer Dashboard</h1>
 
-    <!-- Stats -->
-    <div className="stats" id="stats">
-      <div className="stat-card">
-        <h3>💰 Total Earnings</h3>
-        <div className="value">$<span id="totalEarnings">0.00</span></div>
-      </div>
-      <div className="stat-card">
-        <h3>💸 Available to Withdraw</h3>
-        <div className="value">$<span id="availableEarnings">0.00</span></div>
-      </div>
-      <div className="stat-card">
-        <h3>⏱️ Locked Earnings</h3>
-        <div className="value">$<span id="lockedEarnings">0.00</span></div>
-      </div>
-      <div className="stat-card">
-        <h3>⭐ Trust Score</h3>
-        <div className="value"><span id="trustScore">100</span>%</div>
-      </div>
-    </div>
+        <div className="stats">
+          <div className="stat-card">
+            <h3>💰 Total Earnings</h3>
+            <div className="value">${totalEarnings}</div>
+          </div>
+          <div className="stat-card">
+            <h3>💸 Available to Withdraw</h3>
+            <div className="value">${availableEarnings}</div>
+          </div>
+          <div className="stat-card">
+            <h3>⏱️ Locked Earnings</h3>
+            <div className="value">${lockedEarnings}</div>
+          </div>
+          <div className="stat-card">
+            <h3>⭐ Trust Score</h3>
+            <div className="value">{trustScore}%</div>
+          </div>
+        </div>
 
-    <!-- Recent Tasks -->
-    <div className="card">
-      <h2>📋 Recent Tasks</h2>
-      <div id="recentTasks" className="loading">Loading...</div>
-    </div>
+        <div className="card">
+          <h2>📋 Recent Tasks</h2>
+          {loading ? (
+            <div className="loading">Loading...</div>
+          ) : recentTasks.length > 0 ? (
+            <table>
+              <thead>
+                <tr>
+                  <th>Campaign</th>
+                  <th>Type</th>
+                  <th>Reward</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentTasks.map((task, i) => (
+                  <tr key={i}>
+                    <td>{task.campaign?.title || 'N/A'}</td>
+                    <td>{task.campaign?.type || 'N/A'}</td>
+                    <td>${(task.rewardPerTask / 100).toFixed(2)}</td>
+                    <td><span className={`badge ${getBadgeClass(task.status)}`}>{task.status}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>No tasks yet</p>
+          )}
+        </div>
 
-    <!-- Task Statistics -->
-    <div className="card">
-      <h2>📈 Task Statistics</h2>
-      <div id="taskStats" className="loading">Loading...</div>
-    </div>
-
-    <!-- Recent Withdrawals -->
-    <div className="card">
-      <h2>💳 Recent Withdrawals</h2>
-      <div id="recentWithdrawals" className="loading">Loading...</div>
-    </div>
-  </div>
-
-  <script>
-    const API_BASE = window.location.origin + '/api';
-
-    // Load header
-    fetch('/header.html')
-      .then(r => r.text())
-      .then(html => {
-        const container = document.getElementById('headerContainer');
-        container.innerHTML = html;
-        // Execute scripts in loaded HTML
-        const scripts = container.querySelectorAll('script');
-        scripts.forEach(script => {
-          const newScript = document.createElement('script');
-          newScript.innerHTML = script.innerHTML;
-          document.body.appendChild(newScript);
-        });
-      });
-
-    async function loadDashboard() {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        window.location.href = '/register/';
-        return;
-      }
-
-      try {
-        // Load user data
-        const userResponse = await fetch(`${API_BASE}/user/me`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const userData = await userResponse.json();
-
-        document.getElementById('totalEarnings').textContent = (userData.balance / 100).toFixed(2);
-        document.getElementById('trustScore').textContent = userData.user.trustScore?.toFixed(1) || '100';
-
-        // Load earnings status
-        const earningsResponse = await fetch(`${API_BASE}/campaigns/earnings-status`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const earningsData = await earningsResponse.json();
-        document.getElementById('availableEarnings').textContent = (earningsData.unlockedEarnings / 100).toFixed(2);
-        document.getElementById('lockedEarnings').textContent = (earningsData.lockedEarnings / 100).toFixed(2);
-
-        // Load recent tasks
-        let tasksHTML = '<table><tr><th>Campaign</th><th>Type</th><th>Reward</th><th>Status</th></tr>';
-        if (userData.recentTasks?.length > 0) {
-          userData.recentTasks.forEach(task => {
-            tasksHTML += `
-              <tr>
-                <td>${task.campaign.title}</td>
-                <td>${task.campaign.type}</td>
-                <td>$${(task.rewardPerTask / 100).toFixed(2)}</td>
-                <td><span class="badge badge-${task.status === 'paid' ? 'success' : task.status === 'assigned' ? 'info' : 'warning'}">${task.status}</span></td>
-              </tr>
-            `;
-          });
-        } else {
-          tasksHTML += '<tr><td colspan="4">No tasks yet</td></tr>';
-        }
-        tasksHTML += '</table>';
-        document.getElementById('recentTasks').innerHTML = tasksHTML;
-
-        // Load task statistics
-        const allTasksResponse = await fetch(`${API_BASE}/campaigns/my-tasks`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const allTasks = await allTasksResponse.json();
-
-        const stats = {
-          total: allTasks.length,
-          paid: allTasks.filter(t => t.status === 'paid').length,
-          assigned: allTasks.filter(t => t.status === 'assigned').length,
-          pending: allTasks.filter(t => t.status === 'pending').length
-        };
-
-        document.getElementById('taskStats').innerHTML = `
-          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
-            <div style="background: #d1e7dd; padding: 15px; border-radius: 5px; text-align: center;">
-              <strong>${stats.total}</strong><br>Total Tasks
+        <div className="card">
+          <h2>📈 Task Statistics</h2>
+          <div className="stat-grid">
+            <div className="stat-item">
+              <strong>{taskStats.total}</strong><br />Total Tasks
             </div>
-            <div style="background: #d1e7dd; padding: 15px; border-radius: 5px; text-align: center;">
-              <strong>${stats.paid}</strong><br>Paid
+            <div className="stat-item">
+              <strong>{taskStats.paid}</strong><br />Paid
             </div>
-            <div style="background: #cfe2ff; padding: 15px; border-radius: 5px; text-align: center;">
-              <strong>${stats.assigned}</strong><br>Assigned
+            <div className="stat-item info">
+              <strong>{taskStats.assigned}</strong><br />Assigned
             </div>
-            <div style="background: #fff3cd; padding: 15px; border-radius: 5px; text-align: center;">
-              <strong>${stats.pending}</strong><br>Pending
+            <div className="stat-item warning">
+              <strong>{taskStats.pending}</strong><br />Pending
             </div>
           </div>
-        `;
+        </div>
 
-        // Load withdrawals
-        const withdrawalsResponse = await fetch(`${API_BASE}/withdrawals/history`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const withdrawals = await withdrawalsResponse.json();
+        <div className="card">
+          <h2>💳 Recent Withdrawals</h2>
+          {withdrawals.length > 0 ? (
+            <table>
+              <thead>
+                <tr>
+                  <th>Amount</th>
+                  <th>Method</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {withdrawals.map((w, i) => (
+                  <tr key={i}>
+                    <td>${(w.amount / 100).toFixed(2)}</td>
+                    <td>{w.method}</td>
+                    <td><span className={`badge ${getBadgeClass(w.status)}`}>{w.status}</span></td>
+                    <td>{new Date(w.createdAt).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>No withdrawals yet</p>
+          )}
+        </div>
+      </div>
 
-        let withdrawalsHTML = '<table><tr><th>Amount</th><th>Method</th><th>Status</th><th>Date</th></tr>';
-        if (withdrawals?.length > 0) {
-          withdrawals.slice(0, 5).forEach(w => {
-            withdrawalsHTML += `
-              <tr>
-                <td>$${(w.amount / 100).toFixed(2)}</td>
-                <td>${w.method}</td>
-                <td><span className="badge badge-${w.status === 'approved' ? 'success' : w.status === 'pending' ? 'warning' : 'danger'}">${w.status}</span></td>
-                <td>${new Date(w.createdAt).toLocaleDateString()}</td>
-              </tr>
-            `;
-          });
-        } else {
-          withdrawalsHTML += '<tr><td colspan="4">No withdrawals yet</td></tr>';
-        }
-        withdrawalsHTML += '</table>';
-        document.getElementById('recentWithdrawals').innerHTML = withdrawalsHTML;
-      } catch (error) {
-        console.error('Error loading dashboard:', error);
-        alert('Error: ' + error.message);
-      }
-    }
-
-    window.addEventListener('load', loadDashboard);
-  </script>
+      <script src="/js/header.js"></script>
+      <script>
+        {`fetch('/header.html').then(r => r.text()).then(html => {
+          const c = document.getElementById('headerContainer');
+          if (c) c.innerHTML = html;
+        });`}
+      </script>
     </>
   );
 };

@@ -168,6 +168,11 @@ function build() {
         fs.writeFileSync(redirectJs, redirectScriptContent, 'utf8');
         html = html.replace('</body>', `<script src="/js/${base}-auth.js"></script>\n</body>`);
       }
+      
+      // For dashboard pages, add the data loading script
+      if (base === 'freelancer-dashboard' || base === 'dashboard-buyer') {
+        html = html.replace('</body>', `<script src="/js/${base}.js"></script>\n</body>`);
+      }
 
       fs.writeFileSync(path.join(outDir, 'index.html'), html, 'utf8');
 

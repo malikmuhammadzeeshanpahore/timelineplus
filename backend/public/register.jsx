@@ -53,15 +53,15 @@ const Register = () => {
           </div>
 
           <div className="input-box">
-            <input type="text" id="username" placeholder="Username" required/>
+            <input type="text" id="username" name="username" placeholder="Username" required/>
             <i className="ri-user-fill"></i>
           </div>
           <div className="input-box">
-            <input type="email" id="email" placeholder="Email" required/>
+            <input type="email" id="email" name="email" placeholder="Email" required/>
             <i className="ri-mail-fill"></i>
           </div>
           <div className="input-box">
-            <input type="password" id="password" placeholder="Password" required/>
+            <input type="password" id="password" name="password" placeholder="Password" required/>
             <i className="ri-eye-off-fill toggle-password" id="togglePassword"></i>
           </div>
           <button type="submit" id="registerBtn">Register</button>

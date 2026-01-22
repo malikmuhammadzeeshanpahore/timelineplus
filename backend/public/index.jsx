@@ -66,11 +66,11 @@ const Index = () => {
           </div>
 
           <div className="input-box">
-            <input type="text" id="username" placeholder="Username or Email" required/>
+            <input type="text" id="username" name="email" placeholder="Username or Email" required/>
             <i className="ri-user-fill"></i>
           </div>
           <div className="input-box">
-            <input type="password" id="password" placeholder="Password" required/>
+            <input type="password" id="password" name="password" placeholder="Password" required/>
             <i className="ri-eye-off-fill toggle-password" id="togglePassword"></i>
           </div>
           <div className="remember">

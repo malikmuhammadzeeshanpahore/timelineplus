@@ -40,4 +40,57 @@ router.post('/social/unlink', jwtMiddleware, async (req, res) => {
   res.json({ success: true });
 });
 
+// Update profile including withdrawal account details
+router.post('/profile/update', jwtMiddleware, async (req, res) => {
+  const uid = Number(req.user.id);
+  const {
+    fullName,
+    username,
+    accountHolderName,
+    accountType,
+    accountNumber,
+    bankName,
+    iban
+  } = req.body;
+
+  try {
+    const data = {};
+    if (fullName !== undefined) data.fullName = fullName;
+    if (username !== undefined) data.username = username;
+    if (accountHolderName !== undefined) data.accountHolderName = accountHolderName;
+    if (accountType !== undefined) data.accountType = accountType;
+    if (accountNumber !== undefined) data.accountNumber = accountNumber;
+    if (bankName !== undefined) data.bankName = bankName;
+    if (iban !== undefined) data.iban = iban;
+
+    const updated = await prisma.user.update({ where: { id: uid }, data });
+    res.json({ success: true, user: { id: updated.id, email: updated.email, username: updated.username, fullName: updated.fullName } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get referrals (team) for current user
+router.get('/referrals', jwtMiddleware, async (req, res) => {
+  const uid = Number(req.user.id);
+  try {
+    const referrals = await prisma.referral.findMany({ where: { referrerId: uid }, include: { referee: { select: { id: true, email: true, username: true, isBanned: true, createdAt: true } } } });
+    const list = referrals.map(r => ({ id: r.id, referee: r.referee, bonus: r.bonus, createdAt: r.createdAt }));
+    res.json({ referrals: list });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Generate invite link for current user
+router.post('/invite', jwtMiddleware, async (req, res) => {
+  const uid = Number(req.user.id);
+  try {
+    const url = `${req.protocol}://${req.get('host')}/register?referrerId=${uid}`;
+    res.json({ inviteUrl: url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

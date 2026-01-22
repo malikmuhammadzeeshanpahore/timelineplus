@@ -25,13 +25,14 @@ function verifyToken(req, res, next) {
 // Verify admin middleware
 async function verifyAdmin(req, res, next) {
   if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
-  
+
   const user = await prisma.user.findUnique({
     where: { id: req.user.id }
   });
-  
-  if (!user?.isAdmin) return res.status(403).json({ error: 'Admin only' });
-  
+
+  // Return 404 to avoid leaking admin-panel existence to non-admin users
+  if (!user?.isAdmin) return res.status(404).json({ error: 'not found' });
+
   req.user.isAdmin = true;
   next();
 }
@@ -40,8 +41,17 @@ async function verifyAdmin(req, res, next) {
 function verifyAdminCode(req, res, next) {
   const { code } = req.params;
   if (!code) return res.status(400).json({ error: 'Secret code required' });
-  req.user = { ...req.user, code };
-  next();
+
+  // ensure user is admin; treat non-admin as not found
+  if (!req.user || !req.user.id) return res.status(404).json({ error: 'not found' });
+
+  prisma.user.findUnique({ where: { id: req.user.id } })
+    .then(u => {
+      if (!u || !u.isAdmin) return res.status(404).json({ error: 'not found' });
+      req.user = { ...req.user, code };
+      next();
+    })
+    .catch(err => res.status(500).json({ error: err.message }));
 }
 
 // ==================== ADMIN REGISTRATION ====================
@@ -635,6 +645,29 @@ router.post('/withdrawals/:withdrawalId/approve', verifyToken, verifyAdmin, asyn
       }
     });
 
+    // Referral commission: if the withdrawing user was referred, credit 1% to referrer if referrer is active
+    try {
+      const referral = await prisma.referral.findFirst({ where: { refereeId: withdrawal.userId } });
+      if (referral) {
+        const referrer = await prisma.user.findUnique({ where: { id: referral.referrerId }, include: { wallet: true } });
+        if (referrer && !referrer.isBanned) {
+          const commission = Math.round(withdrawal.amount * 0.01);
+          // ensure referrer's wallet exists
+          let wallet = await prisma.wallet.findUnique({ where: { userId: referrer.id } });
+          if (!wallet) {
+            wallet = await prisma.wallet.create({ data: { userId: referrer.id, balance: commission } });
+          } else {
+            await prisma.wallet.update({ where: { userId: referrer.id }, data: { balance: { increment: commission } } });
+          }
+          await prisma.walletTransaction.create({ data: { userId: referrer.id, amount: commission, type: 'referral', meta: `1% commission from referral withdrawal (user ${withdrawal.userId})` } });
+          await prisma.referral.update({ where: { id: referral.id }, data: { bonus: (referral.bonus || 0) + commission } });
+          await prisma.adminLog.create({ data: { adminId: req.user.id, action: 'referral_commission', meta: JSON.stringify({ referrerId: referrer.id, refereeId: withdrawal.userId, commission }) } });
+        }
+      }
+    } catch (err) {
+      console.error('Referral commission error:', err);
+    }
+
     res.json({
       success: true,
       message: `Withdrawal approved. Amount: $${(withdrawal.amount / 100).toFixed(2)}, Fee: $${(fee / 100).toFixed(2)}, Net: $${(netAmount / 100).toFixed(2)}`
@@ -796,6 +829,28 @@ router.post('/campaigns/:campaignId/approve', verifyToken, verifyAdmin, async (r
         meta: JSON.stringify({ campaignId, taskCount: campaign.targetCount })
       }
     });
+
+    // Buyer referral commission: if buyer was referred and referrer is active, credit 10% of campaign.price
+    try {
+      const referral = await prisma.referral.findFirst({ where: { refereeId: campaign.buyerId } });
+      if (referral) {
+        const referrer = await prisma.user.findUnique({ where: { id: referral.referrerId } });
+        if (referrer && !referrer.isBanned) {
+          const bonus = Math.round(campaign.price * 0.10);
+          let wallet = await prisma.wallet.findUnique({ where: { userId: referrer.id } });
+          if (!wallet) {
+            await prisma.wallet.create({ data: { userId: referrer.id, balance: bonus } });
+          } else {
+            await prisma.wallet.update({ where: { userId: referrer.id }, data: { balance: { increment: bonus } } });
+          }
+          await prisma.walletTransaction.create({ data: { userId: referrer.id, amount: bonus, type: 'referral_bonus', meta: `10% commission from referred buyer campaign ${campaign.id}` } });
+          await prisma.referral.update({ where: { id: referral.id }, data: { bonus: (referral.bonus || 0) + bonus } });
+          await prisma.adminLog.create({ data: { adminId: req.user.id, action: 'buyer_referral_bonus', meta: JSON.stringify({ referrerId: referrer.id, buyerId: campaign.buyerId, bonus }) } });
+        }
+      }
+    } catch (err) {
+      console.error('Buyer referral bonus error:', err);
+    }
 
     res.json({ success: true, message: `Campaign approved. ${campaign.targetCount} tasks created.` });
   } catch (error) {

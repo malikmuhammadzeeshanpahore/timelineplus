@@ -355,7 +355,7 @@ const Deposit = () => {
               </select>
             </div>
             <div className="alert success">
-              ℹ️ You'll receive a wallet address to send funds to. Usually confirmed within 10 minutes.
+              <i class="fas fa-info-circle" style="margin-right: 5px; color: #2196f3;"></i> You'll receive a wallet address to send funds to. Usually confirmed within 10 minutes.
             </div>
           </>
         );
@@ -408,7 +408,7 @@ const Deposit = () => {
       <style dangerouslySetInnerHTML={{ __html: styles }} />
       <div className="container">
         <div className="header">
-          <h1>💳 Add Funds</h1>
+          <h1><i class="fas fa-credit-card" style="margin-right: 5px;"></i> Add Funds</h1>
           <p>Deposit money to start campaigns</p>
         </div>
         <div className="content">
@@ -454,7 +454,7 @@ const Deposit = () => {
                     className={`method-option${method === 'card' ? ' selected' : ''}`}
                     onClick={() => handleMethod('card')}
                   >
-                    <div>💳</div>
+                    <div><i class="fas fa-credit-card" style="margin-right: 5px;"></i></div>
                     <div className="method-name">Card</div>
                   </div>
                   <div

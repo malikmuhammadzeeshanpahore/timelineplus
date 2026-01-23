@@ -53,36 +53,36 @@ const FreelancerDashboard = () => {
       <div id="headerContainer"></div>
 
       <div className="container">
-        <h1>📊 Freelancer Dashboard</h1>
+        <h1><i class="fas fa-chart-bar" style="margin-right: 5px;"></i> Freelancer Dashboard</h1>
 
         <div className="stats">
           <div className="stat-card">
-            <h3>💰 Total Earnings</h3>
+            <h3><i class="fas fa-money-bill" style="margin-right: 5px; color: #4caf50;"></i> Total Earnings</h3>
             <div className="value" id="totalEarnings">-</div>
           </div>
           <div className="stat-card">
-            <h3>💸 Available to Withdraw</h3>
+            <h3><i class="fas fa-dollar-sign" style="margin-right: 5px; color: #4caf50;"></i> Available to Withdraw</h3>
             <div className="value" id="availableEarnings">-</div>
           </div>
           <div className="stat-card">
-            <h3>⏱️ Locked Earnings</h3>
+            <h3><i class="fas fa-clock" style="margin-right: 5px;"></i> Locked Earnings</h3>
             <div className="value" id="lockedEarnings">-</div>
           </div>
           <div className="stat-card">
-            <h3>⭐ Trust Score</h3>
+            <h3><i class="fas fa-star" style="margin-right: 5px; color: #ffc107;"></i> Trust Score</h3>
             <div className="value" id="trustScore">-</div>
           </div>
         </div>
 
         <div className="card">
-          <h2>📋 Recent Tasks</h2>
+          <h2><i class="fas fa-list" style="margin-right: 5px;"></i> Recent Tasks</h2>
           <div id="tasksContainer">
             <div className="loading">Loading...</div>
           </div>
         </div>
 
         <div className="card">
-          <h2>📈 Task Statistics</h2>
+          <h2><i class="fas fa-chart-line" style="margin-right: 5px;"></i> Task Statistics</h2>
           <div className="stat-grid" id="statsGrid">
             <div className="stat-item">
               <strong id="statTotal">0</strong><br />Total Tasks
@@ -100,7 +100,7 @@ const FreelancerDashboard = () => {
         </div>
 
         <div className="card">
-          <h2>💳 Recent Withdrawals</h2>
+          <h2><i class="fas fa-credit-card" style="margin-right: 5px;"></i> Recent Withdrawals</h2>
           <div id="withdrawalsContainer">
             <div className="loading">Loading...</div>
           </div>

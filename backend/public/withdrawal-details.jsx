@@ -62,15 +62,15 @@ const WithdrawalDetails = () => {
       });
 
       if (res.ok) {
-        setSavedMessage('✅ Withdrawal details saved successfully');
+        setSavedMessage('<i class="fas fa-check-circle" style="margin-right: 5px; color: #4caf50;"></i> Withdrawal details saved successfully');
         setTimeout(() => setSavedMessage(''), 3000);
       } else {
-        setSavedMessage('❌ Failed to save details');
+        setSavedMessage('<i class="fas fa-times-circle" style="margin-right: 5px; color: #f44336;"></i> Failed to save details');
         setTimeout(() => setSavedMessage(''), 3000);
       }
     } catch (err) {
       console.error('Error saving withdrawal details:', err);
-      setSavedMessage('❌ Error: ' + err.message);
+      setSavedMessage('<i class="fas fa-times-circle" style="margin-right: 5px; color: #f44336;"></i> Error: ' + err.message);
       setTimeout(() => setSavedMessage(''), 3000);
     } finally {
       setLoading(false);
@@ -155,7 +155,7 @@ const WithdrawalDetails = () => {
             {savedMessage && (
               <div
                 id="savedMsg"
-                className={savedMessage.includes('✅') ? 'success' : 'error'}
+                className={savedMessage.includes('<i class="fas fa-check-circle" style="margin-right: 5px; color: #4caf50;"></i>') ? 'success' : 'error'}
               >
                 {savedMessage}
               </div>

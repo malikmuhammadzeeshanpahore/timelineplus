@@ -50,6 +50,29 @@ function build() {
   console.log('Copying static assets...');
   copyRecursive(PUBLIC, DIST, ['.html', '.jsx']);
 
+  // Copy special HTML files separately (header.html, settings.html)
+  const specialHtmlFiles = {
+    'header.html': false,  // Copy to root, not in subdirectory
+    'settings.html': true  // Copy to settings/ subdirectory
+  };
+  for (const [htmlFile, needsSubdir] of Object.entries(specialHtmlFiles)) {
+    const htmlPath = path.join(PUBLIC, htmlFile);
+    if (fs.existsSync(htmlPath)) {
+      if (needsSubdir) {
+        // Create subdirectory like /settings/index.html
+        const dirName = htmlFile.replace('.html', '');
+        const subdir = path.join(DIST, dirName);
+        fs.mkdirSync(subdir, { recursive: true });
+        fs.copyFileSync(htmlPath, path.join(subdir, 'index.html'));
+        console.log(`Copied ${htmlFile} -> ${dirName}/index.html`);
+      } else {
+        // Copy to root
+        fs.copyFileSync(htmlPath, path.join(DIST, htmlFile));
+        console.log(`Copied ${htmlFile}`);
+      }
+    }
+  }
+
   // Process JSX files and generate static HTML entry points by extracting
   // the rendered fragment and inline styles from the JSX files. This avoids
   // requiring a frontend bundler in production and fixes blank pages.
@@ -153,7 +176,7 @@ function build() {
       }
 
       // Build HTML without inline scripts
-      let html = `<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width,initial-scale=1">\n  <title>${title}</title>\n  ${styles ? `<style>\n${styles}\n</style>` : ''}\n</head>\n<body>\n${body}\n</body>\n</html>`;
+      let html = `<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width,initial-scale=1">\n  <title>${title}</title>\n  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">\n  ${styles ? `<style>\n${styles}\n</style>` : ''}\n</head>\n<body>\n${body}\n</body>\n</html>`;
 
       // append external script references (if we generated any)
       if (scriptsHtml && scriptsHtml.length) {

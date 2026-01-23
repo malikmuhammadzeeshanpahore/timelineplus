@@ -423,14 +423,14 @@ const OcrVerification = () => {
 
     {/* Ban Warning */}
     <div className="penalty-warning" id="banWarning" style={{ display: 'none' }}>
-      <h3>⚠️ Your Account is Banned</h3>
+      <h3><i class="fas fa-exclamation-triangle" style="margin-right: 5px; color: #ff9800;"></i> Your Account is Banned</h3>
       <p id="banMessage"></p>
       <button className="btn-danger" type="button">Pay to Unlock Account</button>
     </div>
 
     {/* Earnings Status */}
     <div className="card">
-      <h2>💰 Earnings Status</h2>
+      <h2><i class="fas fa-money-bill" style="margin-right: 5px; color: #4caf50;"></i> Earnings Status</h2>
       <div className="earnings" id="earningsStatus">
         <div className="spinner"></div>
       </div>
@@ -438,7 +438,7 @@ const OcrVerification = () => {
 
     {/* Task Verification */}
     <div className="card">
-      <h2>📋 Assign & Complete Tasks</h2>
+      <h2><i class="fas fa-list" style="margin-right: 5px;"></i> Assign & Complete Tasks</h2>
       <div id="tasksContainer">
         <div className="loading">Loading available tasks...</div>
       </div>
@@ -447,10 +447,10 @@ const OcrVerification = () => {
         <div id="activeTaskInfo" className="task-item"></div>
         <h3 style={{ marginTop: 20 }}>Submit Screenshot Proof</h3>
         <div className="penalty-warning">
-          <h3>⏱️ Time Requirement</h3>
+          <h3><i class="fas fa-clock" style="margin-right: 5px;"></i> Time Requirement</h3>
           <p>🔴 You must spend at least <strong>1 minute</strong> on the page/channel</p>
-          <p>❌ If you exit before 1 minute: <strong>-10 Trust Score penalty</strong></p>
-          <p>✅ After 1 minute: Click "Submit Proof"</p>
+          <p><i class="fas fa-times-circle" style="margin-right: 5px; color: #f44336;"></i> If you exit before 1 minute: <strong>-10 Trust Score penalty</strong></p>
+          <p><i class="fas fa-check-circle" style="margin-right: 5px; color: #4caf50;"></i> After 1 minute: Click "Submit Proof"</p>
         </div>
         {/* OCR Verification Form */}
         <div className="form-group">
@@ -481,10 +481,10 @@ const OcrVerification = () => {
         <div id="verificationResult" className="verification-result"></div>
         <div style={{ marginTop: 20 }}>
           <button id="submitBtn" className="btn-success" type="button">
-            ✅ Submit Proof & Verify
+            <i class="fas fa-check-circle" style="margin-right: 5px; color: #4caf50;"></i> Submit Proof & Verify
           </button>
           <button className="btn-secondary" type="button">
-            ❌ Cancel Task
+            <i class="fas fa-times-circle" style="margin-right: 5px; color: #f44336;"></i> Cancel Task
           </button>
         </div>
       </div>
@@ -492,13 +492,13 @@ const OcrVerification = () => {
 
     {/* My Completed Tasks */}
     <div className="card">
-      <h2>✅ My Completed Tasks</h2>
+      <h2><i class="fas fa-check-circle" style="margin-right: 5px; color: #4caf50;"></i> My Completed Tasks</h2>
       <div id="completedTasks" className="loading">Loading...</div>
     </div>
 
     {/* Withdrawal History */}
     <div className="card">
-      <h2>💸 Withdrawal History</h2>
+      <h2><i class="fas fa-dollar-sign" style="margin-right: 5px; color: #4caf50;"></i> Withdrawal History</h2>
       <div id="withdrawalHistory" className="loading">Loading...</div>
     </div>
   </div>

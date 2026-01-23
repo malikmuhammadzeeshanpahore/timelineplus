@@ -482,7 +482,7 @@ return (
     <style dangerouslySetInnerHTML={{ __html: styles }} />
     {/* Navbar */}
     <div className="navbar">
-      <h1>🔐 Admin Dashboard</h1>
+      <h1><i class="fas fa-lock" style="margin-right: 5px;"></i> Admin Dashboard</h1>
       <div className="navbar-actions">
         <button onClick={handleShowSettings}>⚙️ Settings</button>
         <button onClick={handleLogout} style={{background: '#e74c3c'}}>🚪 Logout</button>
@@ -495,11 +495,11 @@ return (
 
   {/* Tabs */}
   <div className="tabs">
-    <button className="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
-    <button className="tab-btn" onclick="switchTab('users')">👥 Users</button>
-    <button className="tab-btn" onclick="switchTab('deposits')">💰 Deposits</button>
-    <button className="tab-btn" onclick="switchTab('withdrawals')">💳 Withdrawals</button>
-    <button className="tab-btn" onclick="switchTab('campaigns')">📢 Campaigns</button>
+    <button className="tab-btn active" onclick="switchTab('dashboard')"><i class="fas fa-chart-bar" style="margin-right: 5px;"></i> Dashboard</button>
+    <button className="tab-btn" onclick="switchTab('users')"><i class="fas fa-users" style="margin-right: 5px;"></i> Users</button>
+    <button className="tab-btn" onclick="switchTab('deposits')"><i class="fas fa-money-bill" style="margin-right: 5px; color: #4caf50;"></i> Deposits</button>
+    <button className="tab-btn" onclick="switchTab('withdrawals')"><i class="fas fa-credit-card" style="margin-right: 5px;"></i> Withdrawals</button>
+    <button className="tab-btn" onclick="switchTab('campaigns')"><i class="fas fa-bullhorn" style="margin-right: 5px;"></i> Campaigns</button>
   </div>
 
   {/* Dashboard Tab */}
@@ -537,7 +537,7 @@ return (
     <div className="search-box">
       <input type="text" id="userSearch" placeholder="Search by email, username, phone..." />
       <button onclick="searchUsers()">🔍 Search</button>
-      <button onclick="loadAllUsers()" style="background: #6c757d;">📋 All Users</button>
+      <button onclick="loadAllUsers()" style="background: #6c757d;"><i class="fas fa-list" style="margin-right: 5px;"></i> All Users</button>
     </div>
     <div id="usersTable"></div>
   </div>
@@ -551,7 +551,7 @@ return (
         <option value="approved">Approved</option>
         <option value="rejected">Rejected</option>
       </select>
-      <button onclick="loadDeposits()">🔄 Load</button>
+      <button onclick="loadDeposits()"><i class="fas fa-sync-alt" style="margin-right: 5px;"></i> Load</button>
     </div>
     <div id="depositsTable"></div>
   </div>
@@ -565,7 +565,7 @@ return (
         <option value="approved">Approved</option>
         <option value="rejected">Rejected</option>
       </select>
-      <button onclick="loadWithdrawals()">🔄 Load</button>
+      <button onclick="loadWithdrawals()"><i class="fas fa-sync-alt" style="margin-right: 5px;"></i> Load</button>
     </div>
     <div id="withdrawalsTable"></div>
   </div>
@@ -579,7 +579,7 @@ return (
         <option value="active">Active</option>
         <option value="completed">Completed</option>
       </select>
-      <button onclick="loadCampaigns()">🔄 Load</button>
+      <button onclick="loadCampaigns()"><i class="fas fa-sync-alt" style="margin-right: 5px;"></i> Load</button>
     </div>
     <div id="campaignsTable"></div>
   </div>
@@ -589,7 +589,7 @@ return (
 <div id="userModal" className="modal">
   <div className="modal-content">
     <div className="modal-header">
-      <h2>👤 User Details</h2>
+      <h2><i class="fas fa-user" style="margin-right: 5px;"></i> User Details</h2>
       <span className="close" onclick="closeModal('userModal')">✕</span>
     </div>
     <div id="userModalContent"></div>
@@ -600,7 +600,7 @@ return (
 <div id="withdrawalModal" className="modal">
   <div className="modal-content">
     <div className="modal-header">
-      <h2>💳 Withdrawal Request</h2>
+      <h2><i class="fas fa-credit-card" style="margin-right: 5px;"></i> Withdrawal Request</h2>
       <span className="close" onclick="closeModal('withdrawalModal')">✕</span>
     </div>
     <div id="withdrawalModalContent"></div>
@@ -820,7 +820,7 @@ export default AdminPanel;
         </div>
 
         <div className="info-section">
-          <h3>💳 Bank Details</h3>
+          <h3><i class="fas fa-credit-card" style="margin-right: 5px;"></i> Bank Details</h3>
           <div className="info-row">
             <div className="info-label">Account Holder</div>
             <div className="info-value">${user.accountHolderName || '-'}</div>
@@ -840,7 +840,7 @@ export default AdminPanel;
         </div>
 
         <div className="info-section">
-          <h3>📊 Statistics</h3>
+          <h3><i class="fas fa-chart-bar" style="margin-right: 5px;"></i> Statistics</h3>
           <div className="info-row">
             <div className="info-label">Total Earnings</div>
             <div className="info-value">$${(user.totalEarnings / 100 || 0).toFixed(2)}</div>
@@ -1058,7 +1058,7 @@ export default AdminPanel;
         </div>
 
         <div className="info-section">
-          <h3>💳 Bank Details</h3>
+          <h3><i class="fas fa-credit-card" style="margin-right: 5px;"></i> Bank Details</h3>
           <div className="info-row">
             <div className="info-label">Account Holder</div>
             <div className="info-value">${w.user?.accountHolderName || '-'}</div>
@@ -1078,7 +1078,7 @@ export default AdminPanel;
         </div>
 
         <div className="info-section">
-          <h3>💰 Amount Details</h3>
+          <h3><i class="fas fa-money-bill" style="margin-right: 5px; color: #4caf50;"></i> Amount Details</h3>
           <div className="info-row">
             <div className="info-label">Requested Amount</div>
             <div className="info-value">$${(w.amount / 100).toFixed(2)}</div>

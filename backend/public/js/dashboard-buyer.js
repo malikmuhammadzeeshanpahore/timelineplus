@@ -112,12 +112,36 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Load header
     fetch('/header.html')
-      .then(r => r.text())
+      .then(r => {
+        if (!r.ok) throw new Error(`Header load failed: ${r.status}`);
+        return r.text();
+      })
       .then(html => {
         const c = document.getElementById('headerContainer');
-        if (c) c.innerHTML = html;
+        if (c) {
+          c.innerHTML = html;
+          console.log('Header loaded successfully');
+          
+          // Execute external scripts that were loaded in the header
+          const scripts = c.querySelectorAll('script[src]');
+          scripts.forEach(script => {
+            const newScript = document.createElement('script');
+            newScript.src = script.src;
+            newScript.async = true;
+            document.body.appendChild(newScript);
+          });
+        } else {
+          console.warn('Header container not found');
+        }
       })
-      .catch(console.error);
+      .catch(err => {
+        console.error('Error loading header:', err);
+        // Show a fallback header
+        const c = document.getElementById('headerContainer');
+        if (c) {
+          c.innerHTML = '<header style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;"><h1><a href="/" style="color: white; text-decoration: none; display: flex; align-items: center; gap: 10px;"><i class="fas fa-clock"></i>TimelinePlus</a></h1><div style="display: flex; align-items: center; gap: 15px;"><span id="userEmail" style="color: white; font-size: 14px;">User</span><button onclick="localStorage.removeItem(\'token\'); window.location.href=\'/register/\';" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 5px;"><i class="fas fa-sign-out-alt" style="margin-right: 5px;"></i>Logout</button></div></header>';
+        }
+      });
   } catch (err) {
     console.error('Dashboard load error:', err);
   }

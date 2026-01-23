@@ -58,36 +58,36 @@ const DashboardBuyer = () => {
       <div id="headerContainer"></div>
 
       <div className="container">
-        <h1>📊 Buyer Dashboard</h1>
+        <h1><i class="fas fa-chart-bar" style="margin-right: 5px;"></i> Buyer Dashboard</h1>
 
         <div className="stats">
           <div className="stat-card">
-            <h3>💰 Balance</h3>
+            <h3><i class="fas fa-money-bill" style="margin-right: 5px; color: #4caf50;"></i> Balance</h3>
             <div className="value" id="balance">-</div>
           </div>
           <div className="stat-card">
-            <h3>🚀 Active Campaigns</h3>
+            <h3><i class="fas fa-rocket" style="margin-right: 5px; color: #2196f3;"></i> Active Campaigns</h3>
             <div className="value" id="activeCampaigns">-</div>
           </div>
           <div className="stat-card">
-            <h3>✅ Completed Campaigns</h3>
+            <h3><i class="fas fa-check-circle" style="margin-right: 5px; color: #4caf50;"></i> Completed Campaigns</h3>
             <div className="value" id="completedCampaigns">-</div>
           </div>
           <div className="stat-card">
-            <h3>💳 Total Spent</h3>
+            <h3><i class="fas fa-credit-card" style="margin-right: 5px;"></i> Total Spent</h3>
             <div className="value" id="totalSpent">-</div>
           </div>
         </div>
 
         <div className="card">
-          <h2>📋 My Campaigns</h2>
+          <h2><i class="fas fa-list" style="margin-right: 5px;"></i> My Campaigns</h2>
           <div id="campaignsContainer">
             <div className="loading">Loading...</div>
           </div>
         </div>
 
         <div className="card">
-          <h2>💳 Deposit History</h2>
+          <h2><i class="fas fa-credit-card" style="margin-right: 5px;"></i> Deposit History</h2>
           <div id="depositsContainer">
             <div className="loading">Loading...</div>
           </div>

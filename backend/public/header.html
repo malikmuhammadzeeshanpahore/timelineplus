@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    #header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 20px;
+      display: flex !important;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    #header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    #header h1 a {
+      color: white;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #header h1 a:hover {
+      opacity: 0.9;
+    }
+
+    #header .header-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    #header .user-email {
+      color: white;
+      font-size: 14px;
+      min-width: 150px;
+      text-align: right;
+    }
+
+    #header .user-menu-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.3s;
+    }
+
+    #header .user-menu-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    #header .user-dropdown {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 20px;
+      background: white;
+      color: #333;
+      border-radius: 5px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      min-width: 160px;
+      overflow: hidden;
+      z-index: 1001;
+    }
+
+    #header .user-dropdown.hidden {
+      display: none;
+    }
+
+    #header .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #333;
+      padding: 12px 15px;
+      background: white;
+      text-decoration: none;
+      text-align: left;
+      border: none;
+      width: 100%;
+      cursor: pointer;
+      transition: background 0.2s;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
+
+    #header .dropdown-item:last-child {
+      border-bottom: none;
+    }
+
+    #header .dropdown-item:hover {
+      background: #f5f5f5;
+    }
+
+    #header .dropdown-item.logout {
+      color: #d32f2f;
+    }
+
+    #header .dropdown-item.logout:hover {
+      background: #ffebee;
+    }
+
+    #header .user-menu-wrapper {
+      position: relative;
+    }
+
+    #header .dropdown-item i {
+      width: 16px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body style="margin: 0;">
+  <header id="header">
+    <h1><a href="/"><i class="fas fa-clock"></i>TimelinePlus</a></h1>
+    <div class="header-right">
+      <span class="user-email" id="userEmail">Loading...</span>
+      <div class="user-menu-wrapper">
+        <button class="user-menu-btn" id="userMenuBtn" title="User Menu">
+          <i class="fas fa-user" style="font-size: 18px;"></i>
+        </button>
+        <div class="user-dropdown hidden" id="userDropdown">
+          <a href="/profile/" class="dropdown-item">
+            <i class="fas fa-user" style="font-size: 16px;"></i>
+            Profile
+          </a>
+          <a href="/settings/" class="dropdown-item">
+            <i class="fas fa-cog" style="font-size: 16px;"></i>
+            Settings
+          </a>
+          <button class="dropdown-item logout" id="logoutBtn" type="button">
+            <i class="fas fa-sign-out-alt" style="font-size: 16px;"></i>
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <script src="/js/header-init.js"></script>
+</body>
+</html>

@@ -130,7 +130,7 @@ router.post('/request', verifyToken, async (req, res) => {
     }
 
     // Create withdrawal request
-    const withdrawal = await prisma.withdrawRequest.create({
+    const withdrawal = await prisma.withdrawal.create({
       data: {
         userId: req.user.id,
         amount,
@@ -183,7 +183,7 @@ router.post('/request', verifyToken, async (req, res) => {
  */
 router.get('/history', verifyToken, async (req, res) => {
   try {
-    const withdrawals = await prisma.withdrawRequest.findMany({
+    const withdrawals = await prisma.withdrawal.findMany({
       where: { userId: req.user.id },
       orderBy: { createdAt: 'desc' }
     });
@@ -202,7 +202,7 @@ router.post('/:withdrawalId/cancel', verifyToken, async (req, res) => {
   try {
     const { withdrawalId } = req.params;
 
-    const withdrawal = await prisma.withdrawRequest.findUnique({
+    const withdrawal = await prisma.withdrawal.findUnique({
       where: { id: parseInt(withdrawalId) }
     });
 
@@ -218,7 +218,7 @@ router.post('/:withdrawalId/cancel', verifyToken, async (req, res) => {
       });
     }
 
-    await prisma.withdrawRequest.update({
+    await prisma.withdrawal.update({
       where: { id: parseInt(withdrawalId) },
       data: { status: 'cancelled' }
     });
@@ -255,7 +255,7 @@ async function verifyAdmin(req, res, next) {
  */
 router.get('/admin-withdrawals/pending', verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const withdrawals = await prisma.withdrawRequest.findMany({
+    const withdrawals = await prisma.withdrawal.findMany({
       where: { status: 'pending' },
       include: {
         user: { select: { id: true, email: true, username: true, trustScore: true } }
@@ -277,7 +277,7 @@ router.post('/admin-withdrawals/:withdrawalId/approve', verifyToken, verifyAdmin
   try {
     const { withdrawalId } = req.params;
 
-    const withdrawal = await prisma.withdrawRequest.update({
+    const withdrawal = await prisma.withdrawal.update({
       where: { id: parseInt(withdrawalId) },
       data: { status: 'approved' }
     });
@@ -318,7 +318,7 @@ router.post('/admin-withdrawals/:withdrawalId/reject', verifyToken, verifyAdmin,
     const { withdrawalId } = req.params;
     const { reason } = req.body;
 
-    const withdrawal = await prisma.withdrawRequest.update({
+    const withdrawal = await prisma.withdrawal.update({
       where: { id: parseInt(withdrawalId) },
       data: { status: 'rejected', reason }
     });

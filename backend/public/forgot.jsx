@@ -20,7 +20,7 @@ const Forgot = () => {
       });
 
       if (res.ok) {
-        setMessage('✅ Password reset link sent to your email');
+        setMessage('<i class="fas fa-check-circle" style="margin-right: 5px; color: #4caf50;"></i> Password reset link sent to your email');
         setEmail('');
       } else {
         const data = await res.json();

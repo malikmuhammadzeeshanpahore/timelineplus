@@ -351,7 +351,7 @@ const Campaigns = () => {
       <style dangerouslySetInnerHTML={{ __html: styles }} />
       <div className="container">
 <div className="header">
-  <h1>🎯 Campaigns</h1>
+  <h1><i class="fas fa-bullseye" style="margin-right: 5px;"></i> Campaigns</h1>
   <p>Manage your followers, subscribers, and engagement campaigns</p>
 
   <div className="nav-tabs">
@@ -561,7 +561,7 @@ const Campaigns = () => {
   className={`tab-content${activeTab === 'how-it-works' ? ' active' : ''}`}
 >
   <div className="card">
-    <h3>📋 How It Works</h3>
+    <h3><i class="fas fa-list" style="margin-right: 5px;"></i> How It Works</h3>
     <div style={{ lineHeight: 1.8 }}>
       <h4 style={{ marginTop: 20, color: '#667eea' }}>1️⃣ Create Campaign</h4>
       <p>
@@ -589,7 +589,7 @@ const Campaigns = () => {
       <p>Once verified, freelancer gets paid automatically</p>
       <h4 style={{ marginTop: 20, color: '#667eea' }}>5️⃣ Progress Tracking</h4>
       <p>Your dashboard shows real-time progress (e.g., 45/1000 followers received)</p>
-      <h4 style={{ marginTop: 20, color: '#667eea' }}>⚠️ Security & Verification</h4>
+      <h4 style={{ marginTop: 20, color: '#667eea' }}><i class="fas fa-exclamation-triangle" style="margin-right: 5px; color: #ff9800;"></i> Security & Verification</h4>
       <ul style={{ marginLeft: 20 }}>
         <li>Screenshots required for proof</li>
         <li>API verification (Facebook, YouTube, etc.)</li>

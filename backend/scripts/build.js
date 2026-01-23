@@ -125,6 +125,41 @@ function build() {
       // Convert className back to class for static HTML
       body = body.replace(/className=/g, 'class=');
 
+      // Remove JSX comments {/* ... */}
+      body = body.replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
+
+      // Remove JSX inline style objects style={{...}} and replace with inline style attribute
+      // This regex is more permissive to handle template literals and expressions inside
+      body = body.replace(/style=\{\{([^}]*)\}\}/g, (match, content) => {
+        try {
+          // Try to convert key: value pairs
+          const pairs = content.split(',').map(pair => {
+            const colonIdx = pair.indexOf(':');
+            if (colonIdx === -1) return '';
+            const key = pair.substring(0, colonIdx).trim();
+            let value = pair.substring(colonIdx + 1).trim();
+            
+            // Skip if value has template literal or JSX expression
+            if (value.includes('`') || value.includes('${') || value.includes('||')) {
+              return '';  // Skip dynamic styles
+            }
+            
+            // Convert camelCase to kebab-case
+            const cssKey = key.replace(/([A-Z])/g, (m) => '-' + m.toLowerCase());
+            // Remove quotes
+            value = value.replace(/^['"]|['"]$/g, '');
+            return `${cssKey}: ${value}`;
+          }).filter(p => p).join('; ');
+          
+          if (pairs.length > 0) {
+            return `style="${pairs};"`;
+          }
+          return '';  // If no static styles, remove attribute
+        } catch (e) {
+          return '';  // Remove on error
+        }
+      });
+
       // Replace <style>{styles}</style> with actual styles
       if (styles) {
         body = body.replace(/<style>\{styles\}<\/style>/gi, `<style>\n${styles}\n</style>`);
@@ -176,7 +211,7 @@ function build() {
       }
 
       // Build HTML without inline scripts
-      let html = `<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width,initial-scale=1">\n  <title>${title}</title>\n  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">\n  ${styles ? `<style>\n${styles}\n</style>` : ''}\n</head>\n<body>\n${body}\n</body>\n</html>`;
+      let html = `<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width,initial-scale=1">\n  <title>${title}</title>\n  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@6.4.0/css/all.min.css">\n  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">\n  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css">\n  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.min.css">\n  ${styles ? `<style>\n${styles}\n</style>` : ''}\n</head>\n<body>\n${body}\n</body>\n</html>`;
 
       // append external script references (if we generated any)
       if (scriptsHtml && scriptsHtml.length) {
@@ -195,6 +230,11 @@ function build() {
       // For dashboard pages, add the data loading script
       if (base === 'freelancer-dashboard' || base === 'dashboard-buyer') {
         html = html.replace('</body>', `<script src="/js/${base}.js"></script>\n</body>`);
+      }
+
+      // Inject role enforcer on all pages to protect access
+      if (!['login', 'register', 'forgot', 'index'].includes(base)) {
+        html = html.replace('<body>', `<body>\n<script src="/js/role-enforcer.js"></script>`);
       }
 
       fs.writeFileSync(path.join(outDir, 'index.html'), html, 'utf8');

@@ -60,9 +60,15 @@ app.use('/api/campaigns', campaignsRoutes);
 // Withdrawals routes
 const withdrawalsRoutes = require('./routes/withdrawals');
 app.use('/api/withdrawals', withdrawalsRoutes);
+// Deposits routes (mount)
+const depositsRoutes = require('./routes/deposits');
+app.use('/api/deposits', depositsRoutes);
 // Admin-panel routes (separate admin UI endpoints)
 const adminPanelRoutes = require('./routes/admin-panel');
 app.use('/api/admin-panel', adminPanelRoutes);
+// Mount admin extras (invites, teams) for testing
+const adminExtras = require('./routes/adminExtras');
+app.use('/api/admin-panel', adminExtras);
 
 // Ensure unmatched /api/* requests return JSON 404 instead of falling through to HTML
 app.use('/api', (req, res) => {
@@ -84,6 +90,36 @@ if (fs.existsSync(distPath)) {
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 
-app.listen(PORT, () => {
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err.message);
+  res.status(500).json({ error: 'Internal Server Error', details: err.message });
+});
+
+// Unhandled rejection handler
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// Uncaught exception handler
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use. Please stop the other process.`);
+    process.exit(1);
+  }
+});
+
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+// Handle server errors
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use. Exiting...`);
+    process.exit(1);
+  } else {
+    throw err;
+  }
 });

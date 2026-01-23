@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         tasksList.innerHTML = '';
         tasks.forEach(t=>{
           const li = document.createElement('li'); li.style.marginBottom = '12px';
-          li.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div><strong>${t.title}</strong><div class="small">${t.description||''}</div></div><div style="text-align:right"><div class="small">Reward: $${(t.price/100).toFixed(2)}</div><button class="btn-primary join" data-id="${t.id}" style="margin-top:6px">Join Campaign</button></div></div>`;
+          li.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div><strong>${t.title}</strong><div class="small">${t.description||''}</div></div><div style="text-align:right"><div class="small">Reward: PKR ${(t.price/100).toFixed(2)}</div><button class="btn-primary join" data-id="${t.id}" style="margin-top:6px">Join Campaign</button></div></div>`;
           tasksList.appendChild(li);
         });
         // attach join handlers

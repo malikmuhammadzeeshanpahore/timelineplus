@@ -79,6 +79,37 @@ const DashboardBuyer = () => {
           </div>
         </div>
 
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', margin: '20px 0' }}>
+          <a href="/deposit/" style={{ textDecoration: 'none' }} className="action-card">
+            <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)' }}>
+              <i class="fas fa-plus-circle" style="fontSize: '32px', display: 'block', marginBottom: '10px'"></i>
+              <strong>Deposit Funds</strong>
+              <p style={{ fontSize: '12px', marginTop: '8px', opacity: '0.9' }}>Add balance to wallet</p>
+            </div>
+          </a>
+          <a href="/campaigns/" style={{ textDecoration: 'none' }} className="action-card">
+            <div style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(245, 87, 108, 0.3)' }}>
+              <i class="fas fa-rocket" style="fontSize: '32px', display: 'block', marginBottom: '10px'"></i>
+              <strong>Launch Campaign</strong>
+              <p style={{ fontSize: '12px', marginTop: '8px', opacity: '0.9' }}>Create new campaign</p>
+            </div>
+          </a>
+          <a href="/wallet/" style={{ textDecoration: 'none' }} className="action-card">
+            <div style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(79, 172, 254, 0.3)' }}>
+              <i class="fas fa-wallet" style="fontSize: '32px', display: 'block', marginBottom: '10px'"></i>
+              <strong>Manage Wallet</strong>
+              <p style={{ fontSize: '12px', marginTop: '8px', opacity: '0.9' }}>View transactions</p>
+            </div>
+          </a>
+            <div style={{ textDecoration: 'none' }} className="action-card">
+              <div style={{ background: 'linear-gradient(135deg, #2dd4bf 0%, #34d399 100%)', color: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(45, 212, 191, 0.3)' }} data-action="invite-team">
+                <i class="fas fa-user-plus" style="fontSize: '32px', display: 'block', marginBottom: '10px'"></i>
+                <strong>Invite Team</strong>
+                <p style={{ fontSize: '12px', marginTop: '8px', opacity: '0.9' }}>Invite members via link or code</p>
+              </div>
+            </div>
+        </div>
+
         <div className="card">
           <h2><i class="fas fa-list" style="margin-right: 5px;"></i> My Campaigns</h2>
           <div id="campaignsContainer">
@@ -99,12 +130,14 @@ const DashboardBuyer = () => {
 
 export default DashboardBuyer;
 
-// This script runs after the page loads to populate data
+// Load auth and header first
 setTimeout(() => {
-  const scripts = document.querySelectorAll('script[src="/js/dashboard-buyer.js"]');
-  if (scripts.length === 0) {
-    const script = document.createElement('script');
-    script.src = '/js/dashboard-buyer.js';
-    document.body.appendChild(script);
-  }
+  const authScript = document.createElement('script');
+  authScript.src = '/js/dashboard-buyer-auth.js';
+  document.body.appendChild(authScript);
+  
+  // Then load main dashboard loader (with icon wait logic)
+  const mainScript = document.createElement('script');
+  mainScript.src = '/js/dashboard-buyer-loader.js';
+  document.body.appendChild(mainScript);
 }, 100);

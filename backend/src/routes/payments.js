@@ -42,6 +42,28 @@ router.get('/history/me', jwtMiddleware, async (req, res) => {
   res.json({ tx });
 });
 
+// top-up (record a balance increase)
+router.post('/topup', jwtMiddleware, async (req, res) => {
+  const userId = Number(req.user.id);
+  const { amount, method = 'card', meta } = req.body;
+  if (!amount || Number(amount) <= 0) return res.status(400).json({ error: 'Invalid amount' });
+
+  // create wallet transaction
+  const tx = await prisma.walletTransaction.create({ data: { userId, amount: Number(amount), type: 'topup', meta: meta || method } });
+
+  // create a deposit record if the model exists (best-effort)
+  try {
+    await prisma.deposit.create({ data: { userId, amount: Number(amount), method, status: 'success' } });
+  } catch (e) {
+    // ignore if deposit model not present
+    console.warn('deposit model create failed:', e.message);
+  }
+
+  await import('../services/utils').then(m => m.notifyUser(userId, 'Top-up received', `Your account was credited with ${amount}.`)).catch(()=>{});
+
+  res.json({ success: true, tx });
+});
+
 // Admin: approve withdraw (simple endpoint)
 router.post('/admin/withdraws/:id/approve', async (req, res) => {
   const id = Number(req.params.id);

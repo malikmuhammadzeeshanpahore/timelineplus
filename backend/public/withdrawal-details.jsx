@@ -1,124 +1,51 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 const WithdrawalDetails = () => {
-  const [accountHolder, setAccountHolder] = useState('');
-  const [accountType, setAccountType] = useState('jazzcash');
-  const [accountNumber, setAccountNumber] = useState('');
-  const [savedMessage, setSavedMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      window.location.href = '/register/';
-      return;
-    }
-
-    // Load existing withdrawal details
-    const loadWithdrawalDetails = async () => {
-      try {
-        const res = await fetch(`${window.location.origin}/api/user/me`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.withdrawalDetails) {
-            setAccountHolder(data.withdrawalDetails.accountHolder || '');
-            setAccountType(data.withdrawalDetails.accountType || 'jazzcash');
-            setAccountNumber(data.withdrawalDetails.accountNumber || '');
-          }
-        }
-      } catch (err) {
-        console.error('Failed to load withdrawal details:', err);
-      }
-    };
-
-    loadWithdrawalDetails();
-  }, []);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const token = localStorage.getItem('token');
-
-    if (!accountHolder.trim() || !accountNumber.trim()) {
-      setSavedMessage('Please fill in all fields');
-      setTimeout(() => setSavedMessage(''), 3000);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch(`${window.location.origin}/api/user/withdrawal-details`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          accountHolder,
-          accountType,
-          accountNumber
-        })
-      });
-
-      if (res.ok) {
-        setSavedMessage('<i class="fas fa-check-circle" style="margin-right: 5px; color: #4caf50;"></i> Withdrawal details saved successfully');
-        setTimeout(() => setSavedMessage(''), 3000);
-      } else {
-        setSavedMessage('<i class="fas fa-times-circle" style="margin-right: 5px; color: #f44336;"></i> Failed to save details');
-        setTimeout(() => setSavedMessage(''), 3000);
-      }
-    } catch (err) {
-      console.error('Error saving withdrawal details:', err);
-      setSavedMessage('<i class="fas fa-times-circle" style="margin-right: 5px; color: #f44336;"></i> Error: ' + err.message);
-      setTimeout(() => setSavedMessage(''), 3000);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const styles = `
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
-    .header { background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .nav { padding: 15px 0; }
-    .brand { display: flex; align-items: center; gap: 10px; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); box-shadow: 0 10px 40px rgba(102, 126, 234, 0.2); border-bottom: 1px solid rgba(255, 255, 255, 0.1); position: sticky; top: 0; z-index: 1000; }
+    .nav { padding: 16px 20px; display: flex; align-items: center; max-width: 1200px; margin: 0 auto; }
+    .brand { display: flex; align-items: center; gap: 12px; }
     .brand img { height: 40px; }
-    .label { font-weight: bold; color: #667eea; }
-    .navbar { display: flex; gap: 20px; flex: 1; margin-left: 40px; }
-    .navbar a { text-decoration: none; color: #333; display: flex; align-items: center; gap: 8px; }
-    .navbar a:hover { color: #667eea; }
+    .label { font-weight: 700; color: white; font-size: 20px; letter-spacing: 0.5px; }
+    .navbar { display: flex; gap: 30px; flex: 1; margin-left: 40px; }
+    .navbar a { text-decoration: none; color: rgba(255, 255, 255, 0.9); display: flex; align-items: center; gap: 8px; font-weight: 500; transition: all 0.3s ease; }
+    .navbar a:hover { color: white; }
     .right { margin-left: auto; }
-    .container { max-width: 1200px; margin: 0 auto; }
     .site-main { padding: 40px 20px; }
     .content { max-width: 600px; margin: 0 auto; }
-    .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .card h3 { color: #667eea; margin-bottom: 10px; }
+    .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); }
+    .card h3 { color: #667eea; margin-bottom: 12px; font-size: 22px; font-weight: 700; }
     .card .small { color: #666; font-size: 14px; margin-bottom: 20px; }
-    form { display: flex; flex-direction: column; gap: 15px; }
-    input, select { padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
-    input:focus, select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
-    .btn-primary { padding: 12px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-    .btn-primary:hover { background: #5568d3; }
-    .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
-    #savedMsg { margin-top: 15px; padding: 12px; border-radius: 5px; text-align: center; }
-    #savedMsg.success { background: #d1e7dd; color: #0f5132; }
-    #savedMsg.error { background: #f8d7da; color: #842029; }
+    form { display: flex; flex-direction: column; gap: 16px; }
+    input, select { padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-family: inherit; transition: all 0.3s ease; background: #f9f9f9; }
+    input:focus, select:focus { outline: none; border-color: #667eea; background: white; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+    .btn-primary { padding: 12px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); }
+    .btn-primary:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
+    #savedMsg { margin-top: 16px; padding: 14px; border-radius: 8px; text-align: center; font-weight: 600; }
+    #savedMsg.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    #savedMsg.error { background: #f8d7da; color: #842029; border: 1px solid #f5c6cb; }
+    @media (max-width: 768px) {
+      .navbar { gap: 15px; margin-left: 20px; }
+      .card { padding: 20px; }
+    }
   `;
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: styles }} />
       <header className="header">
-        <div className="nav container" style={{ display: 'flex', alignItems: 'center' }}>
+        <div className="nav">
           <div className="brand">
             <img src="/logo.png" alt="TimelinePlus" />
             <span className="label">TimelinePlus</span>
           </div>
           <nav className="navbar" aria-label="Main navigation">
-            <a href="/services/"><i className="ri-briefcase-4-line"></i><span className="nav-label">Services</span></a>
-            <a href="/orders/"><i className="ri-shopping-cart-line"></i><span className="nav-label">Active Campaigns</span></a>
-            <a href="/support/"><i className="ri-question-line"></i><span className="nav-label">Support</span></a>
+            <a href="/campaigns/"><i className="ri-briefcase-4-line"></i><span>Campaigns</span></a>
+            <a href="/orders/"><i className="ri-shopping-cart-line"></i><span>Active Campaigns</span></a>
+            <a href="/support/"><i className="ri-question-line"></i><span>Support</span></a>
           </nav>
           <div className="right"><div id="userPanel"></div></div>
         </div>
@@ -127,45 +54,36 @@ const WithdrawalDetails = () => {
       <main className="site-main">
         <div className="content">
           <div className="card">
-            <h3>Withdrawal Account Details</h3>
-            <p className="small">Save your payout account details. Supported Account Types: JazzCash, EasyPaisa.</p>
-            <form onSubmit={handleSubmit}>
+            <h3><i className="ri-bank-card-line" style={{ marginRight: '10px', color: '#667eea' }}></i>Withdrawal Account Details</h3>
+            <p className="small">Save your payout account details. Supported: JazzCash, EasyPaisa.</p>
+            <form id="withdrawalForm">
               <input
+                id="accountHolder"
                 type="text"
                 placeholder="Account Holder Name"
-                value={accountHolder}
-                onChange={(e) => setAccountHolder(e.target.value)}
                 required
               />
-              <select value={accountType} onChange={(e) => setAccountType(e.target.value)}>
+              <select id="accountType">
                 <option value="jazzcash">JazzCash</option>
                 <option value="easypaisa">EasyPaisa</option>
               </select>
               <input
+                id="accountNumber"
                 type="text"
                 placeholder="Account Number"
-                value={accountNumber}
-                onChange={(e) => setAccountNumber(e.target.value)}
                 required
               />
-              <button className="btn-primary" type="submit" disabled={loading}>
-                {loading ? 'Saving...' : 'Save Info'}
+              <button className="btn-primary" type="submit" id="submitBtn">
+                Save Info
               </button>
             </form>
-            {savedMessage && (
-              <div
-                id="savedMsg"
-                className={savedMessage.includes('<i class="fas fa-check-circle" style="margin-right: 5px; color: #4caf50;"></i>') ? 'success' : 'error'}
-              >
-                {savedMessage}
-              </div>
-            )}
+            <div id="savedMsg"></div>
           </div>
         </div>
       </main>
 
       <script src="/js/site.js"></script>
-      <script src="/js/role-protect.js"></script>
+      <script src="/js/withdrawal-details.js"></script>
     </>
   );
 };

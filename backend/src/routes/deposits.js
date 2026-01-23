@@ -1,4 +1,4 @@
-import express, { Response, NextFunction } from 'express';
+const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../config');
@@ -6,15 +6,10 @@ const { JWT_SECRET } = require('../config');
 const prisma = new PrismaClient();
 const router = express.Router();
 
-interface AuthRequest extends express.Request {
-  user?;
-}
-
 // Verify JWT
-function jwtMiddleware(req: AuthRequest, res: Response, next: NextFunction) {
+function jwtMiddleware(req, res, next) {
   const auth = req.headers.authorization;
   if (!auth || !auth.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
-  
   const token = auth.slice(7);
   try {
     const data = jwt.verify(token, JWT_SECRET);
@@ -75,6 +70,16 @@ router.get('/my-deposits', jwtMiddleware, async (req, res) => {
     });
 
     res.json({ deposits });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// alias for frontend: /api/deposits/history -> returns array of deposits
+router.get('/history', jwtMiddleware, async (req, res) => {
+  try {
+    const deposits = await prisma.deposit.findMany({ where: { userId: req.user.id }, orderBy: { createdAt: 'desc' } });
+    res.json(deposits);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

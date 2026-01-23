@@ -6,12 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Map of protected pages to allowed roles
   const protectedPages = {
-    '/dashboard': ['buyer', 'freelancer'],
     '/dashboard-buyer': ['buyer'],
     '/dashboard-freelancer': ['freelancer'],
-    '/profile': ['buyer', 'freelancer'],
     '/profile-buyer': ['buyer'],
-    '/wallet': ['buyer', 'freelancer'],
     '/wallet-buyer': ['buyer', 'freelancer'],
     '/withdrawal-details': ['buyer', 'freelancer'],
     '/orders': ['buyer'],
@@ -30,11 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // If user doesn't have permission to access this page
       if (!allowedRoles.includes(role)) {
-        alert(`Access denied. This page is only for ${allowedRoles.join(' and ')} users.`);
+        // Redirect to appropriate dashboard based on role
         if (token && role === 'buyer') {
-          window.location.href = '/dashboard';
+          window.location.href = '/dashboard-buyer.html';
         } else if (token && role === 'freelancer') {
-          window.location.href = '/dashboard';
+          window.location.href = '/dashboard-freelancer.html';
         } else {
           window.location.href = '/login';
         }

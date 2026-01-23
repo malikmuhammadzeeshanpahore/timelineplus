@@ -1,60 +1,46 @@
-// Load header immediately (don't wait for DOMContentLoaded)
-(async () => {
-  try {
-    let headerContainer = document.getElementById('headerContainer');
-    let attempts = 0;
-    while (!headerContainer && attempts < 20) {
-      await new Promise(r => setTimeout(r, 50));
-      headerContainer = document.getElementById('headerContainer');
-      attempts++;
-    }
-    
-    if (!headerContainer) {
-      console.warn('Header container not found');
-      return;
-    }
-
-    const headerRes = await fetch('/header.html');
-    if (!headerRes.ok) {
-      console.error('Failed to fetch header:', headerRes.status);
-      return;
-    }
-    
-    const headerHtml = await headerRes.text();
-    const parser = new DOMParser();
-    const headerDoc = parser.parseFromString(headerHtml, 'text/html');
-    
-    const header = headerDoc.querySelector('#header');
-    const nav = headerDoc.querySelector('#mobileMenu');
-    const styles = headerDoc.querySelectorAll('style');
-    
-    if (header) {
-      headerContainer.appendChild(header.cloneNode(true));
-    }
-    if (nav) {
-      document.body.appendChild(nav.cloneNode(true));
-    }
-    
-    styles.forEach(style => {
-      const newStyle = document.createElement('style');
-      newStyle.textContent = style.textContent;
-      document.head.appendChild(newStyle);
-    });
-    
-    const headerScript = document.createElement('script');
-    headerScript.src = '/js/header-init.js';
-    document.body.appendChild(headerScript);
-  } catch (e) {
-    console.error('Error loading header:', e);
-  }
-})();
-
+// Ensure icons are loaded before displaying dashboard content
 document.addEventListener('DOMContentLoaded', async () => {
   const token = localStorage.getItem('token');
   if (!token) {
     window.location.href = '/';
     return;
   }
+
+  // Wait for Font Awesome and Remixicon to load
+  const waitForIcons = () => {
+    return new Promise((resolve) => {
+      const checkInterval = setInterval(() => {
+        const hasFontAwesome = document.fonts && document.fonts.check && document.fonts.check('1em FontAwesome');
+        const hasRemixicon = document.fonts && document.fonts.check && document.fonts.check('1em remixicon');
+        
+        // Also check if stylesheets are loaded
+        const links = document.querySelectorAll('link[rel="stylesheet"]');
+        let allLoaded = true;
+        
+        for (const link of links) {
+          if (link.href.includes('font-awesome') || link.href.includes('remixicon')) {
+            // Try to verify stylesheet loaded
+            try {
+              if (!link.sheet) allLoaded = false;
+            } catch (e) {
+              // CORS might prevent check, assume loaded
+            }
+          }
+        }
+        
+        // Give enough time for fonts to render (500ms timeout)
+        if (allLoaded || Date.now() > startTime + 500) {
+          clearInterval(checkInterval);
+          // Add small delay to ensure rendering
+          setTimeout(resolve, 100);
+        }
+      }, 50);
+      
+      const startTime = Date.now();
+    });
+  };
+
+  await waitForIcons();
 
   try {
     // Load user data
@@ -63,7 +49,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     if (userRes.ok) {
       const userData = await userRes.json();
-      document.getElementById('balance').textContent = `PKR ${(userData.balance / 100).toFixed(2)}`;
+      const balEl = document.getElementById('balance');
+      if (balEl) balEl.textContent = `PKR ${(userData.balance / 100).toFixed(2)}`;
     }
 
     // Load campaigns data
@@ -76,9 +63,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       const completedCampaignsData = campaignsData.filter(c => c.status === 'completed');
       const totalSpentData = campaignsData.reduce((sum, c) => sum + (c.price || 0), 0);
       
-      document.getElementById('activeCampaigns').textContent = activeCampaignsData.length;
-      document.getElementById('completedCampaigns').textContent = completedCampaignsData.length;
-      document.getElementById('totalSpent').textContent = `PKR ${(totalSpentData / 100).toFixed(2)}`;
+      const actEl = document.getElementById('activeCampaigns');
+      const comEl = document.getElementById('completedCampaigns');
+      const totEl = document.getElementById('totalSpent');
+      
+      if (actEl) actEl.textContent = activeCampaignsData.length;
+      if (comEl) comEl.textContent = completedCampaignsData.length;
+      if (totEl) totEl.textContent = `PKR ${(totalSpentData / 100).toFixed(2)}`;
 
       // Render campaigns table
       if (campaignsData.length > 0) {
@@ -115,9 +106,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             }).join('')}
           </tbody>
         </table>`;
-        document.getElementById('campaignsContainer').innerHTML = campaignsHtml;
+        const campConEl = document.getElementById('campaignsContainer');
+        if (campConEl) campConEl.innerHTML = campaignsHtml;
       } else {
-        document.getElementById('campaignsContainer').innerHTML = '<p>No campaigns yet</p>';
+        const campConEl = document.getElementById('campaignsContainer');
+        if (campConEl) campConEl.innerHTML = '<p>No campaigns yet</p>';
       }
     }
 
@@ -155,9 +148,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             }).join('')}
           </tbody>
         </table>`;
-        document.getElementById('depositsContainer').innerHTML = depositsHtml;
+        const depConEl = document.getElementById('depositsContainer');
+        if (depConEl) depConEl.innerHTML = depositsHtml;
       } else {
-        document.getElementById('depositsContainer').innerHTML = '<p>No deposits yet</p>';
+        const depConEl = document.getElementById('depositsContainer');
+        if (depConEl) depConEl.innerHTML = '<p>No deposits yet</p>';
       }
     }
 

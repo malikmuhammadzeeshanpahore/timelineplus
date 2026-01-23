@@ -111,13 +111,15 @@ const FreelancerDashboard = () => {
 };
 
 export default FreelancerDashboard;
-
-// This script runs after the page loads to populate data
+  
+// Load auth and header first
 setTimeout(() => {
-  const scripts = document.querySelectorAll('script[src="/js/freelancer-dashboard.js"]');
-  if (scripts.length === 0) {
-    const script = document.createElement('script');
-    script.src = '/js/freelancer-dashboard.js';
-    document.body.appendChild(script);
-  }
+  const authScript = document.createElement('script');
+  authScript.src = '/js/freelancer-dashboard-auth.js';
+  document.body.appendChild(authScript);
+  
+  // Then load main dashboard script
+  const mainScript = document.createElement('script');
+  mainScript.src = '/js/freelancer-dashboard.js';
+  document.body.appendChild(mainScript);
 }, 100);

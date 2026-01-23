@@ -30,9 +30,8 @@ const WalletBuyer = () => {
 <div style="margin-top:12px"><h4>Top up</h4><form id="topup-form"><input id="topup-amount" placeholder="Amount" type="number" min="1" step="0.01"/><button className="btn-primary">Top up</button></form></div>
 <div style="margin-top:12px"><h4>Withdraw</h4><p className="small">Withdraw to your linked bank or Payoneer/PayPal.</p>
 <form id="withdraw-form"><input id="withdraw-amount" placeholder="Amount" type="number" min="1" step="0.01"/><select id="withdraw-method"><option value="manual">Manual</option><option value="paypal">PayPal</option><option value="bank">Bank</option></select><input id="withdraw-details" placeholder="Details (bank or PayPal email)" type="text"/><button className="btn-outline">Request Withdraw</button></form></div></div></main>
+<script src="/js/wallet-auth.js"></script>
 <script src="/js/wallet.js"></script>
-<script src="/js/site.js"></script>
-<script src="/js/role-protect.js"></script>
     </>
   );
 };

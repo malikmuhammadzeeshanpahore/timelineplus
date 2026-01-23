@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const balanceDisplay = (balance === 0 ? '0.00' : (Number(balance) / 100).toFixed(2));
     info.innerHTML = `
       <div style="font-weight:700;color:#fff">${name}</div>
-      <div class="small">$${balanceDisplay}</div>
+      <div class="small">PKR ${balanceDisplay}</div>
     `;
 
     // Menu

@@ -1,607 +1,273 @@
-import React, { useState, useEffect } from 'react';
-
 const Campaigns = () => {
-  const [token, setToken] = useState(localStorage.getItem('token'));
-  const [role, setRole] = useState(localStorage.getItem('role') || 'buyer');
-  const [activeTab, setActiveTab] = useState('my-campaigns');
-  const [campaigns, setCampaigns] = useState([]);
-  const [loadingCampaigns, setLoadingCampaigns] = useState(false);
-  const [form, setForm] = useState({
-    title: '',
-    type: '',
-    targetCount: '',
-    price: '',
-    targetPage: '',
-    description: ''
-  });
-  const [commission, setCommission] = useState('0.00');
-  const [creating, setCreating] = useState(false);
-
-  useEffect(() => {
-    if (!token) {
-      alert('Please login first');
-      window.location.href = '/';
-    }
-  }, [token]);
-
-  useEffect(() => {
-    if (activeTab === 'my-campaigns') {
-      fetchCampaigns();
-    }
-    // eslint-disable-next-line
-  }, [activeTab]);
-
-  const fetchAPI = async (endpoint, options = {}) => {
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      ...options.headers
-    };
-    const response = await fetch(`/api${endpoint}`, {
-      ...options,
-      headers
-    });
-    if (!response.ok) {
-      let error = {};
-      try {
-        error = await response.json();
-      } catch {
-        error = { error: 'API error' };
-      }
-      throw new Error(error.error || 'API error');
-    }
-    return response.json();
-  };
-
-  const fetchCampaigns = async () => {
-    setLoadingCampaigns(true);
-    try {
-      const data = await fetchAPI('/campaigns/my-campaigns');
-      setCampaigns(data.campaigns || []);
-    } catch (error) {
-      alert('Error loading campaigns: ' + error.message);
-    }
-    setLoadingCampaigns(false);
-  };
-
-  const handleCreateCampaign = async (event) => {
-    event.preventDefault();
-    setCreating(true);
-    try {
-      const data = {
-        title: form.title,
-        type: form.type,
-        targetCount: Number(form.targetCount),
-        price: Math.floor(Number(form.price) * 100),
-        targetPage: form.targetPage,
-        description: form.description
-      };
-      await fetchAPI('/campaigns/create', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      });
-      alert('Campaign created! Awaiting admin approval.');
-      setForm({
-        title: '',
-        type: '',
-        targetCount: '',
-        price: '',
-        targetPage: '',
-        description: ''
-      });
-      setCommission('0.00');
-      setActiveTab('my-campaigns');
-      fetchCampaigns();
-    } catch (error) {
-      alert('Error: ' + error.message);
-    }
-    setCreating(false);
-  };
-
   const styles = `
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .header {
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-      margin-bottom: 30px;
-    }
-
-    .header h1 {
-      color: #667eea;
-      margin-bottom: 10px;
-    }
-
-    .nav-tabs {
-      display: flex;
-      gap: 10px;
-      margin: 20px 0;
-      border-bottom: 2px solid #eee;
-    }
-
-    .nav-tabs button {
-      background: none;
-      border: none;
-      padding: 10px 20px;
-      cursor: pointer;
-      border-bottom: 3px solid transparent;
-      color: #666;
-      font-size: 1rem;
-    }
-
-    .nav-tabs button.active {
-      color: #667eea;
-      border-bottom-color: #667eea;
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-    }
-
-    .card h3 {
-      color: #333;
-      margin-bottom: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 20px;
-      background: #eee;
-      border-radius: 10px;
-      overflow: hidden;
-      margin: 10px 0;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 0.75rem;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 15px;
-      margin: 15px 0;
-    }
-
-    .stat-box {
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 8px;
-      text-align: center;
-      border-left: 4px solid #667eea;
-    }
-
-    .stat-box .value {
-      font-size: 1.8rem;
-      font-weight: bold;
-      color: #667eea;
-    }
-
-    .stat-box .label {
-      color: #666;
-      font-size: 0.9rem;
-    }
-
-    form {
-      display: grid;
-      gap: 15px;
-    }
-
-    input, select, textarea {
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-family: inherit;
-      font-size: 1rem;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
-
-    button {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: transform 0.2s;
-    }
-
-    button:hover {
-      transform: translateY(-2px);
-    }
-
-    .campaign-item {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      border-left: 4px solid #667eea;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-    }
-
-    .campaign-item h4 {
-      color: #333;
-      margin-bottom: 10px;
-    }
-
-    .campaign-info {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 15px;
-      margin: 15px 0;
-    }
-
-    .info-item {
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .info-label {
-      color: #666;
-      font-weight: 500;
-    }
-
-    .info-value {
-      color: #333;
-      font-weight: bold;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 5px 12px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 500;
-    }
-
-    .badge.pending {
-      background: #fff3cd;
-      color: #856404;
-    }
-
-    .badge.approved {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .badge.active {
-      background: #d1ecf1;
-      color: #0c5460;
-    }
-
-    .badge.completed {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .task-list {
-      display: grid;
-      gap: 10px;
-      margin-top: 15px;
-    }
-
-    .task-item {
-      background: #f8f9fa;
-      padding: 10px;
-      border-radius: 5px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    @media (max-width: 768px) {
-      .campaign-info {
-        grid-template-columns: 1fr;
-      }
-
-      .stats {
-        grid-template-columns: 1fr;
-      }
-    }
-  
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+    
+    #headerContainer { position: sticky; top: 0; z-index: 1000; }
+    .container { max-width: 1000px; margin: 40px auto; padding: 20px; }
+    .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 30px; }
+    .card h2 { color: #667eea; font-size: 22px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+    .card .subtitle { color: #999; font-size: 14px; margin-bottom: 20px; }
+    
+    .tabs { display: flex; gap: 0; border-bottom: 2px solid #e0e0e0; margin-bottom: 20px; }
+    .tab-btn { background: none; border: none; padding: 12px 20px; cursor: pointer; font-weight: 600; color: #999; border-bottom: 3px solid transparent; transition: all 0.3s; font-size: 15px; }
+    .tab-btn.active { color: #667eea; border-bottom-color: #667eea; }
+    .tab-btn:hover { color: #667eea; }
+    
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-weight: 600; color: #333; margin-bottom: 8px; font-size: 14px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-family: inherit; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    
+    .btn { padding: 12px 24px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 14px; width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; box-shadow: 0 4px 12px rgba(102,126,234,0.3); }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(102,126,234,0.4); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    
+    .campaign-item { border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 15px; }
+    .campaign-item .campaign-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .campaign-item h4 { color: #333; margin: 0; }
+    .campaign-item .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; font-size: 14px; }
+    .campaign-item .meta-item { display: flex; flex-direction: column; gap: 4px; }
+    .campaign-item .meta-item strong { color: #667eea; }
+    .campaign-item .status { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; background: #e8eaf6; color: #667eea; }
+    
+    .action-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+    .action-card { text-decoration: none; }
+    .action-card-content { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(102,126,234,0.3); }
+    .action-card:hover .action-card-content { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(102,126,234,0.4); }
+    .action-card-content i { font-size: 32px; display: block; margin-bottom: 10px; }
+    .action-card-content strong { display: block; margin-bottom: 4px; }
+    .action-card-content .label { font-size: 12px; opacity: 0.9; }
+    
+    .alert { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; }
+    .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .alert-error { background: #f8d7da; color: #842029; border: 1px solid #f5c6cb; }
+    .alert-info { background: #cfe2ff; color: #084298; border: 1px solid #b6d4fe; }
+    
+    @media (max-width: 1023px) { .card { padding: 20px; } }
   `;
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: styles }} />
+      <style>{styles}</style>
+      <div id="headerContainer"></div>
+      
       <div className="container">
-<div className="header">
-  <h1><i class="fas fa-bullseye" style="margin-right: 5px;"></i> Campaigns</h1>
-  <p>Manage your followers, subscribers, and engagement campaigns</p>
-
-  <div className="nav-tabs">
-    <button
-      className={activeTab === 'my-campaigns' ? 'active' : ''}
-      onClick={() => setActiveTab('my-campaigns')}
-    >
-      My Campaigns
-    </button>
-    <button
-      className={activeTab === 'create' ? 'active' : ''}
-      onClick={() => setActiveTab('create')}
-    >
-      Create Campaign
-    </button>
-    <button
-      className={activeTab === 'how-it-works' ? 'active' : ''}
-      onClick={() => setActiveTab('how-it-works')}
-    >
-      How It Works
-    </button>
-  </div>
-</div>
-
-{/* My Campaigns Tab */}
-<div
-  id="my-campaigns"
-  className={`tab-content${activeTab === 'my-campaigns' ? ' active' : ''}`}
->
-  <div id="campaignsList" className="content">
-    {loadingCampaigns ? (
-      <div className="card"><p>Loading...</p></div>
-    ) : campaigns.length === 0 ? (
-      <div className="card">
-        <p>
-          No campaigns yet.{' '}
-          <a href="#" onClick={e => { e.preventDefault(); setActiveTab('create'); }}>
-            Create one
-          </a>
-        </p>
-      </div>
-    ) : (
-      campaigns.map(campaign => (
-        <div className="campaign-item" key={campaign._id}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-            <div>
-              <h4>{campaign.title}</h4>
-              <span className={`badge ${campaign.status}`}>{campaign.status.toUpperCase()}</span>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#667eea' }}>
-                {campaign.progressPercent || 0}%
+        <div className="card">
+          <h2><i className="fas fa-rocket"></i> Campaigns</h2>
+          <p className="subtitle">Manage your campaigns</p>
+          
+          <div className="action-cards">
+            <a href="/deposit/" className="action-card">
+              <div className="action-card-content">
+                <i className="fas fa-plus-circle"></i>
+                <strong>Deposit Funds</strong>
+                <div className="label">Add balance to wallet</div>
               </div>
-              <div style={{ color: '#666', fontSize: '0.9rem' }}>
-                {campaign.progress}
+            </a>
+            <div className="action-card">
+              <div className="action-card-content" style={{background: 'linear-gradient(135deg, #f5576c 0%, #f093fb 100%)', cursor: 'pointer'}} data-action="create-tab">
+                <i className="fas fa-rocket"></i>
+                <strong>Launch Campaign</strong>
+                <div className="label">Create new campaign</div>
               </div>
             </div>
+            <a href="/wallet/" className="action-card">
+              <div className="action-card-content" style={{background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'}}>
+                <i className="fas fa-wallet"></i>
+                <strong>Manage Wallet</strong>
+                <div className="label">View transactions</div>
+              </div>
+            </a>
           </div>
-          <div className="progress-bar">
-            <div
-              className="progress-fill"
-              style={{ width: `${campaign.progressPercent || 0}%` }}
-            >
-              {campaign.progressPercent > 5 ? `${campaign.progressPercent}%` : ''}
-            </div>
+          
+          <div className="tabs">
+            <button className="tab-btn active" data-tab="my-campaigns">My Campaigns</button>
+            <button className="tab-btn" data-tab="create">Create Campaign</button>
           </div>
-          <div className="campaign-info">
-            <div className="info-item">
-              <span className="info-label">Type:</span>
-              <span className="info-value">{campaign.type}</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Total Price:</span>
-              <span className="info-value">${(campaign.price / 100).toFixed(2)}</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Your Profit (40%):</span>
-              <span className="info-value" style={{ color: '#28a745' }}>
-                ${((campaign.price * 0.4) / 100).toFixed(2)}
-              </span>
-            </div>
+          
+          <div id="my-campaigns" className="tab-content active">
+            <div id="campaignsMessage"></div>
+            <div id="campaignsList"></div>
           </div>
-          <h5 style={{ marginTop: 15, color: '#333' }}>Task Status:</h5>
-          <div className="stats">
-            <div className="stat-box">
-              <div className="value">{campaign.taskStatus.pending}</div>
-              <div className="label">Pending</div>
-            </div>
-            <div className="stat-box">
-              <div className="value">{campaign.taskStatus.assigned}</div>
-              <div className="label">In Progress</div>
-            </div>
-            <div className="stat-box">
-              <div className="value">{campaign.taskStatus.verified}</div>
-              <div className="label">Verified</div>
-            </div>
-            <div className="stat-box">
-              <div className="value">{campaign.taskStatus.paid}</div>
-              <div className="label">Paid Out</div>
-            </div>
+          
+          <div id="create" className="tab-content">
+            <form id="campaignForm">
+              <div className="form-group">
+                <label>Campaign Title *</label>
+                <input type="text" name="title" placeholder="e.g., Get 1000 Instagram Followers" required />
+              </div>
+              
+              <div className="form-group">
+                <label>Campaign Type *</label>
+                <select name="type" required>
+                  <option value="">Select type</option>
+                  <option value="followers">Instagram Followers</option>
+                  <option value="youtube">YouTube Subscribers</option>
+                  <option value="likes">Social Media Likes</option>
+                  <option value="shares">Social Media Shares</option>
+                </select>
+              </div>
+              
+              <div className="form-group">
+                <label>Target Count *</label>
+                <input type="number" name="targetCount" placeholder="e.g., 1000" min="1" required />
+              </div>
+              
+              <div className="form-group">
+                <label>Total Budget (PKR) *</label>
+                <input type="number" name="price" placeholder="e.g., 5000" min="100" required />
+              </div>
+              
+              <div className="form-group">
+                <label>Target Page/Profile Link *</label>
+                <input type="url" name="targetPage" placeholder="https://..." required />
+              </div>
+              
+              <div className="form-group">
+                <label>Description</label>
+                <textarea name="description" placeholder="Additional details..."></textarea>
+              </div>
+              
+              <button type="submit" className="btn" id="submitBtn">Create Campaign</button>
+            </form>
           </div>
         </div>
-      ))
-    )}
-  </div>
-</div>
-
-{/* Create Campaign Tab */}
-<div
-  id="create"
-  className={`tab-content${activeTab === 'create' ? ' active' : ''}`}
->
-  <div className="card">
-    <h3>Create New Campaign</h3>
-    <form onSubmit={handleCreateCampaign}>
-      <div>
-        <label>Campaign Title *</label>
-        <input
-          type="text"
-          id="title"
-          required
-          placeholder="e.g., Get 1000 Instagram Followers"
-          value={form.title}
-          onChange={e => setForm({ ...form, title: e.target.value })}
-        />
-      </div>
-      <div>
-        <label>Campaign Type *</label>
-        <select
-          id="type"
-          required
-          value={form.type}
-          onChange={e => setForm({ ...form, type: e.target.value })}
-        >
-          <option value="">Select type</option>
-          <option value="followers">Followers</option>
-          <option value="subscribers">Subscribers</option>
-          <option value="likes">Likes</option>
-          <option value="comments">Comments</option>
-          <option value="shares">Shares</option>
-          <option value="watch_time">Watch Time</option>
-        </select>
-      </div>
-      <div>
-        <label>Target Count *</label>
-        <input
-          type="number"
-          id="targetCount"
-          required
-          min="1"
-          placeholder="e.g., 1000"
-          value={form.targetCount}
-          onChange={e => setForm({ ...form, targetCount: e.target.value })}
-        />
-      </div>
-      <div>
-        <label>Total Price (USD) *</label>
-        <input
-          type="number"
-          id="price"
-          required
-          min="1"
-          step="0.01"
-          placeholder="e.g., 100"
-          value={form.price}
-          onChange={e => {
-            setForm({ ...form, price: e.target.value });
-            setCommission((Number(e.target.value) * 0.6).toFixed(2));
-          }}
-        />
-        <small>
-          You will pay 60% commission ($
-          <span id="commission">{commission}</span>
-          ) + your profit is 40%
-        </small>
-      </div>
-      <div>
-        <label>Target Page/Profile Link *</label>
-        <input
-          type="url"
-          id="targetPage"
-          required
-          placeholder="https://facebook.com/yourpage"
-          value={form.targetPage}
-          onChange={e => setForm({ ...form, targetPage: e.target.value })}
-        />
-      </div>
-      <div>
-        <label>Description</label>
-        <textarea
-          id="description"
-          placeholder="Add campaign details and instructions..."
-          value={form.description}
-          onChange={e => setForm({ ...form, description: e.target.value })}
-        />
-      </div>
-      <button type="submit" disabled={creating}>
-        {creating ? 'Creating...' : 'Create Campaign'}
-      </button>
-    </form>
-  </div>
-</div>
-
-{/* How It Works Tab */}
-<div
-  id="how-it-works"
-  className={`tab-content${activeTab === 'how-it-works' ? ' active' : ''}`}
->
-  <div className="card">
-    <h3><i class="fas fa-list" style="margin-right: 5px;"></i> How It Works</h3>
-    <div style={{ lineHeight: 1.8 }}>
-      <h4 style={{ marginTop: 20, color: '#667eea' }}>1️⃣ Create Campaign</h4>
-      <p>
-        You create a campaign (e.g., get 1000 followers for your page) and set the price.
-      </p>
-      <h4 style={{ marginTop: 20, color: '#667eea' }}>2️⃣ Payment Split</h4>
-      <ul style={{ marginLeft: 20 }}>
-        <li>
-          <strong>60%</strong> goes to Timeline+ (platform commission)
-        </li>
-        <li>
-          <strong>40%</strong> becomes tasks for freelancers
-        </li>
-      </ul>
-      <p>
-        Example: If you pay $1000, $600 is commission and $400 creates 1000 tasks ($0.40 per task)
-      </p>
-      <h4 style={{ marginTop: 20, color: '#667eea' }}>3️⃣ Freelancers Complete Tasks</h4>
-      <p>
-        1000 freelancers each complete 1 task (follow your page, subscribe to channel, etc.)
-      </p>
-      <p>Each freelancer earns the reward for completing their task</p>
-      <h4 style={{ marginTop: 20, color: '#667eea' }}>4️⃣ Admin Verification</h4>
-      <p>Admin reviews and verifies each completion with screenshots and API checks</p>
-      <p>Once verified, freelancer gets paid automatically</p>
-      <h4 style={{ marginTop: 20, color: '#667eea' }}>5️⃣ Progress Tracking</h4>
-      <p>Your dashboard shows real-time progress (e.g., 45/1000 followers received)</p>
-      <h4 style={{ marginTop: 20, color: '#667eea' }}><i class="fas fa-exclamation-triangle" style="margin-right: 5px; color: #ff9800;"></i> Security & Verification</h4>
-      <ul style={{ marginLeft: 20 }}>
-        <li>Screenshots required for proof</li>
-        <li>API verification (Facebook, YouTube, etc.)</li>
-        <li>Fraud detection system</li>
-        <li>Each freelancer can only complete one task per campaign</li>
-      </ul>
-    </div>
-  </div>
-</div>
       </div>
     </>
   );
 };
 
 export default Campaigns;
+
+setTimeout(() => {
+  fetch('/header.html').then(r => r.text()).then(html => {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    document.getElementById('headerContainer').innerHTML = div.querySelector('body').innerHTML;
+    const script = document.createElement('script');
+    script.src = '/js/header-init.js';
+    document.body.appendChild(script);
+  });
+
+  const token = localStorage.getItem('token');
+
+  // Delegated click handling for tabs and action cards (robust across DOM changes)
+  document.addEventListener('click', (e) => {
+    const tabBtn = e.target.closest('.tab-btn');
+    if (tabBtn) {
+      e.preventDefault();
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      tabBtn.classList.add('active');
+      const tabId = tabBtn.getAttribute('data-tab');
+      const tabEl = document.getElementById(tabId);
+      if (tabEl) tabEl.classList.add('active');
+      if (tabId === 'my-campaigns') loadCampaigns();
+      return;
+    }
+
+    const action = e.target.closest('[data-action]');
+    if (action) {
+      const act = action.getAttribute('data-action');
+      if (act === 'create-tab') {
+        e.preventDefault();
+        const createTabBtn = document.querySelector('.tab-btn[data-tab="create"]');
+        if (createTabBtn) createTabBtn.click();
+      }
+    }
+  });
+
+  // Load campaigns on page load
+  loadCampaigns();
+
+  // Form submission
+  const form = document.getElementById('campaignForm');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Creating...';
+      
+      try {
+        const formData = new FormData(form);
+        const data = {
+          title: formData.get('title'),
+          type: formData.get('type'),
+          targetCount: Number(formData.get('targetCount')),
+          price: Number(formData.get('price')) * 100,
+          targetPage: formData.get('targetPage'),
+          description: formData.get('description')
+        };
+
+        const response = await fetch('/api/campaigns', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+          alert('Campaign created successfully!');
+          form.reset();
+          document.querySelector('[data-tab="my-campaigns"]').click();
+        } else {
+          const err = await response.json();
+          alert('Error: ' + (err.error || 'Failed to create campaign'));
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Create Campaign';
+      }
+    });
+  }
+
+  function loadCampaigns() {
+    fetch('/api/campaigns', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    }).then(r => r.json()).then(data => {
+      const container = document.getElementById('campaignsList');
+      if (data.campaigns && data.campaigns.length > 0) {
+        container.innerHTML = data.campaigns.map(c => `
+          <div class="campaign-item">
+            <div class="campaign-header">
+              <h4>${c.title}</h4>
+              <span class="status">${c.status}</span>
+            </div>
+            <div class="meta">
+              <div class="meta-item">
+                <strong>Type</strong>
+                <span>${c.type}</span>
+              </div>
+              <div class="meta-item">
+                <strong>Target</strong>
+                <span>${c.targetCount} ${c.type}</span>
+              </div>
+              <div class="meta-item">
+                <strong>Budget</strong>
+                <span>PKR ${(c.price / 100).toLocaleString('en-PK')}</span>
+              </div>
+              <div class="meta-item">
+                <strong>Progress</strong>
+                <span>${c.progress || 0}/${c.targetCount}</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        container.innerHTML = '<div class="alert alert-info">No campaigns yet. Create one to get started!</div>';
+      }
+    }).catch(err => {
+      document.getElementById('campaignsMessage').innerHTML = `<div class="alert alert-error">Error: ${err.message}</div>`;
+    });
+  }
+}, 100);

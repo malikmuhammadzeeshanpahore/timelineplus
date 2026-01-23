@@ -28,7 +28,7 @@ const ProfileBuyer = () => {
 </header>
 <main className="site-main"><div className="grid"><div>
 <div className="card"><h3>Account</h3><p className="small">buyer@example.com • Member since 2024</p>
-<p style="margin-top:12px">Name: John Buyer<br/>Country: Pakistan<br/>Balance: <strong>$<span className="wallet-balance">--</span></strong></p></div>
+<p style="margin-top:12px">Name: John Buyer<br/>Country: Pakistan<br/>Balance: <strong>$<span className="wallet-balance">--</span></strong></p><div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><a className="btn-primary" href="/wallet-buyer.html" style="text-decoration:none"><i className="ri-wallet-line"></i>Wallet</a><button className="btn-primary" data-action="switch-role"><i className="ri-swap-line"></i>Switch Role</button><button className="btn-primary" data-action="logout"><i className="ri-logout-box-line"></i>Logout</button></div></div>
 <div className="card" style="margin-top:12px"><h3>Activity</h3><p className="small">Recent activity and quick links.</p><ul style="color:var(--muted);margin-top:8px"><li>Purchased Starter Pack — #ORD-221</li><li>Opened ticket #TCK-204</li></ul></div>
 </div>
 <aside>
@@ -36,7 +36,7 @@ const ProfileBuyer = () => {
 </aside>
 </div></main>
 <footer style="text-align:center;padding:20px;color:rgba(255,255,255,0.6);">© TimelinePlus 2026</footer>
-<script src="/js/site.js"></script>
+<script src="/js/profile-buyer.js"></script>
 <script src="/js/wallet.js"></script>
     </>
   );

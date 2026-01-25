@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocalStorage Test</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    h1 { color: #667eea; margin-bottom: 30px; }
+    .test-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f5f7fa;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+    .test-section h3 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 16px;
+    }
+    button {
+      padding: 12px 24px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      transition: all 0.3s;
+    }
+    button:hover { background: #5568d3; transform: translateY(-2px); }
+    button.danger { background: #e74c3c; }
+    button.danger:hover { background: #c0392b; }
+    .output {
+      background: white;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 15px;
+      font-family: monospace;
+      font-size: 13px;
+      word-break: break-all;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+    }
+    .success { color: #27ae60; }
+    .error { color: #e74c3c; }
+    .info { color: #3498db; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 LocalStorage Diagnostic Test</h1>
+
+    <div class="test-section">
+      <h3>Test 1: Can LocalStorage Be Accessed?</h3>
+      <button onclick="testAccess()">Test Access</button>
+      <div class="output" id="test1-output"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>Test 2: Save & Retrieve Data</h3>
+      <button onclick="testSaveAndRead()">Test Save & Read</button>
+      <div class="output" id="test2-output"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>Test 3: Current LocalStorage State</h3>
+      <button onclick="showCurrentState()">Show All Data</button>
+      <div class="output" id="test3-output"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>Test 4: Persistence After Reload</h3>
+      <button onclick="testPersistence()">Set Test Data</button>
+      <button onclick="checkPersistence()">Check After Reload</button>
+      <button onclick="clearTestData()">Clear Test Data</button>
+      <div class="output" id="test4-output"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>Test 5: Large Data Test (Like JWT Token)</h3>
+      <button onclick="testLargeData()">Test Large Data (JWT Size)</button>
+      <div class="output" id="test5-output"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>Test 6: Private/Incognito Mode Detection</h3>
+      <button onclick="testPrivateMode()">Check Mode</button>
+      <div class="output" id="test6-output"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>Danger Zone</h3>
+      <button class="danger" onclick="clearAllLocalStorage()">Clear ALL LocalStorage</button>
+      <div class="output" id="danger-output"></div>
+    </div>
+  </div>
+
+  <script>
+    function log(elementId, message, type = 'info') {
+      const el = document.getElementById(elementId);
+      const line = document.createElement('div');
+      line.className = type;
+      const timestamp = new Date().toLocaleTimeString();
+      line.textContent = `[${timestamp}] ${message}`;
+      el.appendChild(line);
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function clear(elementId) {
+      document.getElementById(elementId).innerHTML = '';
+    }
+
+    function testAccess() {
+      clear('test1-output');
+      try {
+        log('test1-output', 'Attempting to access localStorage...', 'info');
+        const test = localStorage.getItem('_test');
+        log('test1-output', '✓ LocalStorage is accessible!', 'success');
+        log('test1-output', `Test read returned: ${test === null ? 'null (expected)' : test}`, 'info');
+      } catch(e) {
+        log('test1-output', `✗ Cannot access localStorage: ${e.message}`, 'error');
+        log('test1-output', 'This might be because:', 'info');
+        log('test1-output', '- You\'re in a private/incognito window', 'info');
+        log('test1-output', '- Browser storage is disabled', 'info');
+        log('test1-output', '- Domain restrictions', 'info');
+      }
+    }
+
+    function testSaveAndRead() {
+      clear('test2-output');
+      try {
+        const testKey = '_localStorage_test_' + Date.now();
+        const testValue = 'test_value_' + Date.now();
+        
+        log('test2-output', `Saving to key "${testKey}"...`, 'info');
+        localStorage.setItem(testKey, testValue);
+        log('test2-output', '✓ Save succeeded', 'success');
+        
+        log('test2-output', 'Reading back...', 'info');
+        const retrieved = localStorage.getItem(testKey);
+        
+        if(retrieved === testValue) {
+          log('test2-output', '✓ Retrieved value matches saved value!', 'success');
+          localStorage.removeItem(testKey);
+          log('test2-output', '✓ Cleanup: test key removed', 'info');
+        } else {
+          log('test2-output', `✗ Mismatch! Saved: "${testValue}", Retrieved: "${retrieved}"`, 'error');
+        }
+      } catch(e) {
+        log('test2-output', `✗ Error: ${e.message}`, 'error');
+      }
+    }
+
+    function showCurrentState() {
+      clear('test3-output');
+      try {
+        log('test3-output', `Total keys in localStorage: ${Object.keys(localStorage).length}`, 'info');
+        
+        if(localStorage.length === 0) {
+          log('test3-output', 'LocalStorage is EMPTY', 'info');
+          return;
+        }
+        
+        log('test3-output', '--- Current Data ---', 'info');
+        for(let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          const value = localStorage.getItem(key);
+          const preview = value.length > 50 ? value.substring(0, 50) + '...' : value;
+          log('test3-output', `${key}: ${preview}`, 'info');
+        }
+      } catch(e) {
+        log('test3-output', `✗ Error: ${e.message}`, 'error');
+      }
+    }
+
+    function testPersistence() {
+      clear('test4-output');
+      try {
+        const testData = {
+          testKey: '_persistence_test',
+          testValue: 'Saved at ' + new Date().toLocaleTimeString()
+        };
+        localStorage.setItem(testData.testKey, testData.testValue);
+        log('test4-output', `✓ Saved test data: "${testData.testValue}"`, 'success');
+        log('test4-output', 'Now refresh the page and click "Check After Reload" to verify it persists', 'info');
+      } catch(e) {
+        log('test4-output', `✗ Error: ${e.message}`, 'error');
+      }
+    }
+
+    function checkPersistence() {
+      clear('test4-output');
+      try {
+        const value = localStorage.getItem('_persistence_test');
+        if(value) {
+          log('test4-output', `✓ PERSISTED! Value: "${value}"`, 'success');
+          log('test4-output', 'LocalStorage persistence is working correctly', 'success');
+        } else {
+          log('test4-output', `✗ Data was NOT persisted (value is null)`, 'error');
+          log('test4-output', 'Something is clearing localStorage between page loads', 'error');
+        }
+      } catch(e) {
+        log('test4-output', `✗ Error: ${e.message}`, 'error');
+      }
+    }
+
+    function clearTestData() {
+      clear('test4-output');
+      localStorage.removeItem('_persistence_test');
+      log('test4-output', '✓ Test data cleared', 'success');
+    }
+
+    function testLargeData() {
+      clear('test5-output');
+      try {
+        // Generate a fake JWT-like token (JWT tokens are typically 200-400 chars)
+        const fakeJWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' +
+          'eyJ1aWQiOjEsInJvbGUiOiJhZG1pbi9mcmVlbGFuY2VyIiwiaXNBZG1pbiI6dHJ1ZSwiY3JlYXRlZEF0IjoiMjAyNS0wMS0yMiIsImV4cGlyZXNBdCI6IjIwMjUtMDEtMjkifQ.' +
+          'L' + 'x'.repeat(300) + 'signature';
+        
+        log('test5-output', `Generated fake JWT: ${fakeJWT.length} characters`, 'info');
+        localStorage.setItem('_test_jwt', fakeJWT);
+        log('test5-output', '✓ Saved large data (JWT-size)', 'success');
+        
+        const retrieved = localStorage.getItem('_test_jwt');
+        if(retrieved === fakeJWT) {
+          log('test5-output', '✓ Retrieved data matches saved data (length: ' + retrieved.length + ')', 'success');
+          localStorage.removeItem('_test_jwt');
+          log('test5-output', '✓ Cleanup complete', 'info');
+        } else {
+          log('test5-output', '✗ Data mismatch!', 'error');
+        }
+      } catch(e) {
+        log('test5-output', `✗ Error: ${e.message}`, 'error');
+      }
+    }
+
+    function testPrivateMode() {
+      clear('test6-output');
+      try {
+        log('test6-output', 'Testing for private/incognito mode...', 'info');
+        
+        // Method 1: Try to write and check if it sticks
+        const key = '__private_mode_test__';
+        localStorage.setItem(key, '1');
+        const isPrivate = localStorage.getItem(key) !== '1';
+        localStorage.removeItem(key);
+        
+        if(isPrivate) {
+          log('test6-output', '⚠️  This appears to be PRIVATE/INCOGNITO MODE', 'error');
+          log('test6-output', 'In private mode, localStorage may not persist across sessions', 'info');
+        } else {
+          log('test6-output', '✓ This appears to be NORMAL MODE', 'success');
+          log('test6-output', 'LocalStorage should work normally', 'info');
+        }
+      } catch(e) {
+        log('test6-output', `Cannot write to localStorage: ${e.message}`, 'error');
+        log('test6-output', 'This could indicate private mode or disabled storage', 'error');
+      }
+    }
+
+    function clearAllLocalStorage() {
+      clear('danger-output');
+      if(confirm('Are you SURE? This will delete ALL data in localStorage!')) {
+        localStorage.clear();
+        log('danger-output', '✓ ALL localStorage data has been cleared', 'success');
+        log('danger-output', 'You can now do a fresh login test', 'info');
+      } else {
+        log('danger-output', 'Cleared cancelled', 'info');
+      }
+    }
+
+    // Run initial access test on load
+    window.addEventListener('load', () => {
+      log('test1-output', 'Page loaded. Tests are ready to run.', 'info');
+    });
+  </script>
+</body>
+</html>

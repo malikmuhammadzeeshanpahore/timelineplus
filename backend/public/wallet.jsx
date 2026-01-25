@@ -157,8 +157,8 @@ setTimeout(() => {
   const token = localStorage.getItem('token');
   const userRole = localStorage.getItem('role');
 
-  // Hide withdrawal tab for buyers
-  if (userRole === 'buyer') {
+  // Hide withdrawal tab for buyers (but not for admin/buyer)
+  if (userRole === 'buyer' && !userRole.startsWith('admin/')) {
     document.getElementById('withdrawTab').style.display = 'none';
   }
 

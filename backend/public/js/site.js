@@ -1,21 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // sticky header (transparent until scrolled)
-  const header = document.querySelector('.header');
-  function onScroll() {
-    if (window.scrollY > 20) header.style.background = 'rgba(10,40,98,0.08)';
-    else header.style.background = 'transparent';
+  // Skip site.js initialization on admin panel (admin.js handles it)
+  if (window.location.pathname.includes('admin-panel') || window.location.pathname === '/admin-panel/') {
+    console.log('Admin panel detected, skipping site.js initialization');
+    return;
   }
-  window.addEventListener('scroll', onScroll);
-  onScroll();
-
-  // active nav highlight
-  document.querySelectorAll('.header .nav a').forEach(a => {
-    if (a.getAttribute('href') && location.pathname.endsWith(a.getAttribute('href'))) a.classList.add('active');
-    a.addEventListener('click', () => {
-      document.querySelectorAll('.header .nav a').forEach(x => x.classList.remove('active'));
-      a.classList.add('active');
-    });
-  });
 
   // small helper to show toast
   window.showToast = function(msg, t = 2200) {
@@ -41,11 +29,27 @@ document.addEventListener('DOMContentLoaded', () => {
       const token = localStorage.getItem('token');
       if (!token) return renderGuestHeader();
 
+      // Check if token is valid JWT (should be very long) - migration fix
+      if (token.length < 50) {
+        console.warn('Invalid token detected, not clearing localStorage. Token length:', token.length);
+        // Don't clear localStorage - let token persist
+        // Proceed to fetch /api/user/me to verify if it's actually valid
+      }
+
       const res = await fetch('/api/user/me', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      if (!res.ok) throw new Error('Unauthorized');
+      if (!res.ok) {
+        console.warn('User me response status:', res.status);
+        const errorData = await res.json().catch(() => ({}));
+        console.warn('User me error:', errorData);
+        
+        // Don't clear token/role if /api/user/me fails
+        // Token might still be valid, just show guest header
+        console.warn('Token validation failed, but keeping token in localStorage');
+        return renderGuestHeader();
+      }
 
       const data = await res.json();
       const user = data.user;
@@ -143,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <a href="/wallet"><i class="ri-wallet-line"></i><span class="nav-label">Wallet</span></a>
           <a href="/support"><i class="ri-question-line"></i><span class="nav-label">Support</span></a>
         `;
-      } else if (role === 'admin') {
+      } else if (role && role.startsWith('admin/')) {
         nav.innerHTML = `
           <strong>Admin</strong>
           <a href="/admin"><i class="ri-admin-line"></i><span class="nav-label">Admin Panel</span></a>

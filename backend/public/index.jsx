@@ -10,9 +10,6 @@ const Index = () => {
     .content { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
     form { background: white; padding: 40px; border-radius: 10px; max-width: 400px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     form h2 { color: #667eea; margin-bottom: 20px; text-align: center; }
-    .role-selector { display: flex; gap: 10px; margin-bottom: 20px; }
-    .role-pill { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 5px; cursor: pointer; text-align: center; font-weight: bold; transition: all 0.3s; }
-    .role-pill.active { background: #667eea; color: white; border-color: #667eea; }
     .input-box { position: relative; margin-bottom: 15px; }
     .input-box input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
     .input-box input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
@@ -51,11 +48,6 @@ const Index = () => {
 
           <div id="error"></div>
 
-          <div className="role-selector">
-            <div className="role-pill active" data-role="freelancer">Freelancer</div>
-            <div className="role-pill" data-role="buyer">Buyer</div>
-          </div>
-
           <div className="input-box">
             <input type="text" id="username" name="email" placeholder="Username or Email" required/>
             <i className="ri-user-fill"></i>
@@ -78,6 +70,7 @@ const Index = () => {
         </form>
       </div>
 
+      <script src="/js/localstorage-monitor.js"></script>
       <script src="/js/site.js"></script>
       <script src="/js/auth.js"></script>
     </>

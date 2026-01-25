@@ -3,7 +3,7 @@
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
 
-  if (!token || role !== 'buyer') {
+  if (!token || (role !== 'buyer' && role !== 'admin/buyer')) {
     console.warn('Auth check failed: no token or invalid role');
     return;
   }

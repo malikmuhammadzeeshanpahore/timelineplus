@@ -2,42 +2,89 @@
 (function() {
   const API_URL = '/api';
 
-  // Accept `code` query parameter to set admin secret via URL
+  // Debug: Log all localStorage contents on admin panel load
+  console.log('=== ADMIN PANEL LOADED ===');
+  console.log('window.location.pathname:', window.location.pathname);
+  console.log('window.location.href:', window.location.href);
+  
+  // VERY DETAILED DEBUG
+  console.log('=== LOCALSTORAGE STATE ===');
+  try {
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+    console.log('token from localStorage:', token ? `${token.substring(0, 50)}... (length: ${token.length})` : 'NULL/UNDEFINED');
+    console.log('role from localStorage:', role);
+    console.log('adminSecret from localStorage:', localStorage.getItem('adminSecret'));
+    console.log('Total keys in localStorage:', Object.keys(localStorage).length);
+    console.log('All keys:', Object.keys(localStorage));
+    Object.keys(localStorage).forEach(key => {
+      const val = localStorage.getItem(key);
+      console.log(`  [${key}]: ${val ? val.substring(0, 50) + (val.length > 50 ? '...' : '') : '(empty)'}`);
+    });
+  } catch(e) {
+    console.error('Error reading localStorage:', e.message);
+  }
+
+  // Accept `code` query parameter to verify admin access via URL
+  // Note: User should be logged in first to have a valid token
   try {
     const urlParams = new URLSearchParams(window.location.search);
     const codeParam = urlParams.get('code');
     if (codeParam && codeParam === 'ADMIN_SECRET_2026') {
-      // allow access via URL code for testing: set admin secret, role and a temporary token
+      // Store secret for verification, but NOT as bearer token
       localStorage.setItem('adminSecret', codeParam);
-      localStorage.setItem('role', 'admin');
-      localStorage.setItem('token', codeParam);
+      console.log('Secret code set from URL parameter');
     }
   } catch (e) {
     // ignore URL parsing errors in non-browser contexts
   }
 
-  // read auth values after possible URL-code injection
+  // read auth values
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
   const adminSecret = localStorage.getItem('adminSecret');
 
-  // Authentication Check
-  if (!token || role !== 'admin') {
-    alert('Unauthorized: Admin access required');
+  console.log('Admin Panel Auth Check:', {
+    hasToken: !!token,
+    tokenLength: token ? token.length : 0,
+    tokenPreview: token ? `${token.substring(0, 30)}...` : 'NONE',
+    role: role,
+    roleValid: role && role.startsWith('admin/'),
+    adminSecret: adminSecret ? 'SET' : 'NOT_SET'
+  });
+
+  // Check if token looks like a secret code instead of JWT (migration fix)
+  if (token === 'ADMIN_SECRET_2026' || token === 'ADMIN_SECRET' || (token && token.length < 20)) {
+    console.warn('Invalid token detected (looks like secret code or too short)');
+    console.warn('Token length:', token ? token.length : 0);
+    console.warn('NOT clearing localStorage - token might still be valid');
+    // Don't clear localStorage here
+    // Let user try to access with current token
+  }
+
+  // Authentication Check - must have valid token with admin role
+  if (!token) {
+    console.error('AUTH FAILED: No token found in localStorage');
+    alert('Unauthorized: No token. Please login with your admin account to access the admin panel');
     window.location.href = '/';
     return;
   }
-
-  // Secret Code Verification
-  if (!adminSecret || adminSecret !== 'ADMIN_SECRET_2026') {
-    const secret = prompt('Enter Admin Secret Code to proceed:');
-    if (secret !== 'ADMIN_SECRET_2026') {
-      alert('Invalid Secret Code. Access Denied.');
-      window.location.href = '/';
-      return;
-    }
-    localStorage.setItem('adminSecret', secret);
+  
+  if (!role) {
+    console.error('AUTH FAILED: No role found in localStorage (token exists)');
+    alert('Unauthorized: No role. Please login with your admin account to access the admin panel');
+    window.location.href = '/';
+    return;
   }
+  
+  if (role !== 'admin_freelancer' && role !== 'admin_buyer') {
+    console.error('AUTH FAILED: Invalid role:', role);
+    alert(`Unauthorized: Invalid role "${role}". You must login with an admin account to access the admin panel`);
+    window.location.href = '/';
+    return;
+  }
+  
+  console.log('✓ Authentication passed: role is valid:', role);
 
   // API Helper
   async function fetchAdmin(endpoint, options = {}) {
@@ -54,6 +101,13 @@
       });
 
       if (!response.ok) {
+        console.warn(`Admin API error on ${endpoint}:`, {
+          status: response.status,
+          statusText: response.statusText,
+          token: token ? `${token.substring(0, 20)}...` : 'NO_TOKEN',
+          role: role,
+          adminSecret: adminSecret ? 'SET' : 'NOT_SET'
+        });
         const error = await response.json().catch(() => ({ error: 'API error' }));
         const errorMsg = error.error || `HTTP ${response.status}`;
         throw new Error(errorMsg);
@@ -61,6 +115,7 @@
 
       return await response.json();
     } catch (error) {
+      console.error('Fetch error:', error);
       showAlert(error.message, 'error');
       throw error;
     }
@@ -171,9 +226,127 @@
       document.getElementById('statPendingDeposits').textContent = data.stats?.pendingDeposits || 0;
       document.getElementById('statPendingWithdrawals').textContent = data.stats?.pendingWithdrawals || 0;
       document.getElementById('statActiveCampaigns').textContent = data.stats?.activeCampaigns || 0;
+
+      // Load analytics data
+      try {
+        const analytics = await fetchAdmin('/admin-panel/analytics');
+        displayAnalytics(analytics);
+      } catch (e) {
+        console.warn('Analytics loading failed:', e);
+      }
     } catch (error) {
       console.error('Error loading dashboard:', error);
     }
+  }
+
+  function displayAnalytics(analytics) {
+    // Create analytics section if it doesn't exist
+    const dashboardContent = document.getElementById('dashboard');
+    let analyticsSection = document.getElementById('analyticsSection');
+    
+    if (!analyticsSection) {
+      analyticsSection = document.createElement('div');
+      analyticsSection.id = 'analyticsSection';
+      analyticsSection.style.marginTop = '30px';
+      dashboardContent?.appendChild(analyticsSection);
+    }
+
+    const d = analytics.daily;
+    const t = analytics.total;
+
+    analyticsSection.innerHTML = `
+      <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+        <h3 style="color: #667eea; margin-bottom: 20px;">📊 Daily Analytics (Today)</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 30px;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(102,126,234,0.3);">
+            <div style="font-size: 14px; opacity: 0.9;">Daily Deposits</div>
+            <div style="font-size: 28px; font-weight: bold;">PKR ${(d.deposits).toLocaleString('en-PK')}</div>
+            <div style="font-size: 12px; opacity: 0.8;">${d.depositCount} deposits</div>
+          </div>
+          
+          <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(245,87,108,0.3);">
+            <div style="font-size: 14px; opacity: 0.9;">Daily Withdrawals</div>
+            <div style="font-size: 28px; font-weight: bold;">PKR ${(d.withdrawals).toLocaleString('en-PK')}</div>
+          </div>
+          
+          <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(79,172,254,0.3);">
+            <div style="font-size: 14px; opacity: 0.9;">Daily Profit</div>
+            <div style="font-size: 28px; font-weight: bold;">PKR ${(d.profit).toLocaleString('en-PK')}</div>
+          </div>
+          
+          <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(67,233,123,0.3);">
+            <div style="font-size: 14px; opacity: 0.9;">Daily Tasks</div>
+            <div style="font-size: 28px; font-weight: bold;">${d.tasks}</div>
+          </div>
+        </div>
+
+        <h3 style="color: #667eea; margin-bottom: 20px;">📈 Total Statistics</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 30px;">
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #667eea;">
+            <div style="color: #666; font-size: 14px; margin-bottom: 8px;">Total Deposits</div>
+            <div style="font-size: 24px; font-weight: bold; color: #667eea;">PKR ${(t.deposits).toLocaleString('en-PK')}</div>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #43e97b;">
+            <div style="color: #666; font-size: 14px; margin-bottom: 8px;">User Earnings</div>
+            <div style="font-size: 24px; font-weight: bold; color: #43e97b;">PKR ${(t.userEarnings).toLocaleString('en-PK')}</div>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #f5576c;">
+            <div style="color: #666; font-size: 14px; margin-bottom: 8px;">Admin Profit</div>
+            <div style="font-size: 24px; font-weight: bold; color: #f5576c;">PKR ${(t.adminProfit).toLocaleString('en-PK')}</div>
+          </div>
+        </div>
+
+        <h3 style="color: #667eea; margin-bottom: 20px;">📊 Tasks Summary</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 30px;">
+          <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 24px; font-weight: bold; color: #2196f3;">${t.tasks.total}</div>
+            <div style="font-size: 12px; color: #666;">Total Tasks</div>
+          </div>
+          
+          <div style="background: #c8e6c9; padding: 15px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 24px; font-weight: bold; color: #4caf50;">${t.tasks.completed}</div>
+            <div style="font-size: 12px; color: #666;">Completed</div>
+          </div>
+          
+          <div style="background: #fff9c4; padding: 15px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 24px; font-weight: bold; color: #fbc02d;">${t.tasks.pending}</div>
+            <div style="font-size: 12px; color: #666;">Pending</div>
+          </div>
+        </div>
+
+        <h3 style="color: #667eea; margin-bottom: 20px;">📅 Last 7 Days Deposits</h3>
+        <div id="depositsGraph" style="background: #f8f9fa; padding: 20px; border-radius: 10px; height: 250px; display: flex; align-items: flex-end; gap: 10px; justify-content: space-around;">
+          ${generateDepositsGraph(analytics.graphs.last7Days)}
+        </div>
+      </div>
+    `;
+  }
+
+  function generateDepositsGraph(last7Days) {
+    if (!last7Days || last7Days.length === 0) return '<p>No data available</p>';
+    
+    const maxDeposits = Math.max(...last7Days.map(d => d.deposits), 1);
+    
+    return last7Days.map(day => {
+      const height = Math.max(30, (day.deposits / maxDeposits) * 200);
+      const date = new Date(day.date);
+      const dayName = date.toLocaleDateString('en-PK', { weekday: 'short' });
+      
+      return `
+        <div style="display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 40px;">
+          <div style="font-size: 11px; color: #666; margin-bottom: 8px; min-height: 30px; display: flex; align-items: flex-end; justify-content: center;">
+            PKR ${(day.deposits).toLocaleString('en-PK', {maximumFractionDigits: 0})}
+          </div>
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 100%; height: ${height}px; border-radius: 6px 6px 0 0; box-shadow: 0 4px 12px rgba(102,126,234,0.2); min-height: 20px;"></div>
+          <div style="font-size: 11px; color: #666; margin-top: 8px;">${dayName}</div>
+        </div>
+      `;
+    }).join('');
   }
 
   // Users
@@ -240,7 +413,7 @@
           <button class="action-btn view" data-action="view-user" data-id="${user.id}"><i class="ri-eye-line"></i>View</button>
           ${!user.isAdmin ? `<button class="action-btn admin" data-action="make-admin" data-id="${user.id}"><i class="ri-shield-line"></i>Admin</button>` : ''}
           ${!user.isBanned ? `<button class="action-btn ban" data-action="ban-user" data-id="${user.id}"><i class="ri-forbid-line"></i>Ban</button>` : `<button class="action-btn unban" data-action="unban-user" data-id="${user.id}"><i class="ri-checkbox-circle-line"></i>Unban</button>`}
-          <button class="action-btn invite" data-action="invite-user" data-email="${user.email}"><i class="ri-mail-send-line"></i>Invite</button>
+          <button class="action-btn delete" data-action="delete-user" data-id="${user.id}" data-email="${user.email}"><i class="ri-delete-bin-line"></i>Delete</button>
         </td>
       </tr>`;
     });
@@ -260,6 +433,9 @@
     });
     document.querySelectorAll('[data-action="unban-user"]').forEach(btn => {
       btn.addEventListener('click', () => unbanUser(btn.dataset.id));
+    });
+    document.querySelectorAll('[data-action="delete-user"]').forEach(btn => {
+      btn.addEventListener('click', () => deleteUser(btn.dataset.id, btn.dataset.email));
     });
     document.querySelectorAll('[data-action="invite-user"]').forEach(btn => {
       btn.addEventListener('click', () => sendInviteToEmail(btn.dataset.email));
@@ -381,6 +557,31 @@
     unbanUser(userId);
   }
 
+  async function deleteUser(userId, userEmail) {
+    const confirmed = confirm(`Are you sure you want to delete user ${userEmail}?\n\nThis action cannot be undone!`);
+    if (!confirmed) {
+      console.log('🚫 [ADMIN] Delete user cancelled');
+      return;
+    }
+
+    try {
+      console.log('🗑️ [ADMIN] Deleting user:', userId);
+      showAlert(`Deleting user ${userEmail}...`, 'info');
+      
+      await fetchAdmin(`/admin-panel/users/${userId}/delete`, { 
+        method: 'POST'
+      });
+      
+      console.log('✅ [ADMIN] User deleted successfully:', userId);
+      showAlert('✓ User has been deleted successfully', 'success');
+      closeModal('userModal');
+      loadAllUsers();
+    } catch (error) {
+      console.error('❌ [ADMIN] Delete error:', error);
+      showAlert(`Error deleting user: ${error.message}`, 'error');
+    }
+  }
+
   // Deposits
   async function loadDeposits() {
     try {
@@ -412,9 +613,10 @@
       <tbody>`;
 
     deposits.forEach(deposit => {
+      const amount = deposit.amount || 0;
       html += `<tr>
         <td>${deposit.user?.email}</td>
-        <td>PKR ${(deposit.amount / 100).toFixed(2)}</td>
+        <td>PKR ${(amount / 100).toFixed(2)}</td>
         <td><span class="status ${deposit.status}">${deposit.status}</span></td>
         <td>${new Date(deposit.createdAt).toLocaleDateString()}</td>
         <td>
@@ -636,11 +838,12 @@
       <tbody>`;
 
     campaigns.forEach(campaign => {
+      const pricePerTask = campaign.pricePerTask || campaign.price || 0;
       html += `<tr>
         <td>${campaign.title}</td>
         <td>${campaign.type}</td>
         <td>${campaign.targetCount}</td>
-        <td>PKR ${(campaign.pricePerTask / 100).toFixed(2)}</td>
+        <td>PKR ${(pricePerTask / 100).toFixed(2)}</td>
         <td><span class="status ${campaign.status}">${campaign.status}</span></td>
         <td>
           ${campaign.status === 'pending' ? `

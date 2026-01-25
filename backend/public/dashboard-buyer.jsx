@@ -58,23 +58,23 @@ const DashboardBuyer = () => {
       <div id="headerContainer"></div>
 
       <div className="container">
-        <h1><i class="fas fa-chart-bar" style="margin-right: 5px;"></i> Buyer Dashboard</h1>
+        <h1><i className="fas fa-chart-bar" style={{marginRight: '5px'}}></i> Buyer Dashboard</h1>
 
         <div className="stats">
           <div className="stat-card">
-            <h3><i class="fas fa-money-bill" style="margin-right: 5px; color: #4caf50;"></i> Balance</h3>
+            <h3><i className="fas fa-money-bill" style={{marginRight: '5px', color: '#4caf50'}}></i> Balance</h3>
             <div className="value" id="balance">-</div>
           </div>
           <div className="stat-card">
-            <h3><i class="fas fa-rocket" style="margin-right: 5px; color: #2196f3;"></i> Active Campaigns</h3>
+            <h3><i className="fas fa-rocket" style={{marginRight: '5px', color: '#2196f3'}}></i> Active Campaigns</h3>
             <div className="value" id="activeCampaigns">-</div>
           </div>
           <div className="stat-card">
-            <h3><i class="fas fa-check-circle" style="margin-right: 5px; color: #4caf50;"></i> Completed Campaigns</h3>
+            <h3><i className="fas fa-check-circle" style={{marginRight: '5px', color: '#4caf50'}}></i> Completed Campaigns</h3>
             <div className="value" id="completedCampaigns">-</div>
           </div>
           <div className="stat-card">
-            <h3><i class="fas fa-credit-card" style="margin-right: 5px;"></i> Total Spent</h3>
+            <h3><i className="fas fa-credit-card" style={{marginRight: '5px'}}></i> Total Spent</h3>
             <div className="value" id="totalSpent">-</div>
           </div>
         </div>
@@ -82,28 +82,28 @@ const DashboardBuyer = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', margin: '20px 0' }}>
           <a href="/deposit/" style={{ textDecoration: 'none' }} className="action-card">
             <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)' }}>
-              <i class="fas fa-plus-circle" style="fontSize: '32px', display: 'block', marginBottom: '10px'"></i>
+              <i className="fas fa-plus-circle" style={{fontSize: '32px', display: 'block', marginBottom: '10px'}}></i>
               <strong>Deposit Funds</strong>
               <p style={{ fontSize: '12px', marginTop: '8px', opacity: '0.9' }}>Add balance to wallet</p>
             </div>
           </a>
           <a href="/campaigns/" style={{ textDecoration: 'none' }} className="action-card">
             <div style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(245, 87, 108, 0.3)' }}>
-              <i class="fas fa-rocket" style="fontSize: '32px', display: 'block', marginBottom: '10px'"></i>
+              <i className="fas fa-rocket" style={{fontSize: '32px', display: 'block', marginBottom: '10px'}}></i>
               <strong>Launch Campaign</strong>
               <p style={{ fontSize: '12px', marginTop: '8px', opacity: '0.9' }}>Create new campaign</p>
             </div>
           </a>
           <a href="/wallet/" style={{ textDecoration: 'none' }} className="action-card">
             <div style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(79, 172, 254, 0.3)' }}>
-              <i class="fas fa-wallet" style="fontSize: '32px', display: 'block', marginBottom: '10px'"></i>
+              <i className="fas fa-wallet" style={{fontSize: '32px', display: 'block', marginBottom: '10px'}}></i>
               <strong>Manage Wallet</strong>
               <p style={{ fontSize: '12px', marginTop: '8px', opacity: '0.9' }}>View transactions</p>
             </div>
           </a>
             <div style={{ textDecoration: 'none' }} className="action-card">
               <div style={{ background: 'linear-gradient(135deg, #2dd4bf 0%, #34d399 100%)', color: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(45, 212, 191, 0.3)' }} data-action="invite-team">
-                <i class="fas fa-user-plus" style="fontSize: '32px', display: 'block', marginBottom: '10px'"></i>
+                <i className="fas fa-user-plus" style={{fontSize: '32px', display: 'block', marginBottom: '10px'}}></i>
                 <strong>Invite Team</strong>
                 <p style={{ fontSize: '12px', marginTop: '8px', opacity: '0.9' }}>Invite members via link or code</p>
               </div>
@@ -111,14 +111,14 @@ const DashboardBuyer = () => {
         </div>
 
         <div className="card">
-          <h2><i class="fas fa-list" style="margin-right: 5px;"></i> My Campaigns</h2>
+          <h2><i className="fas fa-list" style={{marginRight: '5px'}}></i> My Campaigns</h2>
           <div id="campaignsContainer">
             <div className="loading">Loading...</div>
           </div>
         </div>
 
         <div className="card">
-          <h2><i class="fas fa-credit-card" style="margin-right: 5px;"></i> Deposit History</h2>
+          <h2><i className="fas fa-credit-card" style={{marginRight: '5px'}}></i> Deposit History</h2>
           <div id="depositsContainer">
             <div className="loading">Loading...</div>
           </div>

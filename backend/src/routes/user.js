@@ -11,6 +11,10 @@ router.get('/me', jwtMiddleware, async (req, res) => {
   if (!user) return res.status(404).send('not found');
   const sum = await prisma.walletTransaction.aggregate({ _sum: { amount: true }, where: { userId: uid } });
   const balance = sum._sum.amount || 0;
+  
+  // Use role from token (which already includes admin mix), fallback to user.role
+  const displayRole = req.user.role || user.role || 'guest';
+  
   res.json({ 
     user: { 
       id: user.id, 
@@ -23,7 +27,7 @@ router.get('/me', jwtMiddleware, async (req, res) => {
       photo: user.photo, 
       emailVerified: user.emailVerified, 
       isBanned: user.isBanned,
-      role: user.role || 'guest'  // Include role field
+      role: displayRole  // Include role field from token
     }, 
     social: user.social, 
     balance 

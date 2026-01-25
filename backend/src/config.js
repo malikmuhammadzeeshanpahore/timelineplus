@@ -1,10 +1,6 @@
 const dotenv = require('dotenv');
-const path = require('path');
 
-// Load creds.env if present (the user indicated they may keep SMTP creds there)
-const envPath = path.resolve(process.cwd(), 'creds.env');
-dotenv.config({ path: envPath });
-// fallback to .env
+// Load .env only - single source of truth
 dotenv.config();
 
 module.exports.PORT = process.env.PORT || 3000;

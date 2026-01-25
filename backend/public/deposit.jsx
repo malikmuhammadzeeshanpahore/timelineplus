@@ -133,24 +133,47 @@ setTimeout(() => {
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
       btn.textContent = 'Submitting...';
+      
       try {
         const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Not authenticated - please login again');
+        }
+        
         const formData = new FormData(form);
-        const response = await fetch('/api/wallet/deposit', {
+        const amount = Number(formData.get('amount')) * 100; // Convert PKR to cents
+        const method = formData.get('senderType') || 'bank';
+        
+        console.log('📤 [DEPOSIT] Submitting deposit:', { amount, method });
+        showInfo('Creating deposit request...');
+        
+        const response = await fetch('/api/deposits/request', {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` },
-          body: formData
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ amount, method })
         });
+        
+        console.log('📥 [DEPOSIT] API Response:', { status: response.status, ok: response.ok });
         const data = await response.json();
+        console.log('📋 [DEPOSIT] Response data:', data);
+        
         const msgDiv = document.getElementById('depositMessage');
         if (response.ok) {
-          msgDiv.innerHTML = '<div class="alert alert-success">Deposit request submitted! Admin will verify within 24 hours.</div>';
+          console.log('✅ [DEPOSIT] Success:', data);
+          showSuccess('✓ Deposit request created! Admin will review it soon.');
           form.reset();
+          setTimeout(() => loadDepositHistory(), 500);
         } else {
-          msgDiv.innerHTML = `<div class="alert alert-error">${data.error || 'Error submitting deposit'}</div>`;
+          const errorMsg = data.error || 'Error submitting deposit';
+          console.error('❌ [DEPOSIT] Error:', errorMsg);
+          showError(`Error: ${errorMsg}`);
         }
       } catch (err) {
-        document.getElementById('depositMessage').innerHTML = `<div class="alert alert-error">Error: ${err.message}</div>`;
+        console.error('⚠️ [DEPOSIT] Exception:', err.message);
+        showError(`Error: ${err.message}`);
       } finally {
         btn.disabled = false;
         btn.textContent = 'Submit Deposit Request';
@@ -161,24 +184,38 @@ setTimeout(() => {
   function loadDepositHistory() {
     const token = localStorage.getItem('token');
     const container = document.getElementById('depositHistoryContainer');
-    fetch('/api/wallet/deposits', {
+    
+    console.log('📋 [HISTORY] Fetching deposit history...');
+    fetch('/api/deposits/history', {
       headers: { 'Authorization': `Bearer ${token}` }
-    }).then(r => r.json()).then(data => {
-      if (data.deposits && data.deposits.length > 0) {
-        container.innerHTML = data.deposits.map(d => `
+    }).then(r => {
+      console.log('📥 [HISTORY] Response status:', r.status);
+      return r.json();
+    }).then(data => {
+      console.log('📊 [HISTORY] Data received:', data);
+      const deposits = Array.isArray(data) ? data : data.deposits || [];
+      console.log('📝 [HISTORY] Deposits count:', deposits.length);
+      
+      if (deposits.length > 0) {
+        container.innerHTML = deposits.map(d => `
           <div class="history-item">
             <div>
-              <div class="amount">PKR ${d.amount.toLocaleString()}</div>
-              <div class="meta">${new Date(d.createdAt).toLocaleDateString('en-PK')}</div>
+              <div class="amount">PKR ${(d.amount / 100).toFixed(2)}</div>
+              <div class="meta">${new Date(d.createdAt).toLocaleDateString('en-PK')} • ${d.method}</div>
             </div>
             <span class="status status-${d.status.toLowerCase()}">${d.status}</span>
           </div>
         `).join('');
+        console.log('✅ [HISTORY] Rendered', deposits.length, 'deposits');
       } else {
         container.innerHTML = '<div class="alert alert-info">No deposits yet.</div>';
+        console.log('ℹ️ [HISTORY] No deposits found');
       }
     }).catch(err => {
+      console.error('❌ [HISTORY] Error:', err);
       container.innerHTML = `<div class="alert alert-error">Error: ${err.message}</div>`;
+      showError(`Failed to load history: ${err.message}`);
     });
   }
 }, 100);
+

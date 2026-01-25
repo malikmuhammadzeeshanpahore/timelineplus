@@ -199,7 +199,7 @@ function populateMobileMenuByRole(role, mobileMenu) {
       <div class="mobile-menu-divider"></div>
       <button class="logout" id="mobileLogout"><i class="fas fa-sign-out-alt" style="margin-right: 12px;"></i>Logout</button>
     `;
-  } else if (role === 'admin') {
+  } else if (role && role.startsWith('admin/')) {
     menuHTML = `
       <a href="/admin-panel/"><i class="fas fa-cog" style="margin-right: 12px;"></i>Admin Panel</a>
       <a href="/profile/"><i class="fas fa-user" style="margin-right: 12px;"></i>Profile</a>

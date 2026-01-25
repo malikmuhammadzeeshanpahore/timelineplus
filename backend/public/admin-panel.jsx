@@ -45,6 +45,7 @@ const AdminPanel = () => {
     .action-btn.ban { background: #e67e22; color: white; }
     .action-btn.unban { background: #27ae60; color: white; }
     .action-btn.admin { background: #9b59b6; color: white; }
+    .action-btn.delete { background: #c0392b; color: white; }
     .action-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     .status { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-block; }
     .status.active { background: #d4edda; color: #155724; }
@@ -260,8 +261,9 @@ const AdminPanel = () => {
         </div>
       </div>
 
-      <script src="/js/site.js"></script>
+      <script src="/js/localstorage-monitor.js"></script>
       <script src="/js/admin.js"></script>
+      <script src="/js/site.js"></script>
     </>
   );
 };

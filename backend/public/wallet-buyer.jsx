@@ -9,31 +9,76 @@ const WalletBuyer = () => {
     const role = localStorage.getItem('role') || 'buyer';
     setToken(token);
     setRole(role);
-
-    // Load inline scripts from HTML if any
   }, []);
 
   return (
     <>
-      <header className="header">
-  <div className="nav container d-flex align-items-center">
-    <div className="brand"><img src="/logo.png"/><span className="label">TimelinePlus</span></div>
-    <nav className="navbar" aria-label="Main navigation">
-      <a href="/services.html"><i className="ri-briefcase-4-line"></i><span className="nav-label">Services</span></a>
-      <a href="/orders.html"><i className="ri-shopping-cart-line"></i><span className="nav-label">Active Campaigns</span></a>
-      <a href="/support.html"><i className="ri-question-line"></i><span className="nav-label">Support</span></a>
-    </nav>
-    <div className="right" style="margin-left:auto"><a href="/orders.html" className="action">Orders</a><a href="/profile-buyer.html" className="action">Profile</a></div>
-  </div>
-</header>
-<main className="site-main container"><div className="card"><h3>Wallet</h3><p className="small">Balance: <strong>$<span id="wallet-balance">--</span></strong></p>
-<div style="margin-top:12px"><h4>Top up</h4><form id="topup-form"><input id="topup-amount" placeholder="Amount" type="number" min="1" step="0.01"/><button className="btn-primary">Top up</button></form></div>
-<div style="margin-top:12px"><h4>Withdraw</h4><p className="small">Withdraw to your linked bank or Payoneer/PayPal.</p>
-<form id="withdraw-form"><input id="withdraw-amount" placeholder="Amount" type="number" min="1" step="0.01"/><select id="withdraw-method"><option value="manual">Manual</option><option value="paypal">PayPal</option><option value="bank">Bank</option></select><input id="withdraw-details" placeholder="Details (bank or PayPal email)" type="text"/><button className="btn-outline">Request Withdraw</button></form></div></div></main>
-<script src="/js/wallet-auth.js"></script>
-<script src="/js/wallet.js"></script>
+      <header id="header-placeholder"></header>
+      <main className="site-main container">
+        <div className="card">
+          <h3>Wallet</h3>
+          <p className="small">Balance: <strong>PKR <span id="wallet-balance">--</span></strong></p>
+          
+          <div style={{marginTop: '20px'}}>
+            <div className="tabs" id="wallet-tabs">
+              <button className="tab-btn active" data-tab="transaction-history">Transaction History</button>
+              <button className="tab-btn" data-tab="deposit-funds">Deposit Funds</button>
+              <button className="tab-btn" data-tab="withdraw-funds">Withdraw Funds</button>
+            </div>
+            
+            <div id="transaction-history" className="tab-content active" style={{marginTop: '15px'}}>
+              <h4>Transaction History</h4>
+              <table id="transaction-table" style={{width: '100%', borderCollapse: 'collapse'}}>
+                <thead>
+                  <tr style={{borderBottom: '1px solid #ddd'}}>
+                    <th style={{textAlign: 'left', padding: '8px'}}>Date</th>
+                    <th style={{textAlign: 'left', padding: '8px'}}>Type</th>
+                    <th style={{textAlign: 'right', padding: '8px'}}>Amount</th>
+                    <th style={{textAlign: 'left', padding: '8px'}}>Details</th>
+                  </tr>
+                </thead>
+                <tbody id="transaction-tbody">
+                  <tr><td colSpan="4" style={{textAlign: 'center', padding: '10px'}}>Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div id="deposit-funds" className="tab-content" style={{marginTop: '15px', display: 'none'}}>
+              <h4>Top Up Wallet</h4>
+              <form id="topup-form">
+                <input id="topup-amount" placeholder="Amount (PKR)" type="number" min="1" step="1" style={{padding: '8px', marginRight: '10px', width: '200px'}}/>
+                <button className="btn-primary" type="submit">Top Up</button>
+              </form>
+            </div>
+
+            <div id="withdraw-funds" className="tab-content" style={{marginTop: '15px', display: 'none'}}>
+              <h4>Request Withdrawal</h4>
+              <p className="small">Withdraw to your linked bank or PayPal account.</p>
+              <form id="withdraw-form">
+                <div style={{marginBottom: '10px'}}>
+                  <input id="withdraw-amount" placeholder="Amount (PKR)" type="number" min="1" step="1" style={{padding: '8px', marginRight: '10px', width: '200px'}}/>
+                </div>
+                <div style={{marginBottom: '10px'}}>
+                  <select id="withdraw-method" style={{padding: '8px', marginRight: '10px'}}>
+                    <option value="">Select method</option>
+                    <option value="bank">Bank Transfer</option>
+                    <option value="paypal">PayPal</option>
+                    <option value="manual">Manual</option>
+                  </select>
+                </div>
+                <div style={{marginBottom: '10px'}}>
+                  <input id="withdraw-details" placeholder="Bank account or PayPal email" type="text" style={{padding: '8px', marginRight: '10px', width: '300px'}}/>
+                </div>
+                <button className="btn-outline" type="submit">Request Withdrawal</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </main>
+      <script src="/js/wallet-buyer.js"></script>
     </>
   );
 };
 
 export default WalletBuyer;
+

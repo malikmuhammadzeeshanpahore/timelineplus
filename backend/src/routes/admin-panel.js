@@ -3,62 +3,16 @@ const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../config');
+const { auth } = require('../middleware/auth');
 
 const prisma = new PrismaClient();
 const router = express.Router();
-
-// Verify JWT token middleware
-function verifyToken(req, res, next) {
-  const auth = req.headers.authorization;
-  if (!auth || !auth.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
-  
-  const token = auth.slice(7);
-  try {
-    const data = jwt.verify(token, JWT_SECRET);
-    req.user = { id: data.uid };
-    next();
-  } catch (err) {
-    res.status(401).json({ error: 'Invalid token' });
-  }
-}
-
-// Verify admin middleware
-async function verifyAdmin(req, res, next) {
-  if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
-
-  const user = await prisma.user.findUnique({
-    where: { id: req.user.id }
-  });
-
-  // Return 404 to avoid leaking admin-panel existence to non-admin users
-  if (!user?.isAdmin) return res.status(404).json({ error: 'not found' });
-
-  req.user.isAdmin = true;
-  next();
-}
-
-// Verify admin secret code
-function verifyAdminCode(req, res, next) {
-  const { code } = req.params;
-  if (!code) return res.status(400).json({ error: 'Secret code required' });
-
-  // ensure user is admin; treat non-admin as not found
-  if (!req.user || !req.user.id) return res.status(404).json({ error: 'not found' });
-
-  prisma.user.findUnique({ where: { id: req.user.id } })
-    .then(u => {
-      if (!u || !u.isAdmin) return res.status(404).json({ error: 'not found' });
-      req.user = { ...req.user, code };
-      next();
-    })
-    .catch(err => res.status(500).json({ error: err.message }));
-}
 
 // ==================== ADMIN REGISTRATION ====================
 
 /**
  * POST /admin-panel/register/:code
- * Register new admin account using secret code
+ * Register new admin account using secret code (NO AUTH REQUIRED)
  */
 router.post('/register/:code', async (req, res) => {
   try {
@@ -119,7 +73,7 @@ router.post('/register/:code', async (req, res) => {
  * GET /admin-panel/verify/:code
  * Verify admin can access panel with secret code
  */
-router.get('/verify/:code', verifyToken, verifyAdmin, async (req, res) => {
+router.get('/verify/:code', async (req, res) => {
   try {
     const { code } = req.params;
     
@@ -138,13 +92,15 @@ router.get('/verify/:code', verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 
+router.use(auth(['admin_freelancer', 'admin_buyer']));
+
 // ==================== USER MANAGEMENT ====================
 
 /**
  * GET /admin-panel/dashboard
  * Admin dashboard overview
  */
-router.get('/dashboard', verifyToken, verifyAdmin, async (req, res) => {
+router.get('/dashboard', async (req, res) => {
   try {
     const totalUsers = await prisma.user.count();
     const totalAdmins = await prisma.user.count({ where: { isAdmin: true } });
@@ -169,10 +125,133 @@ router.get('/dashboard', verifyToken, verifyAdmin, async (req, res) => {
 });
 
 /**
+ * GET /admin-panel/analytics
+ * Get detailed analytics with graphs data
+ */
+router.get('/analytics', async (req, res) => {
+  try {
+    // Get today's date at midnight (PKT timezone)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Daily deposits (today)
+    const dailyDeposits = await prisma.deposit.aggregate({
+      where: {
+        status: 'approved',
+        createdAt: { gte: today, lt: tomorrow }
+      },
+      _sum: { amount: true },
+      _count: { id: true }
+    });
+
+    // Total deposits (all time)
+    const totalDeposits = await prisma.deposit.aggregate({
+      where: { status: 'approved' },
+      _sum: { amount: true }
+    });
+
+    // Daily withdrawals (today)
+    const dailyWithdrawals = await prisma.withdrawal.aggregate({
+      where: {
+        status: 'approved',
+        createdAt: { gte: today, lt: tomorrow }
+      },
+      _sum: { amount: true }
+    });
+
+    // Total tasks
+    const totalTasks = await prisma.campaignTask.count();
+    const completedTasks = await prisma.campaignTask.count({ where: { status: 'paid' } });
+    const pendingTasks = await prisma.campaignTask.count({ where: { status: 'pending' } });
+
+    // Daily tasks (today)
+    const dailyTasks = await prisma.campaignTask.count({
+      where: {
+        createdAt: { gte: today, lt: tomorrow }
+      }
+    });
+
+    // User earnings (total wallet transactions - positive)
+    const userEarnings = await prisma.walletTransaction.aggregate({
+      where: { amount: { gt: 0 } },
+      _sum: { amount: true }
+    });
+
+    // Calculate admin profit
+    // Admin profit = deposits - approved withdrawals + (60% from campaigns as admin cut)
+    const campaignAdminProfits = await prisma.campaignTask.aggregate({
+      where: { status: 'paid' },
+      _sum: { rewardPerTask: true }
+    });
+
+    const taskCount = await prisma.campaignTask.count({ where: { status: 'paid' } });
+    const totalTaskRewards = (campaignAdminProfits._sum.rewardPerTask || 0) * taskCount;
+    const adminCut = Math.floor(totalTaskRewards * (60 / 40)); // 60% of the 40% task reward = 150% extra
+
+    const totalDepositsAmount = (totalDeposits._sum.amount || 0);
+    const totalWithdrawalsAmount = await prisma.withdrawal.aggregate({
+      where: { status: 'approved' },
+      _sum: { amount: true }
+    });
+
+    const adminProfit = totalDepositsAmount - (totalWithdrawalsAmount._sum.amount || 0) + adminCut;
+
+    // Daily profit (today's deposits - today's withdrawals)
+    const dailyProfit = (dailyDeposits._sum.amount || 0) - (dailyWithdrawals._sum.amount || 0);
+
+    // Get last 7 days data for graph
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const nextDate = new Date(date);
+      nextDate.setDate(nextDate.getDate() + 1);
+
+      const dayDeposits = await prisma.deposit.aggregate({
+        where: { status: 'approved', createdAt: { gte: date, lt: nextDate } },
+        _sum: { amount: true }
+      });
+
+      last7Days.push({
+        date: date.toISOString().split('T')[0],
+        deposits: (dayDeposits._sum.amount || 0) / 100 // Convert to PKR
+      });
+    }
+
+    res.json({
+      daily: {
+        deposits: (dailyDeposits._sum.amount || 0) / 100,
+        depositCount: dailyDeposits._count.id || 0,
+        withdrawals: (dailyWithdrawals._sum.amount || 0) / 100,
+        tasks: dailyTasks,
+        profit: dailyProfit / 100
+      },
+      total: {
+        deposits: totalDepositsAmount / 100,
+        userEarnings: (userEarnings._sum.amount || 0) / 100,
+        adminProfit: adminProfit / 100,
+        tasks: {
+          total: totalTasks,
+          completed: completedTasks,
+          pending: pendingTasks
+        }
+      },
+      graphs: {
+        last7Days
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * GET /admin-panel/users?q=email&page=1
  * Search and list users
  */
-router.get('/users', verifyToken, verifyAdmin, async (req, res) => {
+router.get('/users', async (req, res) => {
   try {
     const q = String(req.query.q || '').trim();
     const page = Number(req.query.page || 1);
@@ -218,7 +297,7 @@ router.get('/users', verifyToken, verifyAdmin, async (req, res) => {
  * GET /admin-panel/users/:userId
  * Get detailed user information
  */
-router.get('/users/:userId', verifyToken, verifyAdmin, async (req, res) => {
+router.get('/users/:userId', async (req, res) => {
   try {
     const userId = parseInt(req.params.userId);
 
@@ -226,9 +305,9 @@ router.get('/users/:userId', verifyToken, verifyAdmin, async (req, res) => {
       where: { id: userId },
       include: {
         wallet: true,
-        socialAccounts: true,
+        social: true,
         deposits: { take: 5, orderBy: { createdAt: 'desc' } },
-        campaigns: { take: 5, orderBy: { createdAt: 'desc' } },
+        campaignsAsBuyer: { take: 5, orderBy: { createdAt: 'desc' } },
         campaignTasks: { take: 5, orderBy: { createdAt: 'desc' } },
         withdrawals: { take: 5, orderBy: { createdAt: 'desc' } }
       }
@@ -239,7 +318,7 @@ router.get('/users/:userId', verifyToken, verifyAdmin, async (req, res) => {
     // Calculate statistics
     const totalEarnings = await prisma.campaignTask.aggregate({
       where: { freelancerId: userId, status: 'paid' },
-      _sum: { reward: true }
+      _sum: { rewardPerTask: true }
     });
 
     const totalWithdrawn = await prisma.withdrawal.aggregate({
@@ -255,7 +334,7 @@ router.get('/users/:userId', verifyToken, verifyAdmin, async (req, res) => {
     res.json({
       user: {
         ...user,
-        totalEarnings: totalEarnings._sum.reward || 0,
+        totalEarnings: totalEarnings._sum.rewardPerTask || 0,
         totalWithdrawn: totalWithdrawn._sum.amount || 0,
         totalDeposits: totalDeposits._sum.amount || 0
       }
@@ -269,7 +348,7 @@ router.get('/users/:userId', verifyToken, verifyAdmin, async (req, res) => {
  * POST /admin-panel/users/:userId/make-admin
  * Make user an admin
  */
-router.post('/users/:userId/make-admin', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/users/:userId/make-admin', async (req, res) => {
   try {
     const userId = Number(req.params.userId);
     
@@ -296,7 +375,7 @@ router.post('/users/:userId/make-admin', verifyToken, verifyAdmin, async (req, r
  * POST /admin-panel/users/:userId/ban
  * Ban a user
  */
-router.post('/users/:userId/ban', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/users/:userId/ban', async (req, res) => {
   try {
     const userId = parseInt(req.params.userId);
     const { reason } = req.body;
@@ -329,7 +408,7 @@ router.post('/users/:userId/ban', verifyToken, verifyAdmin, async (req, res) => 
  * POST /admin-panel/users/:userId/unban
  * Unban a user
  */
-router.post('/users/:userId/unban', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/users/:userId/unban', async (req, res) => {
   try {
     const userId = parseInt(req.params.userId);
 
@@ -357,10 +436,60 @@ router.post('/users/:userId/unban', verifyToken, verifyAdmin, async (req, res) =
 });
 
 /**
+ * POST /admin-panel/users/:userId/delete
+ * Delete a user permanently
+ */
+router.post('/users/:userId/delete', auth, async (req, res) => {
+  try {
+    // Check if requester is admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ error: 'Only admins can delete users' });
+    }
+
+    const userId = parseInt(req.params.userId);
+
+    // Cannot delete self
+    if (userId === req.user.id) {
+      return res.status(400).json({ error: 'Cannot delete your own account' });
+    }
+
+    // Get user details for logging
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Delete user and all related data
+    // This will cascade delete due to Prisma relations
+    await prisma.user.delete({
+      where: { id: userId }
+    });
+
+    // Log the action
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.user.id,
+        action: 'delete_user',
+        meta: JSON.stringify({ userId, email: user.email })
+      }
+    });
+
+    console.log(`🗑️ [ADMIN] User deleted: ${user.email} (ID: ${userId}) by admin ${req.user.email}`);
+    res.json({ success: true, message: `User ${user.email} has been deleted` });
+  } catch (error) {
+    console.error('❌ [ADMIN] Delete user error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * POST /admin-panel/users/:userId/suspend
  * Suspend user (temporary ban)
  */
-router.post('/users/:userId/suspend', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/users/:userId/suspend', async (req, res) => {
   try {
     const { hours = 24 } = req.body;
     const userId = Number(req.params.userId);
@@ -392,7 +521,7 @@ router.post('/users/:userId/suspend', verifyToken, verifyAdmin, async (req, res)
  * GET /admin-panel/deposits?status=pending
  * List deposits
  */
-router.get('/deposits', verifyToken, verifyAdmin, async (req, res) => {
+router.get('/deposits', async (req, res) => {
   try {
     const status = req.query.status || 'pending';
     const page = Number(req.query.page || 1);
@@ -423,7 +552,7 @@ router.get('/deposits', verifyToken, verifyAdmin, async (req, res) => {
  * POST /admin-panel/deposits/:depositId/approve
  * Approve deposit
  */
-router.post('/deposits/:depositId/approve', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/deposits/:depositId/approve', async (req, res) => {
   try {
     const depositId = Number(req.params.depositId);
 
@@ -434,6 +563,11 @@ router.post('/deposits/:depositId/approve', verifyToken, verifyAdmin, async (req
 
     if (!deposit) return res.status(404).json({ error: 'Deposit not found' });
 
+    // Ensure we have the user ID
+    if (!deposit.userId) {
+      return res.status(400).json({ error: 'Deposit has no associated user' });
+    }
+
     // Update deposit status
     const updated = await prisma.deposit.update({
       where: { id: depositId },
@@ -443,10 +577,11 @@ router.post('/deposits/:depositId/approve', verifyToken, verifyAdmin, async (req
       }
     });
 
-    // Add funds to wallet
-    await prisma.wallet.update({
+    // Add funds to wallet (create if doesn't exist)
+    await prisma.wallet.upsert({
       where: { userId: deposit.userId },
-      data: { balance: { increment: deposit.amount } }
+      create: { userId: deposit.userId, balance: deposit.amount },
+      update: { balance: { increment: deposit.amount } }
     });
 
     await prisma.walletTransaction.create({
@@ -476,7 +611,7 @@ router.post('/deposits/:depositId/approve', verifyToken, verifyAdmin, async (req
  * POST /admin-panel/deposits/:depositId/reject
  * Reject deposit
  */
-router.post('/deposits/:depositId/reject', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/deposits/:depositId/reject', async (req, res) => {
   try {
     const { reason } = req.body;
     const depositId = Number(req.params.depositId);
@@ -512,7 +647,7 @@ router.post('/deposits/:depositId/reject', verifyToken, verifyAdmin, async (req,
  * GET /admin-panel/withdrawals?status=pending
  * List withdrawal requests
  */
-router.get('/withdrawals', verifyToken, verifyAdmin, async (req, res) => {
+router.get('/withdrawals', async (req, res) => {
   try {
     const status = req.query.status || 'pending';
     const page = Number(req.query.page || 1);
@@ -543,7 +678,7 @@ router.get('/withdrawals', verifyToken, verifyAdmin, async (req, res) => {
  * GET /admin-panel/withdrawals/:withdrawalId
  * Get detailed withdrawal information
  */
-router.get('/withdrawals/:withdrawalId', verifyToken, verifyAdmin, async (req, res) => {
+router.get('/withdrawals/:withdrawalId', async (req, res) => {
   try {
     const withdrawalId = parseInt(req.params.withdrawalId);
 
@@ -578,7 +713,7 @@ router.get('/withdrawals/:withdrawalId', verifyToken, verifyAdmin, async (req, r
  * POST /admin-panel/withdrawals/:withdrawalId/approve
  * Approve withdrawal and deduct 20% fee
  */
-router.post('/withdrawals/:withdrawalId/approve', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/withdrawals/:withdrawalId/approve', async (req, res) => {
   try {
     const withdrawalId = parseInt(req.params.withdrawalId);
     const { transactionId } = req.body;
@@ -681,7 +816,7 @@ router.post('/withdrawals/:withdrawalId/approve', verifyToken, verifyAdmin, asyn
  * POST /admin-panel/withdrawals/:withdrawalId/reject
  * Reject withdrawal and refund to wallet
  */
-router.post('/withdrawals/:withdrawalId/reject', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/withdrawals/:withdrawalId/reject', async (req, res) => {
   try {
     const withdrawalId = parseInt(req.params.withdrawalId);
     const { reason } = req.body;
@@ -754,7 +889,7 @@ router.post('/withdrawals/:withdrawalId/reject', verifyToken, verifyAdmin, async
  * GET /admin-panel/campaigns?status=pending
  * List campaigns awaiting approval
  */
-router.get('/campaigns', verifyToken, verifyAdmin, async (req, res) => {
+router.get('/campaigns', async (req, res) => {
   try {
     const status = req.query.status || 'pending';
     const page = Number(req.query.page || 1);
@@ -788,7 +923,7 @@ router.get('/campaigns', verifyToken, verifyAdmin, async (req, res) => {
  * POST /admin-panel/campaigns/:campaignId/approve
  * Approve campaign
  */
-router.post('/campaigns/:campaignId/approve', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/campaigns/:campaignId/approve', async (req, res) => {
   try {
     const campaignId = Number(req.params.campaignId);
 
@@ -820,7 +955,10 @@ router.post('/campaigns/:campaignId/approve', verifyToken, verifyAdmin, async (r
       });
     }
 
-    await prisma.campaignTask.createMany({ data: tasks });
+    // Create tasks one by one since createMany might not be supported
+    for (const task of tasks) {
+      await prisma.campaignTask.create({ data: task });
+    }
 
     await prisma.adminLog.create({
       data: {
@@ -862,7 +1000,7 @@ router.post('/campaigns/:campaignId/approve', verifyToken, verifyAdmin, async (r
  * POST /admin-panel/campaigns/:campaignId/reject
  * Reject campaign
  */
-router.post('/campaigns/:campaignId/reject', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/campaigns/:campaignId/reject', async (req, res) => {
   try {
     const { reason } = req.body;
     const campaignId = Number(req.params.campaignId);
@@ -898,7 +1036,7 @@ router.post('/campaigns/:campaignId/reject', verifyToken, verifyAdmin, async (re
  * POST /admin-panel/secrets/:code/generate
  * Generate new secret codes (admin only)
  */
-router.post('/secrets/:code/generate', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/secrets/:code/generate', async (req, res) => {
   try {
     const { purpose, count = 1 } = req.body;
 
@@ -935,7 +1073,7 @@ router.post('/secrets/:code/generate', verifyToken, verifyAdmin, async (req, res
  * POST /admin-panel/admin/:code/change-password
  * Admin changes their password
  */
-router.post('/admin/:code/change-password', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/admin/:code/change-password', async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
 
@@ -985,7 +1123,7 @@ router.post('/admin/:code/change-password', verifyToken, verifyAdmin, async (req
  * GET /admin-panel/secrets/:code/list
  * List all active secret codes
  */
-router.get('/secrets/:code/list', verifyToken, verifyAdmin, async (req, res) => {
+router.get('/secrets/:code/list', async (req, res) => {
   try {
     const secrets = await prisma.adminSecret.findMany({
       where: { isActive: true },
@@ -1002,7 +1140,7 @@ router.get('/secrets/:code/list', verifyToken, verifyAdmin, async (req, res) => 
  * POST /admin-panel/secrets/:code/:secretId/disable
  * Disable a secret code
  */
-router.post('/secrets/:code/:secretId/disable', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/secrets/:code/:secretId/disable', async (req, res) => {
   try {
     const secretId = Number(req.params.secretId);
 
@@ -1029,7 +1167,7 @@ router.post('/secrets/:code/:secretId/disable', verifyToken, verifyAdmin, async 
  * POST /admin-panel/secrets/:code/:secretId/reset
  * Reset/change a secret code
  */
-router.post('/secrets/:code/:secretId/reset', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/secrets/:code/:secretId/reset', async (req, res) => {
   try {
     const secretId = Number(req.params.secretId);
 
@@ -1076,7 +1214,7 @@ router.post('/secrets/:code/:secretId/reset', verifyToken, verifyAdmin, async (r
  * POST /admin-panel/users/:userId/trust-score/increase
  * Manually increase user's trust score
  */
-router.post('/users/:userId/trust-score/increase', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/users/:userId/trust-score/increase', async (req, res) => {
   try {
     const { userId } = req.params;
     const { increase, reason } = req.body;
@@ -1133,7 +1271,7 @@ router.post('/users/:userId/trust-score/increase', verifyToken, verifyAdmin, asy
  * POST /admin-panel/users/:userId/trust-score/decrease
  * Manually decrease user's trust score
  */
-router.post('/users/:userId/trust-score/decrease', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/users/:userId/trust-score/decrease', async (req, res) => {
   try {
     const { userId } = req.params;
     const { decrease, reason } = req.body;
@@ -1220,7 +1358,7 @@ router.post('/users/:userId/trust-score/decrease', verifyToken, verifyAdmin, asy
  * GET /admin-panel/users/:userId/trust-score/history
  * Get trust score change history for user
  */
-router.get('/users/:userId/trust-score/history', verifyToken, verifyAdmin, async (req, res) => {
+router.get('/users/:userId/trust-score/history', async (req, res) => {
   try {
     const { userId } = req.params;
 
@@ -1242,7 +1380,7 @@ router.get('/users/:userId/trust-score/history', verifyToken, verifyAdmin, async
  * GET /admin-panel/ban-records
  * Get all ban records
  */
-router.get('/ban-records', verifyToken, verifyAdmin, async (req, res) => {
+router.get('/ban-records', async (req, res) => {
   try {
     const records = await prisma.banRecord.findMany({
       include: {
@@ -1261,7 +1399,7 @@ router.get('/ban-records', verifyToken, verifyAdmin, async (req, res) => {
  * POST /admin-panel/ban/:banId/unlock
  * Unlock a banned user account (after payment)
  */
-router.post('/ban/:banId/unlock', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/ban/:banId/unlock', async (req, res) => {
   try {
     const { banId } = req.params;
     const { confirmed } = req.body;

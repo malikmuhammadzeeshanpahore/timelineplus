@@ -224,7 +224,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Show a fallback header
         const c = document.getElementById('headerContainer');
         if (c) {
-c.innerHTML = '<header style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;'><div style="display:flex;align-items:center;gap:12px;"><h1><a href="/" style="color: white; text-decoration: none; display: flex; align-items: center; gap: 10px;"><i class="fas fa-clock"></i>TimelinePlus</a></h1></div><div style="display: flex; align-items: center; gap: 15px;"><span id="userEmail" style="color: white; font-size: 14px;">User</span><button id="fallbackLogout" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 5px;"><i class="fas fa-sign-out-alt" style="margin-right: 5px;"></i>Logout</button></div></header>'; c.querySelector && setTimeout(()=>{ const fb = document.getElementById('fallbackLogout'); if(fb) fb.addEventListener('click', ()=>{ localStorage.removeItem('token'); window.location.href='/register/'; }); }, 50);
+          const fallbackHeader = document.createElement('header');
+          fallbackHeader.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+          fallbackHeader.style.color = 'white';
+          fallbackHeader.style.padding = '15px 20px';
+          fallbackHeader.style.display = 'flex';
+          fallbackHeader.style.justifyContent = 'space-between';
+          fallbackHeader.style.alignItems = 'center';
+          
+          fallbackHeader.innerHTML = `
+            <div style="display:flex;align-items:center;gap:12px;">
+              <h1><a href="/" style="color: white; text-decoration: none; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-clock"></i>TimelinePlus
+              </a></h1>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+              <span id="userEmail" style="color: white; font-size: 14px;">User</span>
+              <button id="fallbackLogout" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 5px;">
+                <i class="fas fa-sign-out-alt" style="margin-right: 5px;"></i>Logout
+              </button>
+            </div>
+          `;
+          
+          c.appendChild(fallbackHeader);
+          
+          setTimeout(() => {
+            const fb = document.getElementById('fallbackLogout');
+            if (fb) {
+              fb.addEventListener('click', () => {
+                localStorage.removeItem('token');
+                window.location.href = '/register/';
+              });
+            }
+          }, 50);
         }
       });
   } catch (err) {

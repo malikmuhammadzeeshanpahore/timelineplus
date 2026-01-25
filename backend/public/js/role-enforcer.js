@@ -18,6 +18,14 @@ document.addEventListener('DOMContentLoaded', () => {
     admin: {
       allowed: ['/admin-panel', '/profile', '/support', '/login', '/register', '/forgot'],
       redirectTo: '/admin-panel.html'
+    },
+    admin_freelancer: {
+      allowed: ['/admin-panel', '/profile', '/support', '/login', '/register', '/forgot'],
+      redirectTo: '/admin-panel.html'
+    },
+    admin_buyer: {
+      allowed: ['/admin-panel', '/profile', '/support', '/login', '/register', '/forgot'],
+      redirectTo: '/admin-panel.html'
     }
   };
 

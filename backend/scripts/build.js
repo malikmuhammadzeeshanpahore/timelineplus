@@ -232,6 +232,11 @@ function build() {
         html = html.replace('</body>', `<script src="/js/${base}.js"></script>\n</body>`);
       }
 
+      // For deposit, campaigns, and wallet pages, inject toast first, then their scripts
+      if (base === 'deposit' || base === 'campaigns' || base === 'wallet-buyer') {
+        html = html.replace('</body>', `<script src="/js/toast.js"></script>\n<script src="/js/${base}.js"></script>\n</body>`);
+      }
+
       // Inject role enforcer on all pages to protect access
       if (!['login', 'register', 'forgot', 'index'].includes(base)) {
         html = html.replace('<body>', `<body>\n<script src="/js/role-enforcer.js"></script>`);

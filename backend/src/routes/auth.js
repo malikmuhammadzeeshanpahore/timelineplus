@@ -51,9 +51,20 @@ router.get('/verify', async (req, res) => {
   }
 });
 
+// Check if user is admin (without authentication)
+router.post('/check-admin', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'email required' });
+  
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) return res.json({ isAdmin: false });
+  
+  res.json({ isAdmin: user.isAdmin || false });
+});
+
 // Login
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, loginAs } = req.body;
   console.log('Login attempt:', { email, hasPassword: !!password, bodyKeys: Object.keys(req.body) });
   
   if (!email || !password) {
@@ -78,9 +89,21 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'invalid credentials' });
   }
 
-  const token = signToken({ uid: user.id });
-  console.log('Login successful:', { email, userId: user.id });
-  res.json({ token, user: { id: user.id, email: user.email, username: user.username } });
+  let finalRole = user.role || 'freelancer';
+  
+  if (user.isAdmin) {
+    if (loginAs === 'freelancer') {
+      finalRole = 'admin_freelancer';
+    } else if (loginAs === 'buyer') {
+      finalRole = 'admin_buyer';
+    } else {
+      return res.status(400).json({ error: 'Admin must select loginAs: freelancer or buyer' });
+    }
+  }
+
+  const token = signToken({ uid: user.id, role: finalRole, isAdmin: user.isAdmin });
+  console.log('Login successful:', { email, userId: user.id, isAdmin: user.isAdmin, finalRole });
+  res.json({ token, user: { id: user.id, email: user.email, username: user.username, role: finalRole } });
 });
 
 // Request reset

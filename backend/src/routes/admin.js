@@ -1,16 +1,13 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
-const { jwtMiddleware, adminOnly } = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 
 const prisma = new PrismaClient();
 const router = express.Router();
 
-// Apply auth middleware to all admin routes
-router.use(jwtMiddleware);
-router.use(adminOnly);
+router.use(auth(['admin_freelancer', 'admin_buyer']));
 
-// Search users by email or username
 router.get('/users', async (req, res) => {
   const q = String(req.query.q || '');
   const users = await prisma.user.findMany({ where: { OR: [{ email: { contains: q } }, { username: { contains: q } }] } });
@@ -44,7 +41,6 @@ router.post('/users/:id/reset-password', async (req, res) => {
   res.json({ success: true });
 });
 
-// grant wallet credit
 router.post('/users/:id/grant', async (req, res) => {
   const id = Number(req.params.id);
   const adminId = Number(req.body.adminId || 0);
@@ -55,7 +51,6 @@ router.post('/users/:id/grant', async (req, res) => {
   res.json({ success: true });
 });
 
-// list withdraws
 router.get('/withdraws', async (req, res) => {
   const list = await prisma.withdrawRequest.findMany({ orderBy: { createdAt: 'desc' } });
   res.json({ list });

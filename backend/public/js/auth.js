@@ -24,38 +24,106 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const picker = form.querySelector('.role-selector');
     if(!picker) return;
     const hidden = form.querySelector('input[name="role"]') || (()=>{ const i=document.createElement('input'); i.type='hidden'; i.name='role'; form.appendChild(i); return i; })();
-    picker.querySelectorAll('.role-pill').forEach(p=>p.addEventListener('click', ()=>{
-      picker.querySelectorAll('.role-pill').forEach(x=>x.classList.remove('active'));
-      p.classList.add('active'); hidden.value = p.dataset.role;
-    }));
-    // default
-    const active = picker.querySelector('.role-pill.active');
-    if(active) hidden.value = active.dataset.role; else { const first = picker.querySelector('.role-pill'); if(first){first.classList.add('active'); hidden.value = first.dataset.role;} }
+    
+    const userPicker = form.querySelector('#userRoleSelector');
+    const adminPicker = form.querySelector('#adminRoleSelector');
+    
+    const attachToSelector = (sel) => {
+      if (!sel) return;
+      sel.querySelectorAll('.role-pill').forEach(p=>p.addEventListener('click', ()=>{
+        sel.querySelectorAll('.role-pill').forEach(x=>x.classList.remove('active'));
+        p.classList.add('active');
+        hidden.value = p.dataset.role;
+      }));
+      const active = sel.querySelector('.role-pill.active');
+      if(active) hidden.value = active.dataset.role;
+    };
+    
+    attachToSelector(userPicker);
+    attachToSelector(adminPicker);
+    
+    if(!userPicker && !adminPicker) {
+      picker.querySelectorAll('.role-pill').forEach(p=>p.addEventListener('click', ()=>{
+        picker.querySelectorAll('.role-pill').forEach(x=>x.classList.remove('active'));
+        p.classList.add('active'); hidden.value = p.dataset.role;
+      }));
+      const active = picker.querySelector('.role-pill.active');
+      if(active) hidden.value = active.dataset.role;
+    }
   }
 
-  // Login form
   const loginForm = document.getElementById('loginForm');
-  if(loginForm){ attachRoleSelector(loginForm);
+  if(loginForm){ 
+    attachRoleSelector(loginForm);
+    
+    const userRoleSelector = document.getElementById('userRoleSelector');
+    const adminRoleSelector = document.getElementById('adminRoleSelector');
+    let isAdminChecked = false;
+    let isAdminUser = false;
+    
+    // When admin role pills are clicked, capture the selection
+    if (adminRoleSelector) {
+      adminRoleSelector.querySelectorAll('.role-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+          const hidden = loginForm.querySelector('input[name="role"]');
+          if (hidden) {
+            hidden.value = pill.dataset.role;
+            console.log('Admin role selected:', pill.dataset.role);
+          }
+        });
+      });
+    }
+    
     loginForm.addEventListener('submit', async (e)=>{
       e.preventDefault();
       const formData = new FormData(loginForm);
       const f = Object.fromEntries(formData);
       
-      // Debug logging
-      console.log('Form data extracted:', { email: f.email, username: f.username, password: f.password ? '***' : 'MISSING', role: f.role });
-      
-      // Ensure email is set
       const email = f.email || f.username;
       const password = f.password;
       
       if (!email || !password) {
-        console.error('Missing email or password', { email, password });
         showToast('Email and password are required');
         return;
       }
       
+      if (!isAdminChecked) {
+        try {
+          const checkRes = await fetch('/api/auth/check-admin', { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ email })
+          });
+          const checkData = await checkRes.json();
+          isAdminUser = checkData.isAdmin;
+          isAdminChecked = true;
+          
+          if (isAdminUser && userRoleSelector && adminRoleSelector) {
+            userRoleSelector.style.display = 'none';
+            adminRoleSelector.style.display = 'flex';
+            // Set default role for admin selector to 'freelancer'
+            const hidden = loginForm.querySelector('input[name="role"]');
+            if (hidden) {
+              hidden.value = 'freelancer';
+            }
+            showToast('Please select your admin mode');
+            return;
+          } else if (userRoleSelector && adminRoleSelector) {
+            userRoleSelector.style.display = 'flex';
+            adminRoleSelector.style.display = 'none';
+          }
+        } catch (err) {
+          console.error('Check admin failed:', err);
+        }
+      }
+      
       const payload = { email, password };
-      console.log('Sending login request with:', { email: payload.email, password: '***' });
+      
+      if (isAdminUser) {
+        const loginAs = f.role || 'freelancer';
+        payload.loginAs = loginAs;
+        console.log('Sending login with loginAs:', loginAs);
+      }
       
       try{
         const res = await fetch('/api/auth/login', { 
@@ -63,28 +131,43 @@ document.addEventListener('DOMContentLoaded', ()=>{
           headers:{'Content-Type':'application/json'}, 
           body: JSON.stringify(payload)
         });
-        const j = await res.json();
-        console.log('Login response:', { status: res.status, ok: res.ok, hasToken: !!j.token, error: j.error });
+        
+        let j;
+        try {
+          j = await res.json();
+        } catch(parseErr) {
+          showToast('Server response error');
+          return;
+        }
         
         if(res.ok && j.token){
-          localStorage.setItem('token', j.token);
-          localStorage.setItem('role', f.role || 'freelancer');
+          try {
+            localStorage.setItem('token', j.token);
+            const roleToSave = j.user?.role || f.role || 'freelancer';
+            localStorage.setItem('role', roleToSave);
+            console.log('Token and role saved. User role:', roleToSave);
+          } catch(e) {
+            showToast('Cannot save session data');
+            return;
+          }
+          
           showToast('Login successful');
-          // redirect to role-specific dashboard
           setTimeout(()=>{
-            const role = f.role || 'freelancer';
-            const dest = (role === 'freelancer') ? '/freelancer-dashboard/' : '/dashboard-buyer/';
-            location.href = dest;
+            const role = j.user?.role || f.role || 'freelancer';
+            if (role && (role === 'admin_freelancer' || role === 'admin_buyer')) {
+              window.location.href = '/admin-panel/';
+            } else {
+              const dest = (role === 'freelancer') ? '/freelancer-dashboard/' : '/dashboard-buyer/';
+              location.href = dest;
+            }
           }, 600);
         } else {
-          console.error('Login failed:', j.error || 'Unknown error');
           showToast(j.error || 'Login failed');
         }
-      }catch(err){ console.error('Login network error:', err); showToast('Network error: ' + err.message); }
+      }catch(err){ showToast('Network error: ' + err.message); }
     });
   }
 
-  // Register form
   const regForm = document.getElementById('registerForm');
   if(regForm){ attachRoleSelector(regForm);
     regForm.addEventListener('submit', async (e)=>{
@@ -104,5 +187,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }
 
   // Logout buttons
-  document.querySelectorAll('[data-action="logout"]').forEach(b=>b.addEventListener('click', ()=>{ localStorage.removeItem('token'); localStorage.removeItem('role'); location.href='/login.html'; }));
+  document.querySelectorAll('[data-action="logout"]').forEach(b=>b.addEventListener('click', (e)=>{ 
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Logout clicked, clearing localStorage');
+    localStorage.removeItem('token'); 
+    localStorage.removeItem('role'); 
+    localStorage.removeItem('adminSecret');
+    sessionStorage.clear();
+    location.href='/'; 
+  }));
 });

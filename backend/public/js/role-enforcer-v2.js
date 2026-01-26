@@ -38,10 +38,10 @@
     const pageAccessMap = {
       'freelancer-dashboard': ['freelancer'],
       'dashboard-buyer': ['buyer'],
-      'wallet': ['buyer'],
+      'wallet': ['freelancer', 'buyer'],  // Both can access unified wallet
       'deposit': ['buyer'],
       'wallet-buyer': ['buyer'],
-      'withdrawal-details': ['buyer'],
+      'withdrawal-details': ['buyer', 'freelancer'],  // Both need to set withdrawal details
       'campaigns': ['freelancer'],
       'admin-panel': ['admin'],
       'admin': ['admin'],
@@ -66,20 +66,13 @@
       // Check if user has access
       if (!requiredRoles.includes(roleToCheck)) {
         console.log(`❌ Access denied. User role "${roleToCheck}" not in allowed roles:`, requiredRoles);
-        showAlert(`Access Denied!\n\nYou need ${requiredRoles.join(' or ')} role to access this page.\n\nYour role: ${roleToCheck}`);
         
-        // Redirect to appropriate dashboard based on role
-        setTimeout(() => {
-          if (roleToCheck === 'admin') {
-            window.location.replace('/admin-panel/');
-          } else if (roleToCheck === 'freelancer') {
-            window.location.replace('/freelancer-dashboard/');
-          } else if (roleToCheck === 'buyer') {
-            window.location.replace('/dashboard-buyer/');
-          } else {
-            window.location.replace('/');
-          }
-        }, 2000);
+        // Clear token to prevent infinite loops - user needs to login again
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        
+        // Redirect to login page
+        window.location.replace('/');
         return;
       }
 

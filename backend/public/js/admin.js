@@ -62,29 +62,17 @@
     // Let user try to access with current token
   }
 
-  // Authentication Check - must have valid token with admin role
+  // Note: Role verification is handled by role-enforcer-v2.js which checks the database role
+  // and redirects unauthorized users to login before this script runs.
+  // If we reach here, the user has already been verified as admin by role-enforcer.
+  
   if (!token) {
-    console.error('AUTH FAILED: No token found in localStorage');
-    alert('Unauthorized: No token. Please login with your admin account to access the admin panel');
+    console.error('ERROR: No token found - role-enforcer should have blocked this');
     window.location.href = '/';
     return;
   }
   
-  if (!role) {
-    console.error('AUTH FAILED: No role found in localStorage (token exists)');
-    alert('Unauthorized: No role. Please login with your admin account to access the admin panel');
-    window.location.href = '/';
-    return;
-  }
-  
-  if (role !== 'admin_freelancer' && role !== 'admin_buyer') {
-    console.error('AUTH FAILED: Invalid role:', role);
-    alert(`Unauthorized: Invalid role "${role}". You must login with an admin account to access the admin panel`);
-    window.location.href = '/';
-    return;
-  }
-  
-  console.log('✓ Authentication passed: role is valid:', role);
+  console.log('✓ Role verification already done by role-enforcer-v2.js');
 
   // API Helper
   async function fetchAdmin(endpoint, options = {}) {

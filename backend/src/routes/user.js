@@ -107,4 +107,66 @@ router.post('/invite', jwtMiddleware, async (req, res) => {
   }
 });
 
+// Check if user has completed withdrawal details
+router.get('/withdrawal-details', jwtMiddleware, async (req, res) => {
+  const uid = Number(req.user.id);
+  try {
+    const user = await prisma.user.findUnique({ 
+      where: { id: uid },
+      select: {
+        id: true,
+        bankName: true,
+        accountNumber: true,
+        accountHolderName: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const isComplete = !!(user.bankName && user.accountNumber && user.accountHolderName);
+
+    res.json({
+      isComplete,
+      bankName: user.bankName || null,
+      accountNumber: user.accountNumber || null,
+      accountHolderName: user.accountHolderName || null
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update user withdrawal details
+router.post('/withdrawal-details', jwtMiddleware, async (req, res) => {
+  const uid = Number(req.user.id);
+  const { bankName, accountNumber, accountHolderName } = req.body;
+
+  if (!bankName || !accountNumber || !accountHolderName) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  try {
+    const user = await prisma.user.update({
+      where: { id: uid },
+      data: {
+        bankName,
+        accountNumber,
+        accountHolderName
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'Withdrawal details updated successfully',
+      bankName: user.bankName,
+      accountNumber: user.accountNumber,
+      accountHolderName: user.accountHolderName
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

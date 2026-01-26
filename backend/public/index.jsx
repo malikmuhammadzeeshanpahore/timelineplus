@@ -72,6 +72,36 @@ const Index = () => {
 
       <script src="/js/localstorage-monitor.js"></script>
       <script src="/js/site.js"></script>
+      <script>
+        // If user is already logged in, redirect to dashboard
+        (async () => {
+          const token = localStorage.getItem('token');
+          if (!token) return;
+          
+          try {
+            const res = await fetch('/api/auth/me', {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (res.ok) {
+              const data = await res.json();
+              const role = data.user?.role;
+              const isAdmin = data.user?.isAdmin;
+              
+              // Redirect based on role
+              if (isAdmin) {
+                window.location.replace('/admin-panel/');
+              } else if (role === 'freelancer') {
+                window.location.replace('/freelancer-dashboard/');
+              } else if (role === 'buyer') {
+                window.location.replace('/dashboard-buyer/');
+              }
+            }
+          } catch (err) {
+            console.log('Not logged in');
+          }
+        })();
+      </script>
       <script src="/js/auth.js"></script>
     </>
   );

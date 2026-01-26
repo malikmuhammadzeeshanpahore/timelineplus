@@ -22,58 +22,44 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // Role selector (both login & register forms) - add support if present
   function attachRoleSelector(form){
     const picker = form.querySelector('.role-selector');
-    if(!picker) return;
-    const hidden = form.querySelector('input[name="role"]') || (()=>{ const i=document.createElement('input'); i.type='hidden'; i.name='role'; form.appendChild(i); return i; })();
-    
-    const userPicker = form.querySelector('#userRoleSelector');
-    const adminPicker = form.querySelector('#adminRoleSelector');
-    
-    const attachToSelector = (sel) => {
-      if (!sel) return;
-      sel.querySelectorAll('.role-pill').forEach(p=>p.addEventListener('click', ()=>{
-        sel.querySelectorAll('.role-pill').forEach(x=>x.classList.remove('active'));
-        p.classList.add('active');
-        hidden.value = p.dataset.role;
-      }));
-      const active = sel.querySelector('.role-pill.active');
-      if(active) hidden.value = active.dataset.role;
-    };
-    
-    attachToSelector(userPicker);
-    attachToSelector(adminPicker);
-    
-    if(!userPicker && !adminPicker) {
-      picker.querySelectorAll('.role-pill').forEach(p=>p.addEventListener('click', ()=>{
-        picker.querySelectorAll('.role-pill').forEach(x=>x.classList.remove('active'));
-        p.classList.add('active'); hidden.value = p.dataset.role;
-      }));
-      const active = picker.querySelector('.role-pill.active');
-      if(active) hidden.value = active.dataset.role;
+    if(!picker) {
+      console.log('❌ No role selector found in form');
+      return;
     }
+    
+    // Create or find hidden input
+    let hidden = form.querySelector('input[name="role"]');
+    if (!hidden) {
+      hidden = document.createElement('input');
+      hidden.type = 'hidden';
+      hidden.name = 'role';
+      form.appendChild(hidden);
+      console.log('✅ Created hidden role input');
+    }
+    
+    // Set initial value from active pill
+    const initialActive = picker.querySelector('.role-pill.active');
+    if (initialActive) {
+      hidden.value = initialActive.getAttribute('data-role');
+      console.log('📍 Initial role set to:', hidden.value);
+    }
+    
+    // Attach click handlers to all pills
+    picker.querySelectorAll('.role-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        // Remove active class from all pills
+        picker.querySelectorAll('.role-pill').forEach(p => p.classList.remove('active'));
+        // Add active class to clicked pill
+        pill.classList.add('active');
+        // Update hidden input
+        hidden.value = pill.getAttribute('data-role');
+        console.log('🔄 Role changed to:', hidden.value);
+      });
+    });
   }
 
   const loginForm = document.getElementById('loginForm');
-  if(loginForm){ 
-    attachRoleSelector(loginForm);
-    
-    const userRoleSelector = document.getElementById('userRoleSelector');
-    const adminRoleSelector = document.getElementById('adminRoleSelector');
-    let isAdminChecked = false;
-    let isAdminUser = false;
-    
-    // When admin role pills are clicked, capture the selection
-    if (adminRoleSelector) {
-      adminRoleSelector.querySelectorAll('.role-pill').forEach(pill => {
-        pill.addEventListener('click', () => {
-          const hidden = loginForm.querySelector('input[name="role"]');
-          if (hidden) {
-            hidden.value = pill.dataset.role;
-            console.log('Admin role selected:', pill.dataset.role);
-          }
-        });
-      });
-    }
-    
+  if(loginForm){
     loginForm.addEventListener('submit', async (e)=>{
       e.preventDefault();
       const formData = new FormData(loginForm);
@@ -87,43 +73,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
         return;
       }
       
-      if (!isAdminChecked) {
-        try {
-          const checkRes = await fetch('/api/auth/check-admin', { 
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ email })
-          });
-          const checkData = await checkRes.json();
-          isAdminUser = checkData.isAdmin;
-          isAdminChecked = true;
-          
-          if (isAdminUser && userRoleSelector && adminRoleSelector) {
-            userRoleSelector.style.display = 'none';
-            adminRoleSelector.style.display = 'flex';
-            // Set default role for admin selector to 'freelancer'
-            const hidden = loginForm.querySelector('input[name="role"]');
-            if (hidden) {
-              hidden.value = 'freelancer';
-            }
-            showToast('Please select your admin mode');
-            return;
-          } else if (userRoleSelector && adminRoleSelector) {
-            userRoleSelector.style.display = 'flex';
-            adminRoleSelector.style.display = 'none';
-          }
-        } catch (err) {
-          console.error('Check admin failed:', err);
-        }
-      }
+      console.log('📝 Login attempt:', { email });
       
       const payload = { email, password };
-      
-      if (isAdminUser) {
-        const loginAs = f.role || 'freelancer';
-        payload.loginAs = loginAs;
-        console.log('Sending login with loginAs:', loginAs);
-      }
       
       try{
         const res = await fetch('/api/auth/login', { 
@@ -143,9 +95,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
         if(res.ok && j.token){
           try {
             localStorage.setItem('token', j.token);
-            const roleToSave = j.user?.role || f.role || 'freelancer';
-            localStorage.setItem('role', roleToSave);
-            console.log('Token and role saved. User role:', roleToSave);
+            console.log('✅ Token saved. Role:', j.user?.role);
+            // Do NOT save role to localStorage - verify from backend on each page
           } catch(e) {
             showToast('Cannot save session data');
             return;
@@ -153,8 +104,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
           
           showToast('Login successful');
           setTimeout(()=>{
-            const role = j.user?.role || f.role || 'freelancer';
-            if (role && (role === 'admin_freelancer' || role === 'admin_buyer')) {
+            const role = j.user?.role;
+            if (role === 'admin') {
               window.location.href = '/admin-panel/';
             } else {
               const dest = (role === 'freelancer') ? '/freelancer-dashboard/' : '/dashboard-buyer/';
@@ -169,20 +120,43 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }
 
   const regForm = document.getElementById('registerForm');
-  if(regForm){ attachRoleSelector(regForm);
+  if(regForm){ 
+    attachRoleSelector(regForm);
     regForm.addEventListener('submit', async (e)=>{
       e.preventDefault();
       const f = Object.fromEntries(new FormData(regForm));
+      console.log('📝 Register form data:', f);
+      
+      // Get role value from hidden input or active pill
+      let roleValue = f.role;
+      if (!roleValue) {
+        const activePill = regForm.querySelector('.role-pill.active');
+        if (activePill) {
+          roleValue = activePill.getAttribute('data-role');
+          console.log('⚠️ Role from FormData was empty, using active pill:', roleValue);
+        }
+      }
+      if (!roleValue) {
+        roleValue = 'freelancer'; // Default
+        console.log('⚠️ Role still empty, defaulting to freelancer');
+      }
+      
+      const payload = { email: f.email, username: f.username, password: f.password, role: roleValue };
+      console.log('📤 Sending register payload:', payload);
       try{
-        const res = await fetch('/api/auth/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email: f.email, username: f.username, password: f.password, role: f.role || 'freelancer' }) });
+        const res = await fetch('/api/auth/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        console.log('📨 Register response status:', res.status);
         const j = await res.json();
+        console.log('📦 Register response:', j);
         if(res.ok && (j.success || j.user)){
           showToast('Registered successfully');
-          setTimeout(()=>location.href = '/login.html',700);
+          // Do NOT save role to localStorage - it will be verified from database on next login
+          console.log('✅ Registration complete. Role will be verified from database on login.');
+          setTimeout(()=>location.href = '/',700);
         } else {
           showToast(j.error || 'Register failed');
         }
-      }catch(err){ console.error(err); showToast('Network error'); }
+      }catch(err){ console.error('❌ Register error:', err); showToast('Network error'); }
     });
   }
 
@@ -190,9 +164,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.querySelectorAll('[data-action="logout"]').forEach(b=>b.addEventListener('click', (e)=>{ 
     e.preventDefault();
     e.stopPropagation();
-    console.log('Logout clicked, clearing localStorage');
+    console.log('🚪 Logout clicked, clearing session');
     localStorage.removeItem('token'); 
-    localStorage.removeItem('role'); 
+    localStorage.removeItem('role');  // Remove if exists from old system
     localStorage.removeItem('adminSecret');
     sessionStorage.clear();
     location.href='/'; 

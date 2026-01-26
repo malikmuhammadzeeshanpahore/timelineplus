@@ -462,8 +462,17 @@ router.post('/users/:userId/delete', auth, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Delete user and all related data
-    // This will cascade delete due to Prisma relations
+    // Delete all related records first (to handle foreign key constraints)
+    await prisma.deposit.deleteMany({ where: { userId } });
+    await prisma.withdrawal.deleteMany({ where: { userId } });
+    await prisma.walletTransaction.deleteMany({ where: { userId } });
+    await prisma.task.deleteMany({ where: { userId } });
+    await prisma.campaign.deleteMany({ where: { userId } });
+    await prisma.userSocialAccount.deleteMany({ where: { userId } });
+    await prisma.referral.deleteMany({ where: { refereeId: userId } });
+    await prisma.referral.deleteMany({ where: { referrerId: userId } });
+
+    // Delete user
     await prisma.user.delete({
       where: { id: userId }
     });

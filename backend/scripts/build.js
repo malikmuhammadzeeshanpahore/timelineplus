@@ -167,6 +167,9 @@ function build() {
 
       // Remove JSX-only fragments (e.g., <style dangerouslySetInnerHTML=... />)
       body = body.replace(/<style[\s\S]*?dangerouslySetInnerHTML[\s\S]*?\/?>/gi, '');
+      
+      // Remove remaining <style> tags with template variables (since they're extracted to head)
+      body = body.replace(/<style>[\s\S]*?\{styles\}[\s\S]*?<\/style>/gi, '');
 
       // Compose final HTML
       const base = path.basename(f, '.jsx');
@@ -205,7 +208,7 @@ function build() {
       // For dashboard pages, redirect if no token
       let redirectScriptContent = '';
       if (base === 'index') {
-        redirectScriptContent = `const token = localStorage.getItem('token'); if(token){const role = localStorage.getItem('role')||'buyer'; const dest = (role==='freelancer')?'/freelancer-dashboard/':'/dashboard-buyer/'; window.location.replace(dest);}`;
+        redirectScriptContent = `(async()=>{const t=localStorage.getItem('token');if(!t)return;try{const r=await fetch('/api/auth/me',{headers:{'Authorization':\`Bearer \${t}\`}});if(r.ok){const d=await r.json();const role=d.user?.role;const isAdmin=d.user?.isAdmin;if(isAdmin)window.location.replace('/admin-panel/');else if(role==='freelancer')window.location.replace('/freelancer-dashboard/');else if(role==='buyer')window.location.replace('/dashboard-buyer/');}}catch(e){console.log('Not logged in')}})();`;
       } else if (base === 'freelancer-dashboard' || base === 'dashboard-buyer') {
         redirectScriptContent = `if(!localStorage.getItem('token')){window.location.replace('/');}`;
       }
@@ -233,13 +236,13 @@ function build() {
       }
 
       // For deposit, campaigns, and wallet pages, inject toast first, then their scripts
-      if (base === 'deposit' || base === 'campaigns' || base === 'wallet-buyer') {
-        html = html.replace('</body>', `<script src="/js/toast.js"></script>\n<script src="/js/${base}.js"></script>\n</body>`);
+      if (base === 'deposit' || base === 'campaigns' || base === 'wallet-buyer' || base === 'wallet') {
+        html = html.replace('</body>', `<script src="/js/toast.js"></script>\n<script src="/js/wallet.js"></script>\n</body>`);
       }
 
-      // Inject role enforcer on all pages to protect access
+      // Inject role enforcer on all pages to protect access (runs before page content)
       if (!['login', 'register', 'forgot', 'index'].includes(base)) {
-        html = html.replace('<body>', `<body>\n<script src="/js/role-enforcer.js"></script>`);
+        html = html.replace('<body>', `<body>\n<script src="/js/role-enforcer-v2.js"></script>`);
       }
 
       fs.writeFileSync(path.join(outDir, 'index.html'), html, 'utf8');

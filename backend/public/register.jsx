@@ -64,6 +64,7 @@ const Register = () => {
             <input type="password" id="password" name="password" placeholder="Password" required/>
             <i className="ri-eye-off-fill toggle-password" id="togglePassword"></i>
           </div>
+          <input type="hidden" name="role" value="freelancer"/>
           <button type="submit" id="registerBtn">Register</button>
           <div className="button">
             <a href="/api/auth/oauth/google"><i className="ri-google-fill"></i> Google</a> — <a href="/api/auth/oauth/facebook"><i className="ri-facebook-fill"></i> Facebook</a>

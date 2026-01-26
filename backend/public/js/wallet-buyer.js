@@ -174,15 +174,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     tab.addEventListener('click', () => {
       const tabName = tab.getAttribute('data-tab');
       
-      // Deactivate all tabs
+      // Deactivate all tabs and contents
       document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       
       // Activate selected tab
       tab.classList.add('active');
       const content = document.getElementById(tabName);
       if (content) {
-        content.style.display = 'block';
+        content.classList.add('active');
         if (tabName === 'transaction-history') {
           loadTransactions();
         }

@@ -1,4 +1,7 @@
 const Wallet = () => {
+  const [userRole, setUserRole] = React.useState(null);
+  const [withdrawalDetailsReady, setWithdrawalDetailsReady] = React.useState(true);
+  
   const styles = `
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
@@ -102,15 +105,14 @@ const Wallet = () => {
                 <label>Withdrawal Method *</label>
                 <select name="method" required>
                   <option value="">Select method</option>
-                  <option value="jazz">JazzCash</option>
+                  <option value="jazzcash">JazzCash</option>
                   <option value="easypaisa">EasyPaisa</option>
-                  <option value="bank">Bank Transfer</option>
                 </select>
               </div>
               
               <div className="form-group">
                 <label>Account Number/Phone *</label>
-                <input type="text" name="accountNumber" placeholder="e.g., 03001234567 or 12345678901" required />
+                <input type="text" name="accountNumber" placeholder="e.g., 03001234567" required />
               </div>
               
               <div className="form-group">

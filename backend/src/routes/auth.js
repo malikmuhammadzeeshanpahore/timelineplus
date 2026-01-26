@@ -64,46 +64,67 @@ router.post('/check-admin', async (req, res) => {
 
 // Login
 router.post('/login', async (req, res) => {
-  const { email, password, loginAs } = req.body;
-  console.log('Login attempt:', { email, hasPassword: !!password, bodyKeys: Object.keys(req.body) });
+  const { email, password } = req.body;
+  console.log('Login attempt:', { email, hasPassword: !!password });
   
   if (!email || !password) {
-    console.log('Login validation failed:', { email, password, error: 'email and password required' });
     return res.status(400).json({ error: 'email and password required' });
   }
   
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
-    console.log('User not found:', { email });
     return res.status(400).json({ error: 'invalid credentials' });
   }
   
   if (user.isBanned) {
-    console.log('User banned:', { email });
     return res.status(403).json({ error: 'account banned' });
   }
 
   const ok = user.password ? await bcrypt.compare(password, user.password) : false;
   if (!ok) {
-    console.log('Password incorrect:', { email });
     return res.status(400).json({ error: 'invalid credentials' });
   }
 
-  let finalRole = user.role || 'freelancer';
+  // Use role from database only
+  const userRole = user.role || 'freelancer';
+  const token = signToken({ uid: user.id, role: userRole, isAdmin: user.isAdmin });
   
-  if (user.isAdmin) {
-    if (loginAs === 'freelancer') {
-      finalRole = 'admin_freelancer';
-    } else if (loginAs === 'buyer') {
-      finalRole = 'admin_buyer';
-    } else {
-      return res.status(400).json({ error: 'Admin must select loginAs: freelancer or buyer' });
-    }
-  }
+  console.log('✅ Login successful:', { email, userId: user.id, role: userRole, isAdmin: user.isAdmin });
+  res.json({ 
+    token, 
+    user: { 
+      id: user.id, 
+      email: user.email, 
+      username: user.username, 
+      role: userRole,
+      isAdmin: user.isAdmin
+    } 
+  });
+});
 
-  const token = signToken({ uid: user.id, role: finalRole, isAdmin: user.isAdmin });
-  console.log('Login successful:', { email, userId: user.id, isAdmin: user.isAdmin, finalRole });
-  res.json({ token, user: { id: user.id, email: user.email, username: user.username, role: finalRole } });
+// Get current user with role from database
+router.get('/me', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'no token' });
+  
+  try {
+    const data = jwt.verify(token, JWT_SECRET);
+    const user = await prisma.user.findUnique({ where: { id: data.uid } });
+    if (!user) return res.status(401).json({ error: 'user not found' });
+    
+    const userRole = user.role || 'freelancer';
+    res.json({ 
+      user: { 
+        id: user.id, 
+        email: user.email, 
+        username: user.username, 
+        role: userRole,
+        isAdmin: user.isAdmin
+      } 
+    });
+  } catch (err) {
+    res.status(401).json({ error: 'invalid token' });
+  }
 });
 
 // Request reset

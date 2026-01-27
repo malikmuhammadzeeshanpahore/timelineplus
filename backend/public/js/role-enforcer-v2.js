@@ -63,8 +63,11 @@
         roleToCheck = 'admin';
       }
 
-      // Check if user has access
-      if (!requiredRoles.includes(roleToCheck)) {
+      // Admin can access ALL pages regardless of role requirements
+      if (roleToCheck === 'admin') {
+        console.log(`✅ Admin user - full access to all pages`);
+      } else if (!requiredRoles.includes(roleToCheck)) {
+        // Check if user has access for non-admin users
         console.log(`❌ Access denied. User role "${roleToCheck}" not in allowed roles:`, requiredRoles);
         
         // Clear token to prevent infinite loops - user needs to login again
@@ -74,11 +77,10 @@
         // Redirect to login page
         window.location.replace('/');
         return;
+      } else {
+        console.log(`✅ Access granted for page "${pageName}"`);
       }
-
-      console.log(`✅ Access granted for page "${pageName}"`);
     }
-
   } catch (err) {
     console.error('❌ Role verification error:', err);
     showAlert('Authentication error. Please login again.');

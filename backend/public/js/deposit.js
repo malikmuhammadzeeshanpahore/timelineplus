@@ -147,17 +147,25 @@ function initializeTabs() {
 }
 
 function initializeDepositForm() {
+  console.log('🔍 [DEPOSIT] Looking for form...');
   const form = document.getElementById('depositForm');
   if (!form) {
-    console.warn('⚠️ [DEPOSIT] Form not found');
+    console.error('❌ [DEPOSIT] Form #depositForm not found! Available IDs:', Array.from(document.querySelectorAll('[id]')).map(el => el.id));
     return;
   }
+  console.log('✅ [DEPOSIT] Form found!');
 
+  console.log('🔗 [DEPOSIT] Attaching submit listener to form...');
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    console.log('📤 [DEPOSIT] Form submitted');
+    console.log('📤 [DEPOSIT] Form submitted!');
     
     const btn = document.getElementById('submitBtn');
+    if (!btn) {
+      console.error('❌ [DEPOSIT] Submit button not found!');
+      return;
+    }
+    
     btn.disabled = true;
     const origText = btn.textContent;
     btn.textContent = 'Submitting...';

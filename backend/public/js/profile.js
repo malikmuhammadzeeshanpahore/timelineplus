@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       const j = await res.json();
       const u = j.user;
       currentUser = u;
-      nameEl.innerText = u.name || u.username || u.email || 'Account Holder';
+      nameEl.innerText = u.fullName || u.username || u.email || 'Account Holder';
       userEl.innerText = u.username || '-';
       emailEl.innerText = u.email;
       ageEl && (ageEl.innerText = (u.age!=null)? String(u.age) : '-');
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(!panel) return;
     panel.innerHTML = '';
     const wrapper = document.createElement('div'); wrapper.style.display='flex'; wrapper.style.alignItems='center'; wrapper.style.gap='10px';
-    const avatar = document.createElement('div'); avatar.className='pill'; avatar.style.width='36px'; avatar.style.height='36px'; avatar.style.display='flex'; avatar.style.alignItems='center'; avatar.style.justifyContent='center'; const displayName = u.name || u.username || u.email || 'U'; avatar.innerText = (displayName[0]||'U').toUpperCase();
+    const avatar = document.createElement('div'); avatar.className='pill'; avatar.style.width='36px'; avatar.style.height='36px'; avatar.style.display='flex'; avatar.style.alignItems='center'; avatar.style.justifyContent='center'; const displayName = u.fullName || u.username || u.email || 'U'; avatar.innerText = (displayName[0]||'U').toUpperCase();
     const info = document.createElement('div'); info.style.textAlign='right'; info.innerHTML = `<div style="font-weight:700;color:#fff">${displayName}</div><div class="small">PKR ${(rawBalance/100||0).toFixed(2)}</div>`;
     const menu = document.createElement('div'); menu.innerHTML = `<a href='/profile.html' class='btn-outline' style='margin-left:8px;padding:6px 10px;'>Profile</a> <button id='navLogout' class='btn-outline' style='margin-left:6px;padding:6px 10px;'>Logout</button>`;
     wrapper.appendChild(avatar); wrapper.appendChild(info); wrapper.appendChild(menu);
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({
-          name,
+          fullName: name,
           email,
           age: age ? parseInt(age) : null,
           gender: gender || null,
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         if (data && data.user) {
           currentUser = data.user;
           // Update displayed fields immediately
-          document.getElementById('pf-name').innerText = currentUser.name || currentUser.username || currentUser.email || 'Account Holder';
+          document.getElementById('pf-name').innerText = currentUser.fullName || currentUser.username || currentUser.email || 'Account Holder';
           document.getElementById('pf-username').innerText = currentUser.username || '-';
           document.getElementById('pf-email').innerText = currentUser.email || '-';
           document.getElementById('pf-age') && (document.getElementById('pf-age').innerText = currentUser.age!=null? String(currentUser.age) : '-');

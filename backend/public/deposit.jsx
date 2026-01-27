@@ -3,7 +3,21 @@ const Deposit = () => {
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
     
+    /* Header Styling */
     #headerContainer { position: sticky; top: 0; z-index: 1000; }
+    #headerContainer header { background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); box-shadow: 0 10px 40px rgba(102, 126, 234, 0.2); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+    #headerContainer .nav { padding: 16px 20px; display: flex; align-items: center; max-width: 1400px; margin: 0 auto; gap: 20px; }
+    #headerContainer .brand { display: flex; align-items: center; gap: 12px; }
+    #headerContainer .brand img { height: 40px; }
+    #headerContainer .brand .logo-text { font-weight: 700; color: white; font-size: 18px; letter-spacing: 0.5px; }
+    #headerContainer .nav-menu { display: flex; gap: 20px; flex: 1; }
+    #headerContainer .nav-menu a { color: white; text-decoration: none; font-weight: 500; transition: all 0.3s; padding: 8px 12px; border-radius: 6px; }
+    #headerContainer .nav-menu a:hover { background: rgba(255,255,255,0.2); }
+    #headerContainer .nav-actions { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+    #headerContainer .nav-actions button { padding: 8px 14px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.5); color: white; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; display: flex; align-items: center; gap: 6px; }
+    #headerContainer .nav-actions button:hover { background: rgba(255,255,255,0.3); transform: translateY(-1px); }
+    #headerContainer .user-profile { display: flex; align-items: center; gap: 10px; color: white; }
+    #headerContainer .user-profile img { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.2); }
     
     .container { max-width: 900px; margin: 40px auto; padding: 20px; }
     .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 30px; }
@@ -41,6 +55,7 @@ const Deposit = () => {
     .status-rejected { background: #f8d7da; color: #842029; }
     
     @media (max-width: 1023px) { .card { padding: 20px; } }
+    @media (max-width: 768px) { #headerContainer .nav { flex-wrap: wrap; } #headerContainer .nav-menu { flex-direction: column; gap: 0; } }
   `;
 
   return (

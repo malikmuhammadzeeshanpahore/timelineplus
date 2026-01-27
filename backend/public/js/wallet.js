@@ -1,398 +1,251 @@
-// Ensure toast.js is loaded first
-if (!window.showSuccess) {
-  const toastScript = document.createElement('script');
-  toastScript.src = '/js/toast.js';
-  document.head.appendChild(toastScript);
-}
-
+// Unified Wallet Page Handler
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('💼 [WALLET] Initializing unified wallet page...');
+  console.log('💼 [WALLET] Initializing unified wallet...');
 
-  // Check authentication
   const token = localStorage.getItem('token');
   if (!token) {
     console.log('🔓 [WALLET] No token found, redirecting to login');
-    setTimeout(() => location.href = '/login.html', 1000);
+    setTimeout(() => window.location.href = '/', 1000);
     return;
-  }
-
-  // Wait for toast system to be available
-  let attempts = 0;
-  while (!window.showSuccess && attempts < 20) {
-    await new Promise(r => setTimeout(r, 100));
-    attempts++;
-  }
-  
-  if (!window.showSuccess) {
-    console.warn('⚠️ [WALLET] Toast system not loaded, using console fallback');
-    window.showSuccess = msg => { console.log('✓', msg); alert(msg); };
-    window.showError = msg => { console.error('✗', msg); alert('Error: ' + msg); };
-    window.showWarning = msg => { console.warn('⚠️', msg); alert('Warning: ' + msg); };
   }
 
   // Load header
   try {
     const headerHtml = await fetch('/header.html').then(r => r.text());
-    const placeholder = document.getElementById('header-placeholder');
-    if (placeholder) {
-      placeholder.innerHTML = headerHtml;
+    const headerContainer = document.getElementById('headerContainer');
+    if (headerContainer) {
+      headerContainer.innerHTML = headerHtml;
     }
   } catch (err) {
-    console.error('❌ [WALLET] Failed to load header:', err);
+    console.error('❌ Failed to load header:', err);
   }
 
-  // Auth headers
-  const authHeaders = () => ({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  });
+  // API helper
+  const api = async (endpoint, options = {}) => {
+    const response = await fetch(endpoint, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        ...options.headers
+      },
+      ...options
+    });
 
-  // Get user role
-  let userRole = 'buyer';
-  try {
-    const res = await fetch('/api/auth/me', { headers: authHeaders() });
-    if (res.ok) {
-      const user = await res.json();
-      userRole = user.role || 'buyer';
-      console.log('👤 [WALLET] User role:', userRole);
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: response.statusText }));
+      throw new Error(error.error || error.message || 'API error');
     }
-  } catch (err) {
-    console.error('❌ [WALLET] Failed to get user role:', err);
-  }
 
-  // Setup role-based tabs
-  const tabsContainer = document.getElementById('wallet-tabs');
-  if (tabsContainer) {
-    let tabsHTML = '';
-    
-    if (userRole === 'freelancer') {
-      // Freelancer tabs: Withdrawal History, Withdraw Funds
-      tabsHTML = `
-        <button class="tab-btn active" data-tab="withdrawal-history">Withdrawal History</button>
-        <button class="tab-btn" data-tab="withdraw-funds">Withdraw Funds</button>
-      `;
-    } else {
-      // Buyer tabs: Transaction History, Deposit Funds, Withdraw Funds
-      tabsHTML = `
-        <button class="tab-btn active" data-tab="transaction-history">Transaction History</button>
-        <button class="tab-btn" data-tab="deposit-funds">Deposit Funds</button>
-        <button class="tab-btn" data-tab="withdraw-funds">Withdraw Funds</button>
-      `;
-    }
-    
-    tabsContainer.innerHTML = tabsHTML;
-  }
-
-  // Show first tab
-  const firstTab = document.querySelector('.tab-btn.active');
-  if (firstTab) {
-    const firstTabName = firstTab.getAttribute('data-tab');
-    const firstContent = document.getElementById(firstTabName);
-    if (firstContent) {
-      firstContent.style.display = 'block';
-    }
-  }
-
-  // Currency formatter - PKR
-  const formatPKR = (cents) => {
-    if (!cents && cents !== 0) return 'N/A';
-    const pkr = cents / 100;
-    return new Intl.NumberFormat('en-PK', { 
-      style: 'currency', 
-      currency: 'PKR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    }).format(pkr);
+    return response.json();
   };
 
-  // Load balance
+  // Tab switching - only on wallet page
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  
+  // Check if we're on the wallet page (has the unified wallet tabs)
+  const isWalletPage = tabBtns.length > 0 && (
+    document.getElementById('history') || 
+    document.getElementById('deposit') || 
+    document.getElementById('withdraw')
+  );
+  
+  if (isWalletPage) {
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Remove active from all
+        tabBtns.forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+
+        // Add active to clicked
+        btn.classList.add('active');
+        const tabName = btn.textContent.trim().toLowerCase();
+        
+        if (tabName.includes('history')) {
+          const historyEl = document.getElementById('history');
+          if (historyEl) {
+            historyEl.classList.add('active');
+            loadTransactions();
+          }
+        } else if (tabName.includes('deposit')) {
+          const depositEl = document.getElementById('deposit');
+          if (depositEl) depositEl.classList.add('active');
+        } else if (tabName.includes('withdraw')) {
+          const withdrawEl = document.getElementById('withdraw');
+          if (withdrawEl) withdrawEl.classList.add('active');
+        }
+      });
+    });
+  }
+
+  // Load balance and transactions
   async function loadBalance() {
     try {
-      const res = await fetch('/api/wallet/balance/me', { headers: authHeaders() });
-      if (res.status === 401) {
-        window.showError('Session expired, please login again');
-        setTimeout(() => location.href = '/login.html', 1500);
-        return;
-      }
-      const data = await res.json();
-      const balance = data.balance || 0;
-      document.getElementById('wallet-balance').innerText = formatPKR(balance).replace('PKR ', '');
-      console.log('💰 [WALLET] Balance loaded:', formatPKR(balance));
-    } catch (err) {
-      console.error('❌ [WALLET] Failed to load balance:', err);
-      window.showError('Failed to load balance');
-    }
-  }
-
-  // Load transactions (buyer)
-  async function loadTransactions() {
-    try {
-      console.log('📋 [WALLET] Loading transaction history...');
+      const data = await api('/api/auth/me');
+      const user = data.user;
       
-      const [walletRes, depositsRes] = await Promise.all([
-        fetch('/api/wallet/history/me', { headers: authHeaders() }),
-        fetch('/api/deposits/history', { headers: authHeaders() })
-      ]);
-      
-      if (walletRes.status === 401 || depositsRes.status === 401) {
-        window.showError('Session expired');
-        return;
-      }
-      
-      const walletData = await walletRes.json();
-      const depositsData = await depositsRes.json();
-      
-      const walletTransactions = (walletData.tx || []).map(tx => ({
-        ...tx,
-        transactionType: 'wallet'
-      }));
-      
-      const deposits = (Array.isArray(depositsData) ? depositsData : []).map(d => ({
-        id: d.id,
-        amount: d.amount,
-        createdAt: d.createdAt,
-        type: 'deposit_' + d.method,
-        status: d.status,
-        meta: `Deposit - ${d.status}`,
-        transactionType: 'deposit'
-      }));
-      
-      const allTransactions = [...walletTransactions, ...deposits].sort((a, b) => 
-        new Date(b.createdAt) - new Date(a.createdAt)
-      );
-      
-      const tbody = document.getElementById('transaction-tbody');
-      if (!tbody) return;
-      
-      tbody.innerHTML = '';
-
-      if (allTransactions.length === 0) {
-        tbody.innerHTML = '<tr><td colSpan="4" style="textAlign: center; padding: 10px;">No transactions yet</td></tr>';
-        return;
-      }
-
-      allTransactions.forEach(tx => {
-        const row = document.createElement('tr');
-        row.style.borderBottom = '1px solid #eee';
-        const date = new Date(tx.createdAt).toLocaleString('en-PK');
-        const amount = formatPKR(tx.amount);
-        const type = tx.transactionType === 'wallet' ? tx.type : 'Deposit';
-        const status = tx.status || 'completed';
-        
-        row.innerHTML = `
-          <td>${date}</td>
-          <td>${type}</td>
-          <td>${amount}</td>
-          <td>${status}</td>
-        `;
-        tbody.appendChild(row);
-      });
-    } catch (err) {
-      console.error('❌ [WALLET] Failed to load transactions:', err);
-      const tbody = document.getElementById('transaction-tbody');
-      if (tbody) {
-        tbody.innerHTML = '<tr><td colSpan="4" style="textAlign: center; color: red;">Error loading transactions</td></tr>';
-      }
-    }
-  }
-
-  // Load withdrawal history (freelancer)
-  async function loadWithdrawalHistory() {
-    try {
-      console.log('📋 [WALLET] Loading withdrawal history...');
-      
-      const res = await fetch('/api/wallet/withdrawals', { headers: authHeaders() });
-      if (res.status === 401) {
-        window.showError('Session expired');
-        return;
-      }
-      
-      const data = await res.json();
-      const withdrawals = Array.isArray(data) ? data : (data.withdrawals || []);
-      
-      const tbody = document.getElementById('withdrawal-tbody');
-      if (!tbody) return;
-      
-      tbody.innerHTML = '';
-
-      if (withdrawals.length === 0) {
-        tbody.innerHTML = '<tr><td colSpan="4" style="textAlign: center; padding: 10px;">No withdrawals yet</td></tr>';
-        return;
-      }
-
-      withdrawals.forEach(w => {
-        const row = document.createElement('tr');
-        row.style.borderBottom = '1px solid #eee';
-        const date = new Date(w.createdAt).toLocaleString('en-PK');
-        const amount = formatPKR(w.amount);
-        const method = w.method || 'N/A';
-        const status = w.status || 'pending';
-        
-        row.innerHTML = `
-          <td>${date}</td>
-          <td>${amount}</td>
-          <td>${method}</td>
-          <td>${status}</td>
-        `;
-        tbody.appendChild(row);
-      });
-    } catch (err) {
-      console.error('❌ [WALLET] Failed to load withdrawal history:', err);
-      const tbody = document.getElementById('withdrawal-tbody');
-      if (tbody) {
-        tbody.innerHTML = '<tr><td colSpan="4" style="textAlign: center; color: red;">Error loading withdrawals</td></tr>';
-      }
-    }
-  }
-
-  // Check if user has filled withdrawal details
-  async function checkWithdrawalDetails() {
-    try {
-      const res = await fetch('/api/user/withdrawal-details', { headers: authHeaders() });
-      if (res.ok) {
-        const data = await res.json();
-        return data.isComplete === true;
-      }
-    } catch (err) {
-      console.error('❌ [WALLET] Failed to check withdrawal details:', err);
-    }
-    return false;
-  }
-
-  // Tab switching
-  const tabs = document.querySelectorAll('.tab-btn');
-  tabs.forEach(tab => {
-    tab.addEventListener('click', async () => {
-      const tabName = tab.getAttribute('data-tab');
-      
-      // Deactivate all tabs and contents
-      document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-      
-      // Activate selected tab
-      tab.classList.add('active');
-      const content = document.getElementById(tabName);
-      if (content) {
-        content.style.display = 'block';
-        
-        if (tabName === 'transaction-history') {
-          loadTransactions();
-        } else if (tabName === 'withdrawal-history') {
-          loadWithdrawalHistory();
-        }
-      }
-      console.log('📑 [WALLET] Switched to tab:', tabName);
-    });
-  });
-
-  // Top-up form (buyer)
-  const topupForm = document.getElementById('topup-form');
-  if (topupForm) {
-    topupForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const amount = document.getElementById('topup-amount').value;
-      
-      if (!amount || Number(amount) <= 0) {
-        window.showError('Please enter a valid amount');
-        return;
-      }
-
+      // Try to load wallet balance
       try {
-        const res = await fetch('/api/wallet/topup', {
-          method: 'POST',
-          headers: authHeaders(),
-          body: JSON.stringify({ amount: Math.round(Number(amount) * 100) })
-        });
-
-        if (res.ok) {
-          window.showSuccess('Top-up request created');
-          topupForm.reset();
-          loadBalance();
-        } else {
-          const error = await res.json();
-          window.showError(error.error || 'Failed to create top-up request');
+        const walletRes = await api('/api/wallet/balance');
+        const balance = walletRes.balance || 0;
+        const balanceEl = document.getElementById('balanceAmount');
+        if (balanceEl) {
+          balanceEl.textContent = (balance / 100).toLocaleString('en-PK');
         }
       } catch (err) {
-        console.error('❌ [WALLET] Top-up error:', err);
-        window.showError('Network error. Please try again.');
+        console.warn('Could not load wallet balance:', err);
+        const balanceEl = document.getElementById('balanceAmount');
+        if (balanceEl) {
+          balanceEl.textContent = '0';
+        }
       }
-    });
+      
+      console.log('✓ Balance loaded');
+    } catch (err) {
+      console.error('❌ Failed to load balance:', err);
+    }
   }
 
-  // Withdraw form (both buyer and freelancer)
-  const withdrawForm = document.getElementById('withdraw-form');
-  if (withdrawForm) {
-    withdrawForm.addEventListener('submit', async (e) => {
+  // Load transactions
+  async function loadTransactions() {
+    try {
+      const list = document.getElementById('transactionsList');
+      const msg = document.getElementById('transactionsMessage');
+      
+      if (!list || !msg) {
+        console.warn('Transaction elements not found in DOM');
+        return;
+      }
+      
+      msg.textContent = 'Loading transactions...';
+      list.innerHTML = '';
+      
+      // Try to fetch transactions - gracefully handle if endpoint doesn't exist
+      let transactions = [];
+      try {
+        const txRes = await api('/api/wallet/transactions');
+        transactions = txRes.transactions || [];
+      } catch (err) {
+        console.warn('Wallet transactions endpoint not available:', err);
+        if (msg) msg.innerHTML = '<p style="color: #999; text-align: center;">Transaction history not available</p>';
+        return;
+      }
+      
+      if (transactions.length === 0) {
+        if (msg) msg.innerHTML = '<p style="color: #999; text-align: center;">No transactions yet</p>';
+        if (list) list.innerHTML = '';
+        return;
+      }
+      
+      if (msg) msg.innerHTML = '';
+      if (list) {
+        list.innerHTML = transactions.map(tx => `
+          <div class="transaction-item">
+            <div class="transaction-header">
+              <div>
+                <h4>${tx.type === 'deposit' ? '💰 Deposit' : '💸 Withdrawal'}</h4>
+                <div class="transaction-date">${new Date(tx.createdAt).toLocaleDateString('en-PK')}</div>
+              </div>
+              <div>
+                <span class="amount" style="color: ${tx.type === 'deposit' ? '#28a745' : '#dc3545'}">
+                  ${tx.type === 'deposit' ? '+' : '-'} PKR ${(Math.abs(tx.amount) / 100).toLocaleString('en-PK')}
+                </span>
+                <div class="transaction-status ${tx.status}" style="color: ${tx.status === 'completed' ? '#28a745' : tx.status === 'pending' ? '#ffc107' : '#999'}; font-size: 13px; margin-top: 5px;">
+                  ${tx.status}
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+      
+      console.log('✓ Transactions loaded');
+    } catch (err) {
+      console.error('❌ Failed to load transactions:', err);
+      const msg = document.getElementById('transactionsMessage');
+      if (msg) msg.innerHTML = `<p style="color: #dc3545;">Error loading transactions</p>`;
+    }
+  }
+
+  // Withdrawal form handler
+  const withdrawalForm = document.getElementById('withdrawalForm');
+  if (withdrawalForm) {
+    withdrawalForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      const amount = document.getElementById('withdraw-amount').value;
-      const method = document.getElementById('withdraw-method').value;
-      const accountNumber = document.getElementById('withdraw-phone').value;
+      const formData = new FormData(withdrawalForm);
+      const amount = parseInt(formData.get('amount')) * 100; // Convert to cents
       
-      // Validation
-      if (!amount || Number(amount) < 500) {
-        window.showError('Minimum withdrawal amount is PKR 500');
-        return;
-      }
-
-      if (!method) {
-        window.showError('Please select a withdrawal method (Jazz Cash or Easy Paisa)');
-        return;
-      }
-
-      if (!accountNumber) {
-        window.showError('Please enter your phone number');
-        return;
-      }
-
-      // Check withdrawal details
-      const detailsReady = await checkWithdrawalDetails();
-      if (!detailsReady) {
-        const confirmed = confirm('You need to fill your withdrawal details first. Go to Withdrawal Details page?');
-        if (confirmed) {
-          location.href = '/withdrawal-details.html';
-        }
-        return;
-      }
-
       try {
-        const res = await fetch('/api/wallet/withdraw', {
+        const response = await fetch('/api/wallet/withdrawals/request', {
           method: 'POST',
-          headers: authHeaders(),
-          body: JSON.stringify({ 
-            amount: Math.round(Number(amount) * 100),
-            method,
-            accountNumber
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            amount,
+            method: formData.get('method'),
+            accountNumber: formData.get('accountNumber'),
+            accountName: formData.get('accountName')
           })
         });
 
-        if (res.ok) {
-          window.showSuccess('Withdrawal request submitted');
-          withdrawForm.reset();
-          loadBalance();
-          if (userRole === 'freelancer') {
-            loadWithdrawalHistory();
-          } else {
-            loadTransactions();
+        const data = await response.json();
+
+        if (!response.ok) {
+          // Check if redirect needed
+          if (data.requiresProfileCompletion) {
+            alert('⚠️ Please complete your profile first');
+            setTimeout(() => window.location.href = '/profile/', 500);
+            return;
           }
-        } else {
-          const error = await res.json();
-          window.showError(error.error || 'Failed to submit withdrawal request');
+          if (data.requiresWithdrawalDetails) {
+            alert('⚠️ Please complete your withdrawal details first');
+            setTimeout(() => window.location.href = '/withdrawal-details/', 500);
+            return;
+          }
+          throw new Error(data.error || 'Withdrawal failed');
         }
+        
+        alert('✓ Withdrawal request submitted!\n\nIt will be processed within 24 hours.');
+        withdrawalForm.reset();
+        const feeCalcEl = document.getElementById('feeCalculation');
+        if (feeCalcEl) feeCalcEl.style.display = 'none';
+        loadBalance();
       } catch (err) {
-        console.error('❌ [WALLET] Withdrawal error:', err);
-        window.showError('Network error. Please try again.');
+        alert(`❌ Error: ${err.message}`);
       }
     });
+
+    // Fee calculation
+    const amountInput = withdrawalForm.querySelector('input[name="amount"]');
+    if (amountInput) {
+      amountInput.addEventListener('change', () => {
+        const amount = parseInt(amountInput.value) || 0;
+        const feePercent = 20;
+        const fee = Math.floor(amount * feePercent / 100);
+        const receive = amount - fee;
+        
+        const feeAmountEl = document.getElementById('feeAmount');
+        const feeValueEl = document.getElementById('feeValue');
+        const feeReceiveEl = document.getElementById('feeReceive');
+        const feeCalcEl = document.getElementById('feeCalculation');
+        
+        if (feeAmountEl) feeAmountEl.textContent = `PKR ${amount.toLocaleString('en-PK')}`;
+        if (feeValueEl) feeValueEl.textContent = `PKR ${fee.toLocaleString('en-PK')}`;
+        if (feeReceiveEl) feeReceiveEl.textContent = `PKR ${receive.toLocaleString('en-PK')}`;
+        
+        if (feeCalcEl) feeCalcEl.style.display = amount > 0 ? 'block' : 'none';
+      });
+    }
   }
 
   // Initial load
+  console.log('✓ Wallet page initialized');
   loadBalance();
   
-  // Load first tab data
-  if (userRole === 'freelancer') {
-    loadWithdrawalHistory();
-  } else {
+  // Only load transactions if on wallet page
+  if (document.getElementById('history')) {
     loadTransactions();
   }
 });

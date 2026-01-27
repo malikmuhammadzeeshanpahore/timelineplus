@@ -182,17 +182,20 @@ model AdminSecret {
 
 // Deposit requests from buyers
 model Deposit {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  amount    Int      // in cents
-  currency  String   @default("USD")
-  method    String   // "card", "bank", "crypto", etc.
-  status    String   @default("pending") // pending, approved, rejected
-  approvedBy Int?    // admin id
-  reason    String?  // rejection reason
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              Int      @id @default(autoincrement())
+  user            User     @relation(fields: [userId], references: [id])
+  userId          Int
+  amount          Int      // in cents
+  currency        String   @default("USD")
+  method          String   // "card", "bank", "crypto", etc.
+  status          String   @default("pending") // pending, approved, rejected
+  senderName      String?  // person who sent the money
+  senderAccount   String?  // account number or mobile number
+  transactionId   String?  // transaction reference from payment provider
+  approvedBy      Int?     // admin id
+  reason          String?  // rejection reason
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 // Service campaigns (followers, subscribers, likes, etc.)

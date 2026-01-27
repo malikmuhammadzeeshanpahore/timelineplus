@@ -221,27 +221,42 @@ function build() {
         html = html.replace('\n</body>', `\n${scriptsHtml}\n</body>`);
       }
       
-      // Add redirect script as external file reference if needed
+      // Build list of scripts to inject before </body> (in order)
+      let endScripts = [];
+      
+      // Add redirect script first (runs early to redirect if needed)
       if (redirectScriptContent) {
         const jsDir = path.join(DIST, 'js');
         if (!fs.existsSync(jsDir)) fs.mkdirSync(jsDir, { recursive: true });
         const redirectJs = path.join(jsDir, `${base}-auth.js`);
         fs.writeFileSync(redirectJs, redirectScriptContent, 'utf8');
-        html = html.replace('</body>', `<script src="/js/${base}-auth.js"></script>\n</body>`);
+        endScripts.push(`<script src="/js/${base}-auth.js"></script>`);
       }
       
-      // For dashboard pages, add the data loading script
-      if (base === 'freelancer-dashboard' || base === 'dashboard-buyer') {
-        html = html.replace('</body>', `<script src="/js/${base}.js"></script>\n</body>`);
-      }
-
-      // For deposit, campaigns, and wallet pages, inject toast first, then their scripts
+      // Add page-specific scripts
       if (base === 'deposit' || base === 'campaigns' || base === 'wallet-buyer' || base === 'wallet') {
-        html = html.replace('</body>', `<script src="/js/toast.js"></script>\n<script src="/js/wallet.js"></script>\n</body>`);
+        endScripts.push(`<script src="/js/toast.js"></script>`);
+        if (base === 'deposit') {
+          // Deposit page needs deposit.js, not wallet.js
+          endScripts.push(`<script src="/js/deposit.js"></script>`);
+        } else {
+          // Other pages need wallet.js
+          endScripts.push(`<script src="/js/wallet.js"></script>`);
+        }
+      }
+      
+      if (base === 'freelancer-dashboard' || base === 'dashboard-buyer') {
+        endScripts.push(`<script src="/js/${base}.js"></script>`);
+      }
+      
+      // Inject all end scripts at once
+      if (endScripts.length > 0) {
+        html = html.replace('\n</body>', '\n' + endScripts.join('\n') + '\n</body>');
       }
 
       // Inject role enforcer on all pages to protect access (runs before page content)
-      if (!['login', 'register', 'forgot', 'index'].includes(base)) {
+      // EXCEPT dashboard pages which already have their own auth check
+      if (!['login', 'register', 'forgot', 'index', 'freelancer-dashboard', 'dashboard-buyer'].includes(base)) {
         html = html.replace('<body>', `<body>\n<script src="/js/role-enforcer-v2.js"></script>`);
       }
 

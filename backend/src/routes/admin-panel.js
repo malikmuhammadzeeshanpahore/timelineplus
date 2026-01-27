@@ -8,6 +8,29 @@ const { auth } = require('../middleware/auth');
 const prisma = new PrismaClient();
 const router = express.Router();
 
+// Custom admin middleware that checks isAdmin flag
+const adminOnly = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  
+  const token = authHeader.slice(7);
+  try {
+    const data = jwt.verify(token, JWT_SECRET);
+    req.user = { id: data.uid, role: data.role, isAdmin: data.isAdmin };
+    
+    // Allow if user is admin OR has admin_freelancer/admin_buyer roles
+    if (data.isAdmin === true || (data.role && ['admin_freelancer', 'admin_buyer', 'admin'].includes(data.role))) {
+      next();
+    } else {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+  } catch (err) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+};
+
 // ==================== ADMIN REGISTRATION ====================
 
 /**
@@ -92,7 +115,7 @@ router.get('/verify/:code', async (req, res) => {
   }
 });
 
-router.use(auth(['admin_freelancer', 'admin_buyer']));
+router.use(adminOnly);
 
 // ==================== USER MANAGEMENT ====================
 
@@ -669,7 +692,22 @@ router.get('/withdrawals', async (req, res) => {
 
     const withdrawals = await prisma.withdrawal.findMany({
       where,
-      include: { user: { select: { id: true, email: true, username: true, phone: true } } },
+      include: { 
+        user: { 
+          select: { 
+            id: true, 
+            email: true, 
+            username: true, 
+            phone: true,
+            fullName: true,
+            accountHolderName: true,
+            accountType: true,
+            accountNumber: true,
+            bankName: true,
+            iban: true
+          } 
+        } 
+      },
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit

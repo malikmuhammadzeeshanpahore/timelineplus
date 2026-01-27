@@ -28,19 +28,19 @@ const Profile = () => {
     .btn-outline:hover { background: #667eea; color: white; }
     .button-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
     footer { text-align: center; padding: 30px 20px; color: rgba(0, 0, 0, 0.6); background: white; border-top: 1px solid #f0f0f0; margin-top: 40px; }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 2000; align-items: center; justify-content: center; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 2000; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
     .modal.active { display: flex; }
-    .modal-content { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .modal-header h3 { color: #667eea; font-size: 22px; }
-    .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; }
+    .modal-content { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; margin: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+    .modal-header h3 { color: #667eea; font-size: 22px; flex: 1; }
+    .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; padding: 4px 8px; }
     .modal-close:hover { color: #333; }
     .modal-body { display: flex; flex-direction: column; gap: 16px; }
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group label { font-weight: 600; color: #333; font-size: 14px; }
-    .form-group input, .form-group select { padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-family: inherit; }
+    .form-group input, .form-group select { padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-family: inherit; width: 100%; }
     .form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); background: white; }
-    .modal-footer { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+    .modal-footer { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; flex-wrap: wrap; }
     .btn-secondary { padding: 10px 20px; background: #f0f0f0; color: #333; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
     .btn-secondary:hover { background: #e0e0e0; }
     #editMsg { margin-top: 12px; padding: 12px; border-radius: 8px; text-align: center; font-weight: 600; }
@@ -49,7 +49,18 @@ const Profile = () => {
     @media (max-width: 768px) {
       .navbar { gap: 15px; margin-left: 20px; }
       .card { padding: 20px; }
-      .modal-content { width: 95%; padding: 20px; }
+      .modal { padding: 12px; }
+      .modal-content { width: 100%; padding: 20px; border-radius: 8px; }
+      .modal-header { margin-bottom: 16px; }
+      .modal-header h3 { font-size: 18px; }
+      .modal-footer { justify-content: center; gap: 8px; }
+      .btn-secondary, .btn-primary { flex: 1; min-width: 120px; }
+    }
+    @media (max-width: 480px) {
+      .modal-content { padding: 16px; }
+      .modal-header h3 { font-size: 16px; }
+      .form-group input, .form-group select { font-size: 16px; padding: 12px; }
+      .btn-secondary, .btn-primary { padding: 12px 16px; font-size: 14px; }
     }
   `;
 

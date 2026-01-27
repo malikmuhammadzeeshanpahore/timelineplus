@@ -675,6 +675,7 @@
       <thead>
         <tr>
           <th>User</th>
+          <th>Account Holder</th>
           <th>Amount</th>
           <th>Fee (20%)</th>
           <th>Net Amount</th>
@@ -690,6 +691,7 @@
 
       html += `<tr>
         <td>${withdrawal.user?.email}</td>
+        <td>${withdrawal.user?.accountHolderName || '—'}</td>
         <td>PKR ${(withdrawal.amount / 100).toFixed(2)}</td>
         <td>PKR ${(fee / 100).toFixed(2)}</td>
         <td>PKR ${(netAmount / 100).toFixed(2)}</td>

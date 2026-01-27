@@ -28,13 +28,13 @@ function jwtMiddleware(req, res, next) {
  */
 router.post('/request', jwtMiddleware, async (req, res) => {
   try {
-    const { amount, method } = req.body;
+    const { amount, method, senderName, senderAccount, transactionId } = req.body;
 
     if (!amount || !method) {
       return res.status(400).json({ error: 'amount and method required' });
     }
 
-    if (!['card', 'bank', 'crypto', 'paypal'].includes(method)) {
+    if (!['card', 'bank', 'crypto', 'paypal', 'jazzCash', 'easyPaisa'].includes(method)) {
       return res.status(400).json({ error: 'Invalid payment method' });
     }
 
@@ -43,6 +43,9 @@ router.post('/request', jwtMiddleware, async (req, res) => {
         userId: req.user.id,
         amount: Number(amount), // in cents
         method,
+        senderName: senderName || null,
+        senderAccount: senderAccount || null,
+        transactionId: transactionId || null,
         status: 'pending'
       },
       include: { user: { select: { email: true, username: true } } }

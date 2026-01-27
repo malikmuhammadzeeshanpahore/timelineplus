@@ -1,26 +1,13 @@
-nohup: ignoring input
 
-> timelineplus-backend@0.1.0 dev
-> nodemon --watch src --ext js,json --exec node src/index.js
+> timelineplus-backend@0.1.0 start
+> node src/index.js
 
-[33m[nodemon] 3.1.11[39m
-[33m[nodemon] to restart at any time, enter `rs`[39m
-[33m[nodemon] watching path(s): src/**/*[39m
-[33m[nodemon] watching extensions: js,json[39m
-[32m[nodemon] starting `node src/index.js`[39m
-node:events:486
-      throw er; // Unhandled 'error' event
-      ^
-
-Error: EBADF: bad file descriptor, read
-Emitted 'error' event on ReadStream instance at:
-    at emitErrorNT (node:internal/streams/destroy:170:8)
-    at errorOrDestroy (node:internal/streams/destroy:239:7)
-    at node:internal/fs/streams:275:9
-    at FSReqCallback.wrapper [as oncomplete] (node:fs:670:5) {
-  errno: -9,
-  code: 'EBADF',
-  syscall: 'read'
+TikTok OAuth is currently disabled (commented out)
+Server running on port 4000
+Login attempt: { email: 'buyer-test2@test.site', hasPassword: true }
+✅ Login successful: {
+  email: 'buyer-test2@test.site',
+  userId: 11,
+  role: 'freelancer',
+  isAdmin: false
 }
-
-Node.js v24.11.1

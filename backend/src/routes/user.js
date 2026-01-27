@@ -78,7 +78,7 @@ router.post('/profile/update', jwtMiddleware, async (req, res) => {
     if (iban !== undefined) data.iban = iban;
 
     const updated = await prisma.user.update({ where: { id: uid }, data });
-    res.json({ success: true, user: { id: updated.id, email: updated.email, username: updated.username, fullName: updated.fullName } });
+    res.json({ success: true, user: { id: updated.id, email: updated.email, username: updated.username, fullName: updated.fullName, age: updated.age, gender: updated.gender, city: updated.city } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
